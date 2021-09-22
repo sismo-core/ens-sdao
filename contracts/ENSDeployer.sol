@@ -1,9 +1,10 @@
 pragma solidity >=0.8.4;
+import {INameWrapper, PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
+import '@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol';
+import '@ensdomains/ens-contracts/contracts/registry/FIFSRegistrar.sol';
+import {NameResolver, ReverseRegistrar} from '@ensdomains/ens-contracts/contracts/registry/ReverseRegistrar.sol';
 
-import {ENSRegistry} from '@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol';
-import {FIFSRegistrar} from '@ensdomains/ens-contracts/contracts/registry/FIFSRegistrar.sol';
-import {ReverseRegistrar, NameResolver} from '@ensdomains/ens-contracts/contracts/registry/ReverseRegistrar.sol';
-import {PublicResolver, INameWrapper} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
+// import "hardhat/console.sol";
 
 // Construct a set of test ENS contracts.
 contract ENSDeployer {
