@@ -4,8 +4,6 @@ import '@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol';
 import '@ensdomains/ens-contracts/contracts/registry/FIFSRegistrar.sol';
 import {NameResolver, ReverseRegistrar} from '@ensdomains/ens-contracts/contracts/registry/ReverseRegistrar.sol';
 
-// import "hardhat/console.sol";
-
 // Construct a set of test ENS contracts.
 contract ENSDeployer {
   bytes32 public constant TLD_LABEL = keccak256('eth');
