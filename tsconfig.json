@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "module": "commonjs",
+    "strict": true,                        /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */
+    "outDir": "./compiled",
+    "esModuleInterop": true,                /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+  },
+  "include": ["./libs", "./node-server", "./test", "./deploy", "./tasks", "node-client", "next-app", "sismo-common-lib"],                     /* Redirect output structure to the directory. */
+  "files": ["./hardhat.config.ts"]
+}
