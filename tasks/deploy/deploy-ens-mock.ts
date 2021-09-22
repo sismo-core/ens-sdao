@@ -2,14 +2,12 @@ import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { BigNumber } from 'ethers';
 import { getDeployer, logHre } from '../../evm-utils';
-import {
-  ENSDeployer__factory,
-  ENSRegistry__factory,
-  FIFSRegistrar__factory,
-  ReverseRegistrar__factory,
-  PublicResolver__factory,
-  ENSDeployer,
-} from '../../types';
+import { ENSDeployer } from 'types';
+import { ENSDeployer__factory } from '../../types/factories/ENSDeployer__factory';
+import { ENSRegistry__factory } from '../../types/factories/ENSRegistry__factory';
+import { FIFSRegistrar__factory } from '../../types/factories/FIFSRegistrar__factory';
+import { ReverseRegistrar__factory } from '../../types/factories/ReverseRegistrar__factory';
+import { PublicResolver__factory } from '../../types/factories/PublicResolver__factory';
 
 const GAS_PRICE = BigNumber.from('160000000000');
 
