@@ -8,6 +8,7 @@ import {
   FIFSRegistrar__factory,
   ReverseRegistrar__factory,
   PublicResolver__factory,
+  NameWrapper__factory,
   ENSDeployer,
 } from '../../types';
 
@@ -37,6 +38,10 @@ task('deploy-ens')
       await ensDeployer.publicResolver(),
       deployer
     );
+    const nameWrapper = NameWrapper__factory.connect(
+      await ensDeployer.nameWrapper(),
+      deployer
+    );
     console.log(
       `Deployed by ${deployer.address}. registry ${registry.address}`
     );
@@ -47,5 +52,6 @@ task('deploy-ens')
       registrar,
       reverseRegistrar,
       publicResolver,
+      nameWrapper,
     };
   });

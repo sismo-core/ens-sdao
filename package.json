@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "compile": "SKIP_LOAD=true hardhat compile",
-    "test:ens": "hardhat test ./test/ens.spec.ts"
+    "test:ens": "hardhat test ./test/ens.spec.ts",
+    "test:ens-rinkeby": "hardhat test ./test/ens-rinkeby.spec.ts"
   },
   "keywords": [],
   "author": "Sismo",
