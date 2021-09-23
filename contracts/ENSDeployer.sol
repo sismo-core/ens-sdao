@@ -3,6 +3,7 @@ import {INameWrapper, PublicResolver} from '@ensdomains/ens-contracts/contracts/
 import '@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol';
 import '@ensdomains/ens-contracts/contracts/registry/FIFSRegistrar.sol';
 import {NameResolver, ReverseRegistrar} from '@ensdomains/ens-contracts/contracts/registry/ReverseRegistrar.sol';
+import {NameWrapper, IMetadataService, BaseRegistrar} from './NameWrapper.sol';
 
 // Construct a set of test ENS contracts.
 contract ENSDeployer {
@@ -15,6 +16,7 @@ contract ENSDeployer {
   FIFSRegistrar public fifsRegistrar;
   ReverseRegistrar public reverseRegistrar;
   PublicResolver public publicResolver;
+  NameWrapper public nameWrapper;
 
   function namehash(bytes32 node, bytes32 label) public pure returns (bytes32) {
     return keccak256(abi.encodePacked(node, label));
@@ -22,7 +24,22 @@ contract ENSDeployer {
 
   constructor() public {
     ens = new ENSRegistry();
-    publicResolver = new PublicResolver(ens, INameWrapper(address(0)));
+
+    // Create a FIFS registrar for the TLD
+    fifsRegistrar = new FIFSRegistrar(ens, namehash(bytes32(0), TLD_LABEL));
+
+    ens.setSubnodeOwner(bytes32(0), TLD_LABEL, address(fifsRegistrar));
+
+    nameWrapper = new NameWrapper(
+      ens,
+      BaseRegistrar(address(fifsRegistrar)),
+      IMetadataService(address(0))
+    );
+
+    publicResolver = new PublicResolver(
+      ens,
+      INameWrapper(address(nameWrapper))
+    );
 
     // Set up the resolver
     bytes32 resolverNode = namehash(bytes32(0), RESOLVER_LABEL);
@@ -30,11 +47,6 @@ contract ENSDeployer {
     ens.setSubnodeOwner(bytes32(0), RESOLVER_LABEL, address(this));
     ens.setResolver(resolverNode, address(publicResolver));
     publicResolver.setAddr(resolverNode, address(publicResolver));
-
-    // Create a FIFS registrar for the TLD
-    fifsRegistrar = new FIFSRegistrar(ens, namehash(bytes32(0), TLD_LABEL));
-
-    ens.setSubnodeOwner(bytes32(0), TLD_LABEL, address(fifsRegistrar));
 
     // Construct a new reverse registrar and point it at the public resolver
     reverseRegistrar = new ReverseRegistrar(
