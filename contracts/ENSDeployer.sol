@@ -1,9 +1,9 @@
 pragma solidity >=0.8.4;
 import {INameWrapper, PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol';
-import '@ensdomains/ens-contracts/contracts/registry/FIFSRegistrar.sol';
+import {ERC712FIFSRegistrar as FIFSRegistrar} from './ERC712FIFSRegistrar.sol';
 import {NameResolver, ReverseRegistrar} from '@ensdomains/ens-contracts/contracts/registry/ReverseRegistrar.sol';
-import {NameWrapper, IMetadataService, BaseRegistrar} from './NameWrapper.sol';
+import {NameWrapper, IMetadataService, BaseRegistrar} from './nameWrapper/NameWrapper.sol';
 
 // Construct a set of test ENS contracts.
 contract ENSDeployer {

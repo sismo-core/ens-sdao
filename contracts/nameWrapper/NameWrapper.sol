@@ -160,7 +160,9 @@ contract NameWrapper is
     uint96 _fuses,
     address resolver
   ) public override {
+    console.log('wrapETH2LD');
     uint256 tokenId = uint256(keccak256(bytes(label)));
+    console.log('tokenId', tokenId);
     address owner = registrar.ownerOf(tokenId);
 
     require(
@@ -231,8 +233,11 @@ contract NameWrapper is
     uint96 _fuses,
     address resolver
   ) public override {
+    console.log('OWNER');
     (bytes32 labelhash, uint256 offset) = name.readLabel(0);
+    console.log('OWNER');
     bytes32 parentNode = name.namehash(offset);
+    console.log('OWNER');
     bytes32 node = _makeNode(parentNode, labelhash);
 
     require(
@@ -241,6 +246,7 @@ contract NameWrapper is
     );
 
     address owner = ens.owner(node);
+    console.log('OWNER', owner);
     require(
       owner == msg.sender ||
         isApprovedForAll(owner, msg.sender) ||
