@@ -233,13 +233,15 @@ contract NameWrapper is
     uint96 _fuses,
     address resolver
   ) public override {
-    console.log('OWNER');
+    console.log('wrap');
     (bytes32 labelhash, uint256 offset) = name.readLabel(0);
-    console.log('OWNER');
+    console.log('labelhash');
+    console.logBytes32(labelhash);
     bytes32 parentNode = name.namehash(offset);
-    console.log('OWNER');
+    console.log('offset', offset);
     bytes32 node = _makeNode(parentNode, labelhash);
-
+    console.log('node');
+    console.logBytes32(node);
     require(
       parentNode != ETH_NODE,
       'NameWrapper: .eth domains need to use wrapETH2LD()'
@@ -255,11 +257,13 @@ contract NameWrapper is
     );
 
     if (resolver != address(0)) {
+      console.log('setting resolver');
       ens.setResolver(node, resolver);
     }
-
+    console.log('setting owner');
     ens.setOwner(node, address(this));
 
+    console.log('_wrap');
     _wrap(node, name, wrappedOwner, _fuses);
   }
 
@@ -409,7 +413,13 @@ contract NameWrapper is
     uint96 _fuses
   ) public override {
     bytes32 labelhash = keccak256(bytes(label));
+    console.log('smart-contract-labelhash');
+    console.logBytes32(labelhash);
+    console.log('smart-contract-parent-node');
+    console.logBytes32(parentNode);
     bytes32 node = _makeNode(parentNode, labelhash);
+    console.log('smart-contract-child-node');
+    console.logBytes32(node);
     bytes memory name = _addLabel(label, names[parentNode]);
 
     setSubnodeRecord(parentNode, labelhash, address(this), resolver, ttl);

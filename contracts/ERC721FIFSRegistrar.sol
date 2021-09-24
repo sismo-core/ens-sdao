@@ -2,6 +2,7 @@ pragma solidity >=0.8.4;
 
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import './nameWrapper/NameWrapper.sol';
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 
 /**
@@ -11,6 +12,7 @@ contract ERC721FIFSRegistrar is ERC721 {
   ENS public _ens;
   bytes32 public _rootNode;
   PublicResolver public _resolver;
+  NameWrapper public _nameWrapper;
   string __baseURI;
   address public _owner;
 
@@ -29,7 +31,8 @@ contract ERC721FIFSRegistrar is ERC721 {
    */
   constructor(
     ENS ensAddr,
-    address resolverAddress,
+    PublicResolver resolverAddress,
+    NameWrapper nameWrapper,
     bytes32 node,
     string memory baseURI,
     string memory name,
@@ -37,7 +40,8 @@ contract ERC721FIFSRegistrar is ERC721 {
   ) ERC721(name, symbol) {
     _ens = ensAddr;
     _rootNode = node;
-    _resolver = PublicResolver(resolverAddress);
+    _resolver = resolverAddress;
+    _nameWrapper = nameWrapper;
     __baseURI = baseURI;
     _owner = msg.sender;
   }
@@ -66,6 +70,7 @@ contract ERC721FIFSRegistrar is ERC721 {
   }
 
   function abdicate() public {
+    require(msg.sender == _owner, 'NOT AUTHORIZED');
     _ens.setOwner(_rootNode, _owner);
   }
 }
