@@ -10,6 +10,8 @@ import {
   ReverseRegistrar,
   PublicResolver,
   NameWrapper,
+  ERC721FIFSRegistrar,
+  ERC721FIFSRegistrar__factory,
 } from '../types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
@@ -31,6 +33,7 @@ describe('ENS', () => {
   let userSigner: SignerWithAddress;
   let ownerSigner: SignerWithAddress;
   let nameWrapper: NameWrapper;
+  let sismoRegistrar: ERC721FIFSRegistrar;
   let ens: any;
   let tokenId: string;
   before(async () => {
@@ -180,6 +183,34 @@ describe('ENS', () => {
       expect(await ens.name('newUser.' + domain).getAddress()).to.be.equal(
         newUserAddress
       );
+    });
+    it('deploy a registrar that will own sismo.eth', async () => {
+      sismoRegistrar = await HRE.run('deploy-ens-sismo-registrar', {
+        domain: 'sismo.eth',
+        ens: registry.address,
+        resolver: publicResolver.address,
+      });
+    });
+    it('sismo.eth owner gives ownership to registrar', async () => {
+      await registry.setOwner(node, sismoRegistrar.address);
+      expect(await registry.owner(node)).to.be.equal(sismoRegistrar.address);
+    });
+    it('a user can register and own iam.sismo.eth', async () => {
+      console.log('SISMO REGISTRAR', sismoRegistrar.address);
+      console.log('SISMO REGISTRAR', await sismoRegistrar._ens());
+      await (
+        await sismoRegistrar.register(getLabelhash('iam'), userSigner.address)
+      ).wait();
+      expect(await ens.name('iam.' + domain).getAddress()).to.be.equal(
+        userSigner.address
+      );
+    });
+    it('the user should have an alphaSismo NFT', async () => {
+      expect(await sismoRegistrar.balanceOf(userSigner.address)).to.be.equal(1);
+    });
+    it('sismo.eth registrar can adbicate', async () => {
+      await (await sismoRegistrar.abdicate()).wait();
+      expect(await registry.owner(node)).to.be.equal(ownerSigner.address);
     });
     xit('try to do some wrappedname stuff', async () => {
       const newUserAddress = '0xEA674fdDe714fd979de3EdF0F56AA9716B898ec8';
