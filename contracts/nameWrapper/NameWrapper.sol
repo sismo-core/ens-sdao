@@ -233,15 +233,9 @@ contract NameWrapper is
     uint96 _fuses,
     address resolver
   ) public override {
-    console.log('wrap');
     (bytes32 labelhash, uint256 offset) = name.readLabel(0);
-    console.log('labelhash');
-    console.logBytes32(labelhash);
     bytes32 parentNode = name.namehash(offset);
-    console.log('offset', offset);
     bytes32 node = _makeNode(parentNode, labelhash);
-    console.log('node');
-    console.logBytes32(node);
     require(
       parentNode != ETH_NODE,
       'NameWrapper: .eth domains need to use wrapETH2LD()'
@@ -389,8 +383,11 @@ contract NameWrapper is
     node = _makeNode(parentNode, labelhash);
     bytes memory name = _addLabel(label, names[parentNode]);
 
+    console.log('setSubnodeOwnerAndWrap');
+    console.log('setSubnodeOwner');
     setSubnodeOwner(parentNode, labelhash, address(this));
 
+    console.log('_Wrap');
     _wrap(node, name, newOwner, _fuses);
   }
 

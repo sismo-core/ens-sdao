@@ -10,7 +10,7 @@ import {
   PublicResolver__factory,
   NameWrapper__factory,
   ENSDeployer,
-  ERC721FIFSRegistrar__factory,
+  EthDomainRegistrar__factory,
 } from '../../types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
@@ -45,11 +45,11 @@ task('deploy-ens-sismo-registrar')
       await logHre(hre);
       const deployer = await getDeployer(hre, true);
       const node = nameHash.hash(domain);
-      const deployed = await hre.deployments.deploy('ERC721FIFSRegistrar', {
+      const deployed = await hre.deployments.deploy('EthDomainRegistrar', {
         from: deployer.address,
         args: [ens, resolver, nameWrapper, node, baseURI, name, symbol],
       });
       console.log(`Deployed SISMO REGISTRAR ${deployed.address}`);
-      return ERC721FIFSRegistrar__factory.connect(deployed.address, deployer);
+      return EthDomainRegistrar__factory.connect(deployed.address, deployer);
     }
   );

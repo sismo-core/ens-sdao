@@ -5,7 +5,7 @@ import { getDeployer, logHre } from '../../evm-utils';
 import {
   ENSDeployer__factory,
   ENSRegistry__factory,
-  FIFSRegistrar__factory,
+  EthRegistrar__factory,
   ReverseRegistrar__factory,
   PublicResolver__factory,
   NameWrapper__factory,
@@ -26,8 +26,8 @@ task('deploy-ens')
       await ensDeployer.ens(),
       deployer
     );
-    const registrar = FIFSRegistrar__factory.connect(
-      await ensDeployer.fifsRegistrar(),
+    const registrar = EthRegistrar__factory.connect(
+      await ensDeployer.ethRegistrar(),
       deployer
     );
     const reverseRegistrar = ReverseRegistrar__factory.connect(

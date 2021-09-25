@@ -1,7 +1,7 @@
 pragma solidity >=0.8.4;
 import {INameWrapper, PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol';
-import '@ensdomains/ens-contracts/contracts/registry/FIFSRegistrar.sol';
+import {EthRegistrar} from './EthRegistrar.sol';
 import {NameResolver, ReverseRegistrar} from '@ensdomains/ens-contracts/contracts/registry/ReverseRegistrar.sol';
 import {NameWrapper, IMetadataService, BaseRegistrar} from './nameWrapper/NameWrapper.sol';
 
@@ -13,7 +13,7 @@ contract ENSDeployer {
   bytes32 public constant ADDR_LABEL = keccak256('addr');
 
   ENSRegistry public ens;
-  FIFSRegistrar public fifsRegistrar;
+  EthRegistrar public ethRegistrar;
   ReverseRegistrar public reverseRegistrar;
   PublicResolver public publicResolver;
   NameWrapper public nameWrapper;
@@ -26,13 +26,13 @@ contract ENSDeployer {
     ens = new ENSRegistry();
 
     // Create a FIFS registrar for the TLD
-    fifsRegistrar = new FIFSRegistrar(ens, namehash(bytes32(0), TLD_LABEL));
+    ethRegistrar = new EthRegistrar(ens, namehash(bytes32(0), TLD_LABEL));
 
-    ens.setSubnodeOwner(bytes32(0), TLD_LABEL, address(fifsRegistrar));
+    ens.setSubnodeOwner(bytes32(0), TLD_LABEL, address(ethRegistrar));
 
     nameWrapper = new NameWrapper(
       ens,
-      BaseRegistrar(address(fifsRegistrar)),
+      BaseRegistrar(address(ethRegistrar)),
       IMetadataService(address(0))
     );
 

@@ -6,18 +6,19 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import {
   ENSDeployer,
   ENSRegistry,
-  FIFSRegistrar,
+  EthRegistrar,
   ReverseRegistrar,
   PublicResolver,
   NameWrapper,
-  ERC721FIFSRegistrar,
-  ERC721FIFSRegistrar__factory,
+  EthDomainRegistrar,
+  EthDomainRegistrar__factory,
 } from '../types';
 //@ts-ignore
 import packet from 'dns-packet';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
 import { keccak256 } from '@ethersproject/keccak256';
+import { namehash } from '@ethersproject/hash';
 const utils = ethers.utils;
 const getLabelhash = (label: string) =>
   utils.keccak256(utils.toUtf8Bytes(label));
@@ -29,18 +30,18 @@ let node: string;
 function encodeName(name: string) {
   return '0x' + packet.name.encode(name).toString('hex');
 }
-
+const year = 365 * 24 * 60 * 60;
 describe('ENS', () => {
   let ensDeployer: ENSDeployer;
   // .eth registrar
-  let registrar: FIFSRegistrar;
+  let registrar: EthRegistrar;
   let registry: ENSRegistry;
   let reverseRegistrar: ReverseRegistrar;
   let publicResolver: PublicResolver;
   let userSigner: SignerWithAddress;
   let ownerSigner: SignerWithAddress;
   let nameWrapper: NameWrapper;
-  let sismoRegistrar: ERC721FIFSRegistrar;
+  let sismoRegistrar: EthDomainRegistrar;
   let ens: any;
   let tokenId: string;
   before(async () => {
@@ -48,7 +49,7 @@ describe('ENS', () => {
     const deployedENS: {
       ensDeployer: ENSDeployer;
       registry: ENSRegistry;
-      registrar: FIFSRegistrar;
+      registrar: EthRegistrar;
       reverseRegistrar: ReverseRegistrar;
       publicResolver: PublicResolver;
       nameWrapper: NameWrapper;
@@ -71,7 +72,7 @@ describe('ENS', () => {
   });
   describe('Setting dhadrien.eth <> userSigner address with contracts', async () => {
     it('owner registers dhadrien.eth for themself', async () => {
-      await registrar.register(labelhash, ownerSigner.address);
+      await registrar.register(labelhash, ownerSigner.address, year);
       expect(await registry.owner(node)).to.be.equal(ownerSigner.address);
       // record has just owner for now
       expect(await registry.recordExists(node)).to.be.true;
@@ -170,7 +171,7 @@ describe('ENS', () => {
       labelhash = getLabelhash(label);
       domain = `${label}.eth`;
       node = nameHash.hash(domain);
-      await registrar.register(labelhash, ownerSigner.address);
+      await registrar.register(labelhash, ownerSigner.address, year);
       // set resolver
       await ens.name(domain).setResolver(publicResolver.address);
       expect(await ens.name(domain).getAddress()).to.be.equal(
@@ -232,18 +233,16 @@ describe('ENS', () => {
     });
     it('Wrapped domain (subdomain.simsmo.eth) should be able to give subdomains to newUser', async () => {
       const subdomain = 'subdomain.sismo.eth';
-      const userLabel = 'newUser';
+      const userLabel = 'user';
       const userLabelHash = getLabelhash(userLabel);
       const subdomainNode = nameHash.hash(subdomain);
-      // this is wrong don't use the following!!
-      // const userNode = nameHash.hash(`${userLabel}.${subdomain}`);
-      // letting it here in case people have same issue
-      const userNode = keccak256(
-        ethers.utils.solidityPack(
-          ['bytes', 'bytes'],
-          [subdomainNode, userLabelHash]
-        )
-      );
+      const userNode = nameHash.hash(`${userLabel}.${subdomain}`);
+      // const userNode = keccak256(
+      //   ethers.utils.solidityPack(
+      //     ['bytes', 'bytes'],
+      //     [subdomainNode, userLabelHash]
+      //   )
+      // );
 
       expect(
         await nameWrapper.balanceOf(ownerSigner.address, userNode)
@@ -251,7 +250,7 @@ describe('ENS', () => {
 
       await nameWrapper.setSubnodeRecordAndWrap(
         subdomainNode,
-        'newUser',
+        userLabel,
         ownerSigner.address,
         publicResolver.address,
         0,
@@ -262,49 +261,61 @@ describe('ENS', () => {
       ).to.be.equal(1);
       expect(await registry.owner(userNode)).to.be.equal(nameWrapper.address);
     });
-
     it('deploy a registrar that will own sismo.eth', async () => {
       sismoRegistrar = await HRE.run('deploy-ens-sismo-registrar', {
+        // name NEEEDS to be label of .eth name
+        name: 'sismo',
         domain: 'sismo.eth',
         ens: registry.address,
         resolver: publicResolver.address,
+        nameWrapper: nameWrapper.address,
       });
+      tokenId = ethers.BigNumber.from(getLabelhash('sismo')).toString();
     });
-    it('sismo.eth owner gives ownership to registrar', async () => {
-      await registry.setOwner(node, sismoRegistrar.address);
-      expect(await registry.owner(node)).to.be.equal(sismoRegistrar.address);
-    });
-    it('a user can register and own iam.sismo.eth', async () => {
-      await (
-        await sismoRegistrar.register(getLabelhash('iam'), userSigner.address)
-      ).wait();
-      expect(await ens.name('iam.' + domain).getAddress()).to.be.equal(
-        userSigner.address
-      );
-    });
-    it('the user should have an alphaSismo NFT', async () => {
-      expect(await sismoRegistrar.balanceOf(userSigner.address)).to.be.equal(1);
-    });
-    it('sismo.eth registrar can adbicate', async () => {
-      await (await sismoRegistrar.abdicate()).wait();
-      expect(await registry.owner(node)).to.be.equal(ownerSigner.address);
-    });
-    xit('try to do some wrappedname stuff', async () => {
-      const newUserAddress = '0xEA674fdDe714fd979de3EdF0F56AA9716B898ec8';
-      await (
-        await registrar.setApprovalForAll(nameWrapper.address, true)
-      ).wait();
+    it('sismo.eth owner wrap and gives wrapped onwnership to sismo registrar', async () => {
+      await registry.setApprovalForAll(nameWrapper.address, true);
+      await (await registrar.approve(nameWrapper.address, tokenId)).wait();
       await nameWrapper.wrapETH2LD(
         'sismo',
-        newUserAddress,
+        sismoRegistrar.address,
         0,
         publicResolver.address
       );
-      //   'name wrapper',
-      //   await nameWrapper.balanceOf(newUserAddress, tokenId),
-      //   await nameWrapper.balanceOf(userSigner.address, tokenId),
-      //   await nameWrapper.balanceOf(ownerSigner.address, tokenId)
-      // );
+    });
+    it('User uses SIsmo EthDomainRegistrar to get a subdomain, and NFT', async () => {
+      const userLabel = 'iama';
+      const labelHash = getLabelhash(userLabel);
+      const domain = `${userLabel}.sismo.eth`;
+      const userNode = nameHash.hash(domain);
+      await (
+        await registrar.setApprovalForAll(nameWrapper.address, true)
+      ).wait();
+      await (await sismoRegistrar.register('iama', userSigner.address)).wait();
+      expect(await ens.name(domain).getAddress()).to.be.equal(
+        userSigner.address
+      );
+      expect(await sismoRegistrar.ownerOf(userNode)).to.be.equal(
+        userSigner.address
+      );
+
+      expect(
+        await nameWrapper.isTokenOwnerOrApproved(userNode, userSigner.address)
+      ).to.be.equal(true);
+      expect(await nameWrapper.ownerOf(userNode)).to.be.equal(
+        userSigner.address
+      );
+      expect(await registry.owner(userNode)).to.be.equal(nameWrapper.address);
+    });
+    it('User should be able to unwrap', async () => {
+      const userLabel = 'iama';
+      const labelHash = getLabelhash(userLabel);
+      const parentNode = nameHash.hash('sismo.eth');
+      const domain = `${userLabel}.sismo.eth`;
+      const userNode = nameHash.hash(domain);
+      await nameWrapper
+        .connect(userSigner)
+        .unwrap(parentNode, labelHash, userSigner.address);
+      expect(await registry.owner(userNode)).to.be.equal(userSigner.address);
     });
   });
 });
