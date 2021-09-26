@@ -12,12 +12,10 @@ import {
   ENSDeployer,
 } from '../../types';
 
-const GAS_PRICE = BigNumber.from('160000000000');
-
-task('deploy-name-wraper-and-resolver')
+task('deploy-name-wrapper-and-resolver')
   .addFlag('verify', 'Verify Etherscan Contract')
-  .addOptionalParam('ens', 'ens')
-  .addOptionalParam('ethRegistrar', 'ethRegistrar')
+  .addParam('ens', 'ens')
+  .addParam('ethRegistrar', 'ethRegistrar')
   .setAction(async ({ ens, ethRegistrar }, hre: HardhatRuntimeEnvironment) => {
     await logHre(hre);
     const deployer = await getDeployer(hre, true);
@@ -56,4 +54,5 @@ task('deploy-name-wraper-and-resolver')
     console.log(
       `Deployed by ${deployer.address}. nameWrapper ${publicResolver.address}`
     );
+    return { nameWrapper, publicResolver };
   });

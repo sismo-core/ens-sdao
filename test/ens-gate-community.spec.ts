@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 //@ts-ignore
-import ENS, { getEnsAddress } from '@ensdomains/ensjs';
+import ENS from '@ensdomains/ensjs';
 import HRE, { ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 import {
@@ -11,14 +11,11 @@ import {
   PublicResolver,
   NameWrapper,
   EthDomainRegistrar,
-  EthDomainRegistrar__factory,
 } from '../types';
 //@ts-ignore
 import packet from 'dns-packet';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
-import { keccak256 } from '@ethersproject/keccak256';
-import { namehash } from '@ethersproject/hash';
 const utils = ethers.utils;
 const getLabelhash = (label: string) =>
   utils.keccak256(utils.toUtf8Bytes(label));
@@ -269,8 +266,7 @@ describe('ENS', () => {
       sismoRegistrar = await HRE.run('deploy-eth-domain-registrar', {
         // name NEEEDS to be label of .eth name
         name: 'sismo',
-        symbol: '',
-        domain: 'sismo.eth',
+        symbol: 'SISMO',
         ens: registry.address,
         resolver: publicResolver.address,
         nameWrapper: nameWrapper.address,
