@@ -63,7 +63,6 @@ sismoRegistrar = await HRE.run('deploy-eth-domain-registrar', {
         name: 'sismo',
         // Symbol for the ERC721 Token that will gate your community
         symbol: 'SISMO',
-        domain: 'sismo.eth',
         ens: registry.address,
         resolver: publicResolver.address,
         nameWrapper: nameWrapper.address,
