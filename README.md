@@ -1,19 +1,32 @@
 # ENS GATED COMMUNITIES
 
-We set up a goal of enabling any user of sismo to get a free ens ens subdomain `user.sismo.eth`, while simustanously giving them a common NFT so that only `***.sismo.eth` name holders could join our discord.
+We set up a goal of enabling every user of Sismo to get a free ENS subdomain `user.sismo.eth`, while simustanously giving them a unique ERC721 NFT so that only `***.sismo.eth` name holders could join our discord.
 
-We think of it as a great Community tool, and a great UX tool.
+It is a great Community tool, and a great UX improvement (ENS names >> ethereum addresses!!).
 
-This repository is the result of our exploration of most parts of the ENS smart contracts as well as its npm library `ensjs`
+With this repository, we want to share the result of our exploration of the ENS smart contracts as well as its npm library `ensjs`. 
 
 We open-source it: 
   - For teams: any team could use this codebase to offer free ENS and create a ENS Gated Community.
   - For Devs
-    - `ENSDeployer.sol` enables you to deploy locally ENS with latest contracts (such as NameWrapper) and with a simplified EthRegistrar (no need to go through the 2-phase registration process)
-    - `test/ens.spec.ts` was thought as a tutorial to discover all features of the ENS system (contracts and `ensjs` lib)
+    - `ENSDeployer.sol` and `deploy-ens-full` hardhat task: Deploy locally a full ENS system with latest contracts (such as NameWrapper) and with a simplified EthRegistrar (no need to go through the 2-phase registration process)
+    -  `EthDomainRegistrar.sol` and `deploy-eth-domain-registrar`: deploy a domain registrar that is able to create on the go subdomains + NFTs for your users.
+    - `ens-gate-community.spec` was thought as a tutorial to discover all features of the ENS system (contracts and `ensjs` lib).
+    
+## Contracts
 
-We hope that you will enjoy it!
+1. `ENSDeployer.sol`
 
+Simple deployer contract, updated with latest ENS smart contracts.
+
+2. `EthRegistrar.sol` 
+   
+Modified EthRegistrar (`@ensdomains/ens-contracts/contracts/ethregistrar/BaseRegistrarImplementation.sol`) so that we can easily register `.eth` names without going through the controler and 2 step registration process.
+
+3. `EthDomainRegistrar.sol`
+
+FIFS (Fist In First Served) Registrar for your `domain.eth`.
+It lets anyone register a `subdomain.domain.eth` for free, wrap it as a ERC1155 (shared with all eth names) and mint a ERC721 (for you subdomain holders only).
 
 ## Hardhat tasks:
 
@@ -69,5 +82,5 @@ sismoRegistrar = await HRE.run('deploy-eth-domain-registrar', {
       });
 ```
 
-If you want to deploy this for your community, please join our discord: sismo.io
+If you nedd help to deploy this for your community, please join our discord: sismo.io
 
