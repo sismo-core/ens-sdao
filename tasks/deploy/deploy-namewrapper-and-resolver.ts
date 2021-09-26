@@ -14,29 +14,40 @@ import {
 
 const GAS_PRICE = BigNumber.from('160000000000');
 
-task('deploy-ens-rinkeby')
+task('deploy-name-wraper-and-resolver')
   .addFlag('verify', 'Verify Etherscan Contract')
-  .setAction(async ({}, hre: HardhatRuntimeEnvironment) => {
+  .addOptionalParam('ens', 'ens')
+  .addOptionalParam('ethRegistrar', 'ethRegistrar')
+  .setAction(async ({ ens, ethRegistrar }, hre: HardhatRuntimeEnvironment) => {
     await logHre(hre);
     const deployer = await getDeployer(hre, true);
 
     const registrar = BaseRegistrarImplementation__factory.connect(
-      '0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85',
+      ethRegistrar,
       deployer
     );
-    const registry = ENS__factory.connect(
-      '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
+    const registry = ENS__factory.connect(ens, deployer);
+
+    const newNameWrapper = await hre.deployments.deploy('NameWrapper', {
+      from: deployer.address,
+      args: [
+        registry.address,
+        registrar.address,
+        hre.ethers.constants.AddressZero,
+      ],
+    });
+    const nameWrapper = NameWrapper__factory.connect(
+      newNameWrapper.address,
       deployer
-    );
-    const nameWrapper = await new NameWrapper__factory(deployer).deploy(
-      registry.address,
-      registrar.address,
-      hre.ethers.constants.AddressZero
     );
 
-    const publicResolver = await new PublicResolver__factory(deployer).deploy(
-      registry.address,
-      nameWrapper.address
+    const newPublicResolver = await hre.deployments.deploy('PublicResolver', {
+      from: deployer.address,
+      args: [registry.address, nameWrapper.address],
+    });
+    const publicResolver = PublicResolver__factory.connect(
+      newPublicResolver.address,
+      deployer
     );
 
     console.log(

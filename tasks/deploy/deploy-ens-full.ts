@@ -14,7 +14,7 @@ import {
 
 const GAS_PRICE = BigNumber.from('160000000000');
 
-task('deploy-ens')
+task('deploy-ens-full')
   .addFlag('verify', 'Verify Etherscan Contract')
   .setAction(async ({}, hre: HardhatRuntimeEnvironment) => {
     await logHre(hre);

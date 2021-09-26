@@ -10,7 +10,6 @@ import '@ensdomains/ens-contracts/contracts/ethregistrar/BaseRegistrar.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './BytesUtil.sol';
-import 'hardhat/console.sol';
 
 contract NameWrapper is
   Ownable,
@@ -160,9 +159,7 @@ contract NameWrapper is
     uint96 _fuses,
     address resolver
   ) public override {
-    console.log('wrapETH2LD');
     uint256 tokenId = uint256(keccak256(bytes(label)));
-    console.log('tokenId', tokenId);
     address owner = registrar.ownerOf(tokenId);
 
     require(
@@ -242,7 +239,6 @@ contract NameWrapper is
     );
 
     address owner = ens.owner(node);
-    console.log('OWNER', owner);
     require(
       owner == msg.sender ||
         isApprovedForAll(owner, msg.sender) ||
@@ -251,13 +247,10 @@ contract NameWrapper is
     );
 
     if (resolver != address(0)) {
-      console.log('setting resolver');
       ens.setResolver(node, resolver);
     }
-    console.log('setting owner');
     ens.setOwner(node, address(this));
 
-    console.log('_wrap');
     _wrap(node, name, wrappedOwner, _fuses);
   }
 
@@ -383,11 +376,8 @@ contract NameWrapper is
     node = _makeNode(parentNode, labelhash);
     bytes memory name = _addLabel(label, names[parentNode]);
 
-    console.log('setSubnodeOwnerAndWrap');
-    console.log('setSubnodeOwner');
     setSubnodeOwner(parentNode, labelhash, address(this));
 
-    console.log('_Wrap');
     _wrap(node, name, newOwner, _fuses);
   }
 
@@ -410,13 +400,7 @@ contract NameWrapper is
     uint96 _fuses
   ) public override {
     bytes32 labelhash = keccak256(bytes(label));
-    console.log('smart-contract-labelhash');
-    console.logBytes32(labelhash);
-    console.log('smart-contract-parent-node');
-    console.logBytes32(parentNode);
     bytes32 node = _makeNode(parentNode, labelhash);
-    console.log('smart-contract-child-node');
-    console.logBytes32(node);
     bytes memory name = _addLabel(label, names[parentNode]);
 
     setSubnodeRecord(parentNode, labelhash, address(this), resolver, ttl);
