@@ -9,7 +9,7 @@ import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/Publ
 /**
  * A registrar that allocates subdomains to the first person to claim them.
  */
-contract EthDomainRegistrar is ERC721, ERC1155Holder {
+contract ENSDAO is ERC721, ERC1155Holder {
   ENS public _ens;
   bytes32 public _rootNode;
   PublicResolver public _resolver;
@@ -39,7 +39,7 @@ contract EthDomainRegistrar is ERC721, ERC1155Holder {
     string memory baseURI,
     string memory name,
     string memory symbol
-  ) ERC721(_append(name, ' .eth Community Badge'), symbol) {
+  ) ERC721(_append(name, ' .eth DAO TOKEN'), symbol) {
     _ens = ensAddr;
     _rootNode = node;
     _resolver = resolverAddress;
@@ -47,23 +47,46 @@ contract EthDomainRegistrar is ERC721, ERC1155Holder {
     __baseURI = baseURI;
     _owner = msg.sender;
     _name = name;
-    _ens.setApprovalForAll(address(_nameWrapper), true);
   }
 
-  function init() external {
-    _nameWrapper.wrapETH2LD(_name, address(this), 0, address(_resolver));
-  }
-
-  function _baseURI() internal view override returns (string memory) {
-    return __baseURI;
-  }
-
-  function _append(string memory a, string memory b)
-    internal
-    pure
-    returns (string memory)
+  /**
+   * Register a name, or change the owner of an existing registration.
+   * @param label The the label to register.
+   */
+  function register(string memory label)
+    public
+    only_owner(keccak256(bytes(label)))
   {
-    return string(abi.encodePacked(a, b));
+    require(balanceOf(msg.sender) == 0, 'ENSDAO: TOO_MANY_SUBDOMAINS');
+    bytes32 labelHash = keccak256(bytes(label));
+    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
+
+    // Set ownership to ENSDAO, so that the contract can set resolver
+    _nameWrapper.setSubnodeRecordAndWrap(
+      _rootNode,
+      label,
+      address(this),
+      address(_resolver),
+      60,
+      0
+    );
+    // Setting the resolver for the user
+    _resolver.setAddr(childNode, msg.sender);
+    // Giving back the ownership to the user
+    _nameWrapper.safeTransferFrom(
+      address(this),
+      msg.sender,
+      uint256(childNode),
+      1,
+      ''
+    );
+    // Minting the DAO Token
+    _mint(msg.sender, uint256(childNode));
+  }
+
+  function abdicate() public {
+    require(msg.sender == _owner, 'ENS_DAO: NOT OWNER');
+    _ens.setOwner(_rootNode, _owner);
   }
 
   function supportsInterface(bytes4 interfaceId)
@@ -81,43 +104,15 @@ contract EthDomainRegistrar is ERC721, ERC1155Holder {
       super.supportsInterface(interfaceId);
   }
 
-  /**
-   * Register a name, or change the owner of an existing registration.
-   * @param label The hash of the label to register.
-   * @param owner The address of the new owner.
-   */
-  function register(string memory label, address owner)
-    public
-    only_owner(keccak256(bytes(label)))
-  {
-    bytes32 labelHash = keccak256(bytes(label));
-    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
-
-    // ownership to here, so that the contract can set resolver
-    _nameWrapper.setSubnodeRecordAndWrap(
-      _rootNode,
-      label,
-      address(this),
-      address(_resolver),
-      60,
-      0
-    );
-    // setting the resolver for the user
-    _resolver.setAddr(childNode, owner);
-    // giving back the ownership to the user
-    _nameWrapper.safeTransferFrom(
-      address(this),
-      owner,
-      uint256(childNode),
-      1,
-      ''
-    );
-    // minting our community NFT
-    _mint(owner, uint256(childNode));
+  function _baseURI() internal view override returns (string memory) {
+    return __baseURI;
   }
 
-  function abdicate() public {
-    require(msg.sender == _owner, 'NOT AUTHORIZED');
-    _ens.setOwner(_rootNode, _owner);
+  function _append(string memory a, string memory b)
+    internal
+    pure
+    returns (string memory)
+  {
+    return string(abi.encodePacked(a, b));
   }
 }

@@ -1,5 +1,7 @@
+import 'dotenv/config';
 import path from 'path';
 import fs from 'fs';
+
 import { HardhatUserConfig } from 'hardhat/config';
 import { Wallet } from 'ethers';
 
@@ -32,7 +34,9 @@ const HARDFORK = 'istanbul';
 const INFURA_KEY = process.env.INFURA_KEY || '';
 const ETHERSCAN_KEY = process.env.ETHERSCAN_KEY || '';
 const MNEMONIC_PATH = "m/44'/60'/0'/0";
-const MNEMONIC = process.env.MNEMONIC || '';
+const MNEMONIC =
+  process.env.MNEMONIC ||
+  'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm';
 const ALCHEMY_KEY = process.env.ALCHEMY_KEY || '';
 const MAINNET_FORK = process.env.MAINNET_FORK === 'true';
 
@@ -66,8 +70,6 @@ const getCommonNetworkConfig = (networkName: string, networkId: number) => ({
 });
 
 const getLocalAccounts = () => {
-  if (process.env.SISMO_SERVER_ENV !== 'local')
-    throw new Error('NOT LOCAL SERVER ENV FILE');
   return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((a, k) => {
     return {
       privateKey: Wallet.fromMnemonic(MNEMONIC, `m/44'/60'/0'/0/${k}`)

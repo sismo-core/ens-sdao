@@ -2,10 +2,10 @@ import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { BigNumber, ethers } from 'ethers';
 import { getDeployer, logHre } from '../../evm-utils';
-import { EthDomainRegistrar__factory } from '../../types';
+import { ENSDAO__factory } from '../../types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
-task('deploy-eth-domain-registrar')
+task('deploy-ens-dao')
   .addOptionalParam('ens', 'ens')
   .addOptionalParam('resolver', 'resolver')
   .addOptionalParam('nameWrapper', 'nameWrapper')
@@ -21,8 +21,10 @@ task('deploy-eth-domain-registrar')
         resolver,
         nameWrapper = ethers.constants.AddressZero,
         baseURI = '',
-        name = 'αSismoRegistrar',
-        symbol = 'αSISMO',
+        // this is the name of the .eth domain
+        // the NFT name will be sismo.eth DAO Token
+        name = 'sismo',
+        symbol = 'SISMO',
         log = false,
       },
       hre: HardhatRuntimeEnvironment
@@ -30,13 +32,13 @@ task('deploy-eth-domain-registrar')
       log && (await logHre(hre));
       const deployer = await getDeployer(hre, log);
       const node = nameHash.hash(name + '.eth');
-      const deployed = await hre.deployments.deploy('EthDomainRegistrar', {
+      const deployed = await hre.deployments.deploy('ENSDAO', {
         from: deployer.address,
         args: [ens, resolver, nameWrapper, node, baseURI, name, symbol],
       });
       if (log) {
-        console.log(`Deployed SISMO REGISTRAR ${deployed.address}`);
+        console.log(`Deployed ENS DAO: ${deployed.address}`);
       }
-      return EthDomainRegistrar__factory.connect(deployed.address, deployer);
+      return ENSDAO__factory.connect(deployed.address, deployer);
     }
   );

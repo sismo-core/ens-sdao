@@ -10,7 +10,7 @@ import {
   ReverseRegistrar,
   PublicResolver,
   NameWrapper,
-  EthDomainRegistrar,
+  ENSDAO,
 } from '../types';
 //@ts-ignore
 import packet from 'dns-packet';
@@ -38,7 +38,7 @@ describe('ENS', () => {
   let userSigner: SignerWithAddress;
   let ownerSigner: SignerWithAddress;
   let nameWrapper: NameWrapper;
-  let sismoRegistrar: EthDomainRegistrar;
+  let ensDAO: ENSDAO;
   let ens: any;
   let tokenId: string;
   before(async () => {
@@ -50,7 +50,7 @@ describe('ENS', () => {
       reverseRegistrar: ReverseRegistrar;
       publicResolver: PublicResolver;
       nameWrapper: NameWrapper;
-    } = await HRE.run('deploy-ens-full');
+    } = await HRE.run('deploy-ens-dao-full');
     ensDeployer = deployedENS.ensDeployer;
     registrar = deployedENS.registrar;
     registry = deployedENS.registry;
@@ -68,7 +68,7 @@ describe('ENS', () => {
     });
   });
   describe('ENS: Register domain, set owners, set lookup and reverse lookup, create subdomain', async () => {
-    it('owner registers dhadrien.eth for themself', async () => {
+    it('owner registers dhadrien.eth for themselves', async () => {
       await registrar.register(labelhash, ownerSigner.address, year);
       expect(await registry.owner(node)).to.be.equal(ownerSigner.address);
       // record has just owner for now
@@ -261,9 +261,9 @@ describe('ENS', () => {
       expect(await registry.owner(userNode)).to.be.equal(nameWrapper.address);
     });
   });
-  describe('ENS Gated Community: Create a registrar for yourdomain.eth and let user register user.yourdomain.eth freely', async () => {
+  describe('ENS DAO: Create a registrar for yourdomain.eth and let user register user.yourdomain.eth freely', async () => {
     it('deploy a registrar that will own sismo.eth', async () => {
-      sismoRegistrar = await HRE.run('deploy-eth-domain-registrar', {
+      ensDAO = await HRE.run('deploy-ens-dao', {
         // name NEEEDS to be label of .eth name
         name: 'sismo',
         symbol: 'SISMO',
@@ -273,32 +273,28 @@ describe('ENS', () => {
       });
       tokenId = ethers.BigNumber.from(getLabelhash('sismo')).toString();
     });
-    it('sismo.eth owner wrap and gives wrapped onwnership to sismo registrar', async () => {
+    it('sismo.eth owner wrap and gives wrapped ownership to sismo registrar', async () => {
       await registry.setApprovalForAll(nameWrapper.address, true);
       await (await registrar.approve(nameWrapper.address, tokenId)).wait();
       await nameWrapper.wrapETH2LD(
         'sismo',
-        sismoRegistrar.address,
+        ensDAO.address,
         0,
         publicResolver.address
       );
     });
-    it('User uses Sismo EthDomainRegistrar to get a subdomain, and NFT', async () => {
+    it('User uses Sismo ENSDAO to get a subdomain, and NFT', async () => {
       const userLabel = 'dhadrien';
       const domain = `${userLabel}.sismo.eth`;
       const userNode = nameHash.hash(domain);
       await (
         await registrar.setApprovalForAll(nameWrapper.address, true)
       ).wait();
-      await (
-        await sismoRegistrar.register('dhadrien', userSigner.address)
-      ).wait();
+      await (await ensDAO.connect(userSigner).register('dhadrien')).wait();
       expect(await ens.name(domain).getAddress()).to.be.equal(
         userSigner.address
       );
-      expect(await sismoRegistrar.ownerOf(userNode)).to.be.equal(
-        userSigner.address
-      );
+      expect(await ensDAO.ownerOf(userNode)).to.be.equal(userSigner.address);
 
       expect(
         await nameWrapper.isTokenOwnerOrApproved(userNode, userSigner.address)
@@ -307,6 +303,16 @@ describe('ENS', () => {
         userSigner.address
       );
       expect(await registry.owner(userNode)).to.be.equal(nameWrapper.address);
+    });
+    it('User cannot gen another subdomain', async () => {
+      await expect(
+        ensDAO.connect(userSigner).register('dhadrien2')
+      ).to.be.revertedWith('ENSDAO: TOO_MANY_SUBDOMAINS');
+    });
+    it('User cannot gen another subdomain', async () => {
+      await expect(
+        ensDAO.connect(userSigner).register('dhadrien2')
+      ).to.be.revertedWith('ENSDAO: TOO_MANY_SUBDOMAINS');
     });
     it('User should be able to unwrap', async () => {
       const userLabel = 'dhadrien';

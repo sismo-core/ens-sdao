@@ -10,13 +10,13 @@ import {
   PublicResolver__factory,
   NameWrapper__factory,
   ENSDeployer,
+  ENSDAO,
 } from '../../types';
 
 const GAS_PRICE = BigNumber.from('160000000000');
 
-task('deploy-ens-full')
-  .addFlag('verify', 'Verify Etherscan Contract')
-  .setAction(async ({}, hre: HardhatRuntimeEnvironment) => {
+task('deploy-ens-dao-full').setAction(
+  async ({}, hre: HardhatRuntimeEnvironment) => {
     await logHre(hre);
     const deployer = await getDeployer(hre, true);
     const ensDeployer = (await new ENSDeployer__factory(
@@ -42,8 +42,24 @@ task('deploy-ens-full')
       await ensDeployer.nameWrapper(),
       deployer
     );
+    const ensDAO: ENSDAO = await hre.run('deploy-ens-dao', {
+      // name NEEEDS to be label of .eth name
+      name: 'sismo',
+      symbol: 'SISMO',
+      ens: registry.address,
+      resolver: publicResolver.address,
+      nameWrapper: nameWrapper.address,
+    });
     console.log(
-      `Deployed by ${deployer.address}. registry ${registry.address}`
+      `Deployed by ${deployer.address}.
+      ensDeployer: ${ensDeployer.address}
+      registry: ${registry.address}
+      registrar: ${registrar.address}
+      reverseRegistrar: ${reverseRegistrar.address}
+      publicResolver: ${publicResolver.address}
+      nameWrapper: ${nameWrapper.address}
+      ensDAO: ${ensDAO.address}
+      `
     );
 
     return {
@@ -53,5 +69,7 @@ task('deploy-ens-full')
       reverseRegistrar,
       publicResolver,
       nameWrapper,
+      ensDAO,
     };
-  });
+  }
+);
