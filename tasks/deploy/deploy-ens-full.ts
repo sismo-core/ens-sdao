@@ -15,8 +15,9 @@ import {
 
 const GAS_PRICE = BigNumber.from('160000000000');
 
-task('deploy-ens-dao-full').setAction(
-  async ({}, hre: HardhatRuntimeEnvironment) => {
+task('deploy-ens-full')
+  .addFlag('ensDao', 'deploy ens-dao')
+  .setAction(async ({ ensDao }, hre: HardhatRuntimeEnvironment) => {
     await logHre(hre);
     const deployer = await getDeployer(hre, true);
     const ensDeployer = (await new ENSDeployer__factory(
@@ -42,26 +43,46 @@ task('deploy-ens-dao-full').setAction(
       await ensDeployer.nameWrapper(),
       deployer
     );
-    const ensDAO: ENSDAO = await hre.run('deploy-ens-dao', {
-      // name NEEEDS to be label of .eth name
-      name: 'sismo',
-      symbol: 'SISMO',
-      ens: registry.address,
-      resolver: publicResolver.address,
-      nameWrapper: nameWrapper.address,
-    });
+    if (ensDao) {
+      const ensDAO: ENSDAO = await hre.run('deploy-ens-dao', {
+        // name NEEEDS to be label of .eth name
+        name: 'sismo',
+        symbol: 'SISMO',
+        ens: registry.address,
+        resolver: publicResolver.address,
+        nameWrapper: nameWrapper.address,
+      });
+      console.log(
+        `Deployed by ${deployer.address}.
+        ensDeployer: ${ensDeployer.address}
+        registry: ${registry.address}
+        registrar: ${registrar.address}
+        reverseRegistrar: ${reverseRegistrar.address}
+        publicResolver: ${publicResolver.address}
+        nameWrapper: ${nameWrapper.address}
+        ensDAO: ${ensDAO.address}
+        `
+      );
+      return {
+        ensDeployer,
+        registry,
+        registrar,
+        reverseRegistrar,
+        publicResolver,
+        nameWrapper,
+        ensDAO,
+      };
+    }
     console.log(
       `Deployed by ${deployer.address}.
-      ensDeployer: ${ensDeployer.address}
-      registry: ${registry.address}
-      registrar: ${registrar.address}
-      reverseRegistrar: ${reverseRegistrar.address}
-      publicResolver: ${publicResolver.address}
-      nameWrapper: ${nameWrapper.address}
-      ensDAO: ${ensDAO.address}
-      `
+        ensDeployer: ${ensDeployer.address}
+        registry: ${registry.address}
+        registrar: ${registrar.address}
+        reverseRegistrar: ${reverseRegistrar.address}
+        publicResolver: ${publicResolver.address}
+        nameWrapper: ${nameWrapper.address}
+        `
     );
-
     return {
       ensDeployer,
       registry,
@@ -69,7 +90,5 @@ task('deploy-ens-dao-full').setAction(
       reverseRegistrar,
       publicResolver,
       nameWrapper,
-      ensDAO,
     };
-  }
-);
+  });

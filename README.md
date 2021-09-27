@@ -9,7 +9,7 @@ You will find in this repository what we built to kickstart our ENS centric DAO 
 We open-source it: 
   - For teams: Use this codebase to offer free ENS and kickstart your ENS Powered DAO.
   - For Devs
-    - `ENSDeployer.sol` and `deploy-ens-dao-full` hardhat task: Deploy locally a full ENS system with latest contracts (such as NameWrapper) and with a simplified EthRegistrar (no need to go through the 2-phase registration process)
+    - `ENSDeployer.sol` and `deploy-ens-full` hardhat task: Deploy locally a full ENS system with latest contracts (such as NameWrapper) and with a simplified EthRegistrar (no need to go through the 2-phase registration process)
     -  `ENSDAO.sol` and `deploy-ens-dao`: deploy a domain registrar that is able to create on the go subdomains + NFTs for your users.
     - `ens-gate-community.spec` was thought as a tutorial to discover all features of the ENS system (contracts and `ensjs` lib).
     
@@ -69,8 +69,8 @@ or inline
 `npx hardhat deploy-ens-dao --ens $ENS_ADDR --resolver $ETH_RESOLVER_ADDRESS --network main`
 <br />
 
-3. `deploy-ens-dao-full`: (for local env or private network) 
-Deploys the full ENS system: the registry, a modified ethRegistrar (behaves similar as testnets but no controller infront), a reverse Registrar, a nameWrapper and a publicResolver.
+3. `deploy-ens-full`: (for local env or private network) 
+Deploys the full ENS system: the registry, a modified ethRegistrar (behaves similar as testnets but no controller in front), a reverse Registrar, a nameWrapper, a publicResolver and a ENS DAO.
 
 ```typescript
 const deployedENS: {
@@ -81,10 +81,11 @@ const deployedENS: {
       publicResolver: PublicResolver;
       nameWrapper: NameWrapper;
       ensDAO: ENSDAO,
-    } = await HRE.run('deploy-ens-dao-full');
+    } = await HRE.run('deploy-ens-full');
 ```
 or inline
-`npx hardhat deploy-ens-dao-full`
+`npx hardhat deploy-ens-full --ens-dao`
+or without the `--ens-dao`flag if you don't want to deploy the ensDAO
 
-If you nedd help to deploy this for your community, please join our discord: sismo.io
+If you need help to deploy this for your community, please join our discord: sismo.io
 

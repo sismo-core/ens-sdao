@@ -72,6 +72,7 @@ contract ENSDAO is ERC721, ERC1155Holder {
     );
     // Setting the resolver for the user
     _resolver.setAddr(childNode, msg.sender);
+
     // Giving back the ownership to the user
     _nameWrapper.safeTransferFrom(
       address(this),

@@ -50,7 +50,7 @@ describe('ENS', () => {
       reverseRegistrar: ReverseRegistrar;
       publicResolver: PublicResolver;
       nameWrapper: NameWrapper;
-    } = await HRE.run('deploy-ens-dao-full');
+    } = await HRE.run('deploy-ens-full');
     ensDeployer = deployedENS.ensDeployer;
     registrar = deployedENS.registrar;
     registry = deployedENS.registry;
@@ -270,6 +270,7 @@ describe('ENS', () => {
         ens: registry.address,
         resolver: publicResolver.address,
         nameWrapper: nameWrapper.address,
+        reverseRegistrar: reverseRegistrar.address,
       });
       tokenId = ethers.BigNumber.from(getLabelhash('sismo')).toString();
     });

@@ -1,15 +1,11 @@
 import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { BigNumber } from 'ethers';
 import { getDeployer, logHre } from '../../evm-utils';
 import {
-  ENSDeployer__factory,
   BaseRegistrarImplementation__factory,
   ENS__factory,
-  ReverseRegistrar__factory,
   PublicResolver__factory,
   NameWrapper__factory,
-  ENSDeployer,
 } from '../../types';
 
 task('deploy-name-wrapper-and-resolver')
