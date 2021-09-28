@@ -13,16 +13,19 @@ import {
   ENSDAO,
 } from '../../types';
 
-const GAS_PRICE = BigNumber.from('160000000000');
-
 task('deploy-ens-full')
   .addFlag('ensDao', 'deploy ens-dao')
   .setAction(async ({ ensDao }, hre: HardhatRuntimeEnvironment) => {
     await logHre(hre);
     const deployer = await getDeployer(hre, true);
-    const ensDeployer = (await new ENSDeployer__factory(
+    const newEnsDeployer = await hre.deployments.deploy('ENSDeployer', {
+      from: deployer.address,
+      args: [],
+    });
+    const ensDeployer = ENSDeployer__factory.connect(
+      newEnsDeployer.address,
       deployer
-    ).deploy()) as ENSDeployer;
+    );
     const registry = ENSRegistry__factory.connect(
       await ensDeployer.ens(),
       deployer
