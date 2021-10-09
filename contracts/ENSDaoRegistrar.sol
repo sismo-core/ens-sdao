@@ -5,16 +5,18 @@ import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import './nameWrapper/NameWrapper.sol';
 import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
+import {ENSDaoToken} from './ENSDaoToken.sol';
 
 /**
  * A registrar that allocates subdomains to the first person to claim them.
  */
-contract ENSDAO is ERC721, ERC1155Holder {
+contract ENSDaoRegistrar is ERC1155Holder {
   ENS public _ens;
   bytes32 public _rootNode;
   PublicResolver public _resolver;
   NameWrapper public _nameWrapper;
-  string __baseURI;
+  ENSDaoToken public _daoToken;
+
   address public _owner;
   string _name;
   bytes32 public constant ETHNODE =
@@ -51,16 +53,15 @@ contract ENSDAO is ERC721, ERC1155Holder {
     ENS ensAddr,
     PublicResolver resolverAddress,
     NameWrapper nameWrapper,
+    ENSDaoToken daoToken,
     bytes32 node,
-    string memory baseURI,
-    string memory name,
-    string memory symbol
-  ) ERC721(_append(name, ' .eth DAO TOKEN'), symbol) {
+    string memory name
+  ) {
     _ens = ensAddr;
     _rootNode = node;
     _resolver = resolverAddress;
     _nameWrapper = nameWrapper;
-    __baseURI = baseURI;
+    _daoToken = daoToken;
     _owner = msg.sender;
     _name = name;
     DAO_BIRTH_DATE = block.timestamp;
@@ -74,7 +75,10 @@ contract ENSDAO is ERC721, ERC1155Holder {
     public
     only_owner(keccak256(bytes(label)))
   {
-    require(balanceOf(msg.sender) == 0, 'ENSDAO: TOO_MANY_SUBDOMAINS');
+    require(
+      _daoToken.balanceOf(msg.sender) == 0,
+      'ENSDAO: TOO_MANY_SUBDOMAINS'
+    );
     bytes32 labelHash = keccak256(bytes(label));
     bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
 
@@ -99,38 +103,11 @@ contract ENSDAO is ERC721, ERC1155Holder {
       ''
     );
     // Minting the DAO Token
-    _mint(msg.sender, uint256(childNode));
+    _daoToken.mintTo(msg.sender, uint256(childNode));
   }
 
   function unwrapToDaoOwner() public {
     require(msg.sender == _owner, 'ENS_DAO: NOT OWNER');
     _nameWrapper.unwrapETH2LD(keccak256(bytes(_name)), _owner, _owner);
-  }
-
-  function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(ERC721, ERC1155Receiver)
-    returns (bool)
-  {
-    return
-      interfaceId == type(IERC721).interfaceId ||
-      interfaceId == type(IERC721Metadata).interfaceId ||
-      super.supportsInterface(interfaceId) ||
-      interfaceId == type(IERC1155Receiver).interfaceId ||
-      super.supportsInterface(interfaceId);
-  }
-
-  function _baseURI() internal view override returns (string memory) {
-    return __baseURI;
-  }
-
-  function _append(string memory a, string memory b)
-    internal
-    pure
-    returns (string memory)
-  {
-    return string(abi.encodePacked(a, b));
   }
 }

@@ -10,7 +10,8 @@ import {
   PublicResolver__factory,
   NameWrapper__factory,
   ENSDeployer,
-  ENSDAO,
+  ENSDaoToken,
+  ENSDaoRegistrar,
 } from '../../types';
 
 task('deploy-ens-full')
@@ -47,14 +48,18 @@ task('deploy-ens-full')
       deployer
     );
     if (ensDao) {
-      const ensDAO: ENSDAO = await hre.run('deploy-ens-dao', {
-        // name NEEEDS to be label of .eth name
-        name: 'sismo',
-        symbol: 'SISMO',
-        ens: registry.address,
-        resolver: publicResolver.address,
-        nameWrapper: nameWrapper.address,
-      });
+      const {
+        ensDaoRegistrar,
+        ensDaoToken,
+      }: { ensDaoRegistrar: ENSDaoRegistrar; ensDaoToken: ENSDaoToken } =
+        await hre.run('deploy-ens-dao', {
+          // name NEEEDS to be label of .eth name
+          name: 'sismo',
+          symbol: 'SISMO',
+          ens: registry.address,
+          resolver: publicResolver.address,
+          nameWrapper: nameWrapper.address,
+        });
       console.log(
         `Deployed by ${deployer.address}.
         ensDeployer: ${ensDeployer.address}
@@ -63,7 +68,8 @@ task('deploy-ens-full')
         reverseRegistrar: ${reverseRegistrar.address}
         publicResolver: ${publicResolver.address}
         nameWrapper: ${nameWrapper.address}
-        ensDAO: ${ensDAO.address}
+        ensDaoRegistrar: ${ensDaoRegistrar.address}
+        ensDaoRegistrar: ${ensDaoToken.address}
         `
       );
       return {
@@ -73,7 +79,8 @@ task('deploy-ens-full')
         reverseRegistrar,
         publicResolver,
         nameWrapper,
-        ensDAO,
+        ensDaoRegistrar,
+        ensDaoToken,
       };
     }
     console.log(
