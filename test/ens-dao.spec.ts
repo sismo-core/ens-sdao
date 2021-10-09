@@ -16,6 +16,7 @@ import {
 import packet from 'dns-packet';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
+import { increaseTime } from '../evm-utils';
 const utils = ethers.utils;
 const getLabelhash = (label: string) =>
   utils.keccak256(utils.toUtf8Bytes(label));
@@ -37,12 +38,13 @@ describe('ENS', () => {
   let publicResolver: PublicResolver;
   let userSigner: SignerWithAddress;
   let ownerSigner: SignerWithAddress;
+  let otherSigner: SignerWithAddress;
   let nameWrapper: NameWrapper;
   let ensDAO: ENSDAO;
   let ens: any;
   let tokenId: string;
   before(async () => {
-    [ownerSigner, userSigner] = await HRE.ethers.getSigners();
+    [ownerSigner, userSigner, otherSigner] = await HRE.ethers.getSigners();
     const deployedENS: {
       ensDeployer: ENSDeployer;
       registry: ENSRegistry;
@@ -281,11 +283,32 @@ describe('ENS', () => {
         .connect(ownerSigner)
         .wrapETH2LD('sismo', ensDAO.address, 0, publicResolver.address);
     });
-    it('not owner of dhadrien.eth cannot register dhadrien.sismo.eth', async () => {
-      // the owner of dhadrien is userSigner, it was given in earlier test
+    it('not owners of vitalik.eth/ dhadrien.eth cannot register vitalik.sismo.eth', async () => {
+      await registrar.register(
+        getLabelhash('vitalik'),
+        ownerSigner.address,
+        year
+      );
       await expect(
-        ensDAO.connect(ownerSigner).register('dhadrien')
+        ensDAO.connect(otherSigner).register('vitalik')
       ).to.be.revertedWith('ENS_DAO: subdomain reserved for .eth holder');
+      // registered in previous test, owner is userSigner
+      await expect(
+        ensDAO.connect(otherSigner).register('dhadrien')
+      ).to.be.revertedWith('ENS_DAO: subdomain reserved for .eth holder');
+    });
+    it('not owner of vitalik.eth can register vitalik.sismo.eth after 1 week', async () => {
+      // 1 week  + 5 sec
+      await increaseTime(
+        HRE,
+        (await ensDAO.RESERVATION_PERIOD()).toNumber() + 5
+      );
+      const domain = `vitalik.sismo.eth`;
+
+      await ensDAO.connect(otherSigner).register('vitalik');
+      expect(await ens.name(domain).getAddress()).to.be.equal(
+        otherSigner.address
+      );
     });
     it('owner of dhadrien.eth can register dhadrien.sismo.eth, get the wrapped subdomain', async () => {
       const userLabel = 'dhadrien';

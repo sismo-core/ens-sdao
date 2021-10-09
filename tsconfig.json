@@ -8,7 +8,6 @@
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "baseUrl": ".",
   },
   "include": ["./libs", "./node-server", "./test", "./deploy", "./tasks", "node-client", "next-app", "sismo-common-lib"],                     /* Redirect output structure to the directory. */
   "files": ["./hardhat.config.ts"]

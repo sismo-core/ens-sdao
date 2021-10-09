@@ -17,8 +17,10 @@ contract ENSDAO is ERC721, ERC1155Holder {
   string __baseURI;
   address public _owner;
   string _name;
-  bytes32 constant ETHNODE =
+  bytes32 public constant ETHNODE =
     keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
+  uint256 public constant RESERVATION_PERIOD = 1 weeks;
+  uint256 public immutable DAO_BIRTH_DATE;
 
   modifier only_owner(bytes32 label) {
     address currentOwner = _ens.owner(
@@ -32,7 +34,9 @@ contract ENSDAO is ERC721, ERC1155Holder {
       'ENS_DAO: subdomain already registered'
     );
     require(
-      dotethOwner == address(0x0) || dotethOwner == msg.sender,
+      dotethOwner == address(0x0) ||
+        dotethOwner == msg.sender ||
+        block.timestamp - DAO_BIRTH_DATE > RESERVATION_PERIOD,
       'ENS_DAO: subdomain reserved for .eth holder'
     );
     _;
@@ -59,6 +63,7 @@ contract ENSDAO is ERC721, ERC1155Holder {
     __baseURI = baseURI;
     _owner = msg.sender;
     _name = name;
+    DAO_BIRTH_DATE = block.timestamp;
   }
 
   /**
