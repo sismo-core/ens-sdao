@@ -17,12 +17,24 @@ contract ENSDAO is ERC721, ERC1155Holder {
   string __baseURI;
   address public _owner;
   string _name;
+  bytes32 constant ETHNODE =
+    keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
 
   modifier only_owner(bytes32 label) {
     address currentOwner = _ens.owner(
       keccak256(abi.encodePacked(_rootNode, label))
     );
-    require(currentOwner == address(0x0) || currentOwner == msg.sender);
+    address dotethOwner = _ens.owner(
+      keccak256(abi.encodePacked(ETHNODE, label))
+    );
+    require(
+      currentOwner == address(0x0),
+      'ENS_DAO: subdomain already registered'
+    );
+    require(
+      dotethOwner == address(0x0) || dotethOwner == msg.sender,
+      'ENS_DAO: subdomain reserved for .eth holder'
+    );
     _;
   }
 
@@ -85,9 +97,9 @@ contract ENSDAO is ERC721, ERC1155Holder {
     _mint(msg.sender, uint256(childNode));
   }
 
-  function abdicate() public {
+  function unwrapToDaoOwner() public {
     require(msg.sender == _owner, 'ENS_DAO: NOT OWNER');
-    _ens.setOwner(_rootNode, _owner);
+    _nameWrapper.unwrapETH2LD(keccak256(bytes(_name)), _owner, _owner);
   }
 
   function supportsInterface(bytes4 interfaceId)

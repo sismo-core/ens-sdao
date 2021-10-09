@@ -262,7 +262,7 @@ describe('ENS', () => {
     });
   });
   describe('ENS DAO: Create a registrar for yourdomain.eth and let user register user.yourdomain.eth freely', async () => {
-    it('deploy a registrar that will own sismo.eth', async () => {
+    it('deploy the ENS dao that will own sismo.eth', async () => {
       ensDAO = await HRE.run('deploy-ens-dao', {
         // name NEEEDS to be label of .eth name
         name: 'sismo',
@@ -274,23 +274,23 @@ describe('ENS', () => {
       });
       tokenId = ethers.BigNumber.from(getLabelhash('sismo')).toString();
     });
-    it('sismo.eth owner wrap and gives wrapped ownership to sismo registrar', async () => {
+    it('sismo.eth owner wrap and gives wrapped ownership to sismo.eth ENS DAO', async () => {
       await registry.setApprovalForAll(nameWrapper.address, true);
       await (await registrar.approve(nameWrapper.address, tokenId)).wait();
-      await nameWrapper.wrapETH2LD(
-        'sismo',
-        ensDAO.address,
-        0,
-        publicResolver.address
-      );
+      await nameWrapper
+        .connect(ownerSigner)
+        .wrapETH2LD('sismo', ensDAO.address, 0, publicResolver.address);
     });
-    it('User uses Sismo ENSDAO to get a subdomain, and NFT', async () => {
+    it('not owner of dhadrien.eth cannot register dhadrien.sismo.eth', async () => {
+      // the owner of dhadrien is userSigner, it was given in earlier test
+      await expect(
+        ensDAO.connect(ownerSigner).register('dhadrien')
+      ).to.be.revertedWith('ENS_DAO: subdomain reserved for .eth holder');
+    });
+    it('owner of dhadrien.eth can register dhadrien.sismo.eth, get the wrapped subdomain', async () => {
       const userLabel = 'dhadrien';
       const domain = `${userLabel}.sismo.eth`;
       const userNode = nameHash.hash(domain);
-      await (
-        await registrar.setApprovalForAll(nameWrapper.address, true)
-      ).wait();
       await (await ensDAO.connect(userSigner).register('dhadrien')).wait();
       expect(await ens.name(domain).getAddress()).to.be.equal(
         userSigner.address
@@ -325,6 +325,15 @@ describe('ENS', () => {
         .connect(userSigner)
         .unwrap(parentNode, labelHash, userSigner.address);
       expect(await registry.owner(userNode)).to.be.equal(userSigner.address);
+    });
+    it('Sismo.eth initial owner should be able to get back ownership, get back the Eth ERC721 NFT', async () => {
+      const ethEnsBalanceBefore = await registrar.balanceOf(
+        ownerSigner.address
+      );
+      await (await ensDAO.connect(ownerSigner).unwrapToDaoOwner()).wait();
+      expect(await registrar.balanceOf(ownerSigner.address)).to.be.equal(
+        ethEnsBalanceBefore.add(1)
+      );
     });
   });
 });
