@@ -10,15 +10,17 @@ We open-source it:
   - For teams: Use this codebase to offer free ENS and kickstart your ENS Powered DAO.
   - For Devs
     - `ENSDeployer.sol` and `deploy-ens-full` hardhat task: Deploy locally a full ENS system with latest contracts (such as NameWrapper) and with a simplified EthRegistrar (no need to go through the 2-phase registration process)
-    -  `ENSDAO.sol` and `deploy-ens-dao`: deploy a domain registrar that is able to create on the go subdomains + NFTs for your users.
-    - `ens-gate-community.spec` was thought as a tutorial to discover all features of the ENS system (contracts and `ensjs` lib).
+    -  `ENSDaoRegistrar.sol`, `ENSDaoToken.sol` and `deploy-ens-dao`: deploy a domain registrar that is able to create on the go subdomains + NFTs for your users.
+    - `ens-dao.spec.ts` was thought as a tutorial to discover all features of the ENS system (contracts and `ensjs` lib).
     
 ## Contracts
 
-1. `ENSDAO.sol`
+1. `ENSDaoRegistrar.sol` and `EnsDaoToken.sol`
 
 FIFS (Fist In First Served) Registrar for your `domain.eth`.
 It lets anyone register a `subdomain.domain.eth` for free, wrap it as a ERC1155 (shared with all eth names) and mint a DAO Token (ERC721) (for you subdomain holders only).
+
+Note: For 1 week, only `vitalik.eth` will be able to register `vitalik.domain.eth`
 
 2. `ENSDeployer.sol`
 
@@ -52,7 +54,11 @@ or inline
 2.  `deploy-ens-dao`: deploy the ENS DAO (FirstInFirstServed), which enable users to register subdomain and mint DAO Token
 
 ```typescript
-sismoRegistrar = await HRE.run('deploy-ens-dao', {
+      const {
+        ensDaoRegistrar,
+        ensDaoToken,
+      }: { ensDaoRegistrar: ENSDaoRegistrar; ensDaoToken: ENSDaoToken } =
+        await HRE.run('deploy-ens-dao', {
         // This is the owned domain. Here sismo.eth
         name: 'sismo',
         // Symbol for the ERC721 Token that will gate your community
@@ -80,7 +86,8 @@ const deployedENS: {
       reverseRegistrar: ReverseRegistrar;
       publicResolver: PublicResolver;
       nameWrapper: NameWrapper;
-      ensDAO: ENSDAO,
+      ensDaoRegistrar: ENSDaoRegistrar,
+      ensDaoToken: ENSDaoToken,
     } = await HRE.run('deploy-ens-full');
 ```
 or inline
