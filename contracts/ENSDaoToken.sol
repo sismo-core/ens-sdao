@@ -24,6 +24,5 @@ contract ENSDaoToken is ERC721PresetMinterPauserAutoId {
     // We cannot just use balanceOf to create the new tokenId because tokens
     // can be burned (destroyed), so we need a separate counter.
     _mint(to, tokenId);
-    tokenId;
   }
 }
