@@ -1,6 +1,5 @@
 pragma solidity >=0.8.4;
 import '@openzeppelin/contracts/token/ERC721/presets/ERC721PresetMinterPauserAutoId.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
 
 contract ENSDaoToken is ERC721PresetMinterPauserAutoId {
   constructor(
