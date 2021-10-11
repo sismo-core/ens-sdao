@@ -4,20 +4,20 @@ import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import './nameWrapper/NameWrapper.sol';
 import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import {ENSDaoToken} from './ENSDaoToken.sol';
 
 /**
  * A registrar that allocates subdomains to the first person to claim them.
  */
-contract ENSDaoRegistrar is ERC1155Holder {
+contract ENSDaoRegistrar is ERC1155Holder, Ownable {
   ENS public _ens;
   bytes32 public _rootNode;
   PublicResolver public _resolver;
   NameWrapper public _nameWrapper;
   ENSDaoToken public _daoToken;
 
-  address public _owner;
   string _name;
   bytes32 public constant ETHNODE =
     keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
@@ -37,7 +37,8 @@ contract ENSDaoRegistrar is ERC1155Holder {
     );
     require(
       dotethOwner == address(0x0) ||
-        dotethOwner == msg.sender ||
+        dotethOwner == _msgSender() ||
+        _msgSender() == owner() ||
         block.timestamp - DAO_BIRTH_DATE > RESERVATION_PERIOD,
       'ENS_DAO: subdomain reserved for .eth holder'
     );
@@ -62,7 +63,6 @@ contract ENSDaoRegistrar is ERC1155Holder {
     _resolver = resolverAddress;
     _nameWrapper = nameWrapper;
     _daoToken = daoToken;
-    _owner = msg.sender;
     _name = name;
     DAO_BIRTH_DATE = block.timestamp;
   }
@@ -106,8 +106,7 @@ contract ENSDaoRegistrar is ERC1155Holder {
     _daoToken.mintTo(msg.sender, uint256(childNode));
   }
 
-  function unwrapToDaoOwner() public {
-    require(msg.sender == _owner, 'ENS_DAO: NOT OWNER');
-    _nameWrapper.unwrapETH2LD(keccak256(bytes(_name)), _owner, _owner);
+  function unwrapToDaoOwner() public onlyOwner {
+    _nameWrapper.unwrapETH2LD(keccak256(bytes(_name)), owner(), owner());
   }
 }

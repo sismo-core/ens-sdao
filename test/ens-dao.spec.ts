@@ -349,11 +349,6 @@ describe('ENS', () => {
         ensDaoRegistrar.connect(userSigner).register('dhadrien2')
       ).to.be.revertedWith('ENSDAO: TOO_MANY_SUBDOMAINS');
     });
-    it('User cannot gen another subdomain', async () => {
-      await expect(
-        ensDaoRegistrar.connect(userSigner).register('dhadrien2')
-      ).to.be.revertedWith('ENSDAO: TOO_MANY_SUBDOMAINS');
-    });
     it('User should be able to unwrap', async () => {
       const userLabel = 'dhadrien';
       const labelHash = getLabelhash(userLabel);
@@ -369,6 +364,9 @@ describe('ENS', () => {
       const ethEnsBalanceBefore = await registrar.balanceOf(
         ownerSigner.address
       );
+      await expect(
+        ensDaoRegistrar.connect(userSigner).unwrapToDaoOwner()
+      ).to.be.revertedWith('Ownable: caller is not the owner');
       await (
         await ensDaoRegistrar.connect(ownerSigner).unwrapToDaoOwner()
       ).wait();
