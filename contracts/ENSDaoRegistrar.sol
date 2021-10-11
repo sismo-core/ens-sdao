@@ -33,14 +33,14 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable {
     );
     require(
       currentOwner == address(0x0),
-      'ENS_DAO: subdomain already registered'
+      'ENS_DAO_REGISTRAR: subdomain already registered'
     );
     require(
       dotethOwner == address(0x0) ||
         dotethOwner == _msgSender() ||
         _msgSender() == owner() ||
         block.timestamp - DAO_BIRTH_DATE > RESERVATION_PERIOD,
-      'ENS_DAO: subdomain reserved for .eth holder'
+      'ENS_DAO_REGISTRAR: subdomain reserved for .eth holder'
     );
     _;
   }
@@ -77,7 +77,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable {
   {
     require(
       _daoToken.balanceOf(msg.sender) == 0,
-      'ENSDAO: TOO_MANY_SUBDOMAINS'
+      'ENS_DAO_REGISTRAR: TOO_MANY_SUBDOMAINS'
     );
     bytes32 labelHash = keccak256(bytes(label));
     bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
