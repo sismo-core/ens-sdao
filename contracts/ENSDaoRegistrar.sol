@@ -78,8 +78,11 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable {
   }
 
   /**
-   * @notice Register a name.
-   * @dev TODO
+   * @notice Register a name and mints a DAO token.
+   * @dev Can only be called if and only if
+   *  - the subdomain of the root node is free
+   *  - sender does not already have a DAO token OR sender is the owner
+   *  - if still in the reservation period, the associated .eth subdomain is free OR owned by the sender
    * @param label The label to register.
    */
   function register(string memory label)
@@ -100,8 +103,8 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable {
   }
 
   /**
-   * @notice Unwrap the root domain of the ENS Dao Registrar
-   * @dev Can be called by the owner of the registrar
+   * @notice Unwrap the root domain of the ENS Dao Registrar.
+   * @dev Can be called by the owner of the registrar.
    */
   function unwrapToDaoOwner() public onlyOwner {
     _nameWrapper.unwrapETH2LD(keccak256(bytes(_name)), owner(), owner());
@@ -110,7 +113,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable {
   /**
    * @dev Register a name using the Name Wrapper.
    * @param label The label to register.
-   * @param childNode The node to register, given as input because of parent computation
+   * @param childNode The node to register, given as input because of parent computation.
    */
   function _registerWithNameWrapper(string memory label, bytes32 childNode)
     internal
@@ -140,7 +143,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable {
   /**
    * @dev Register a name using the ENS Registry.
    * @param labelHash The hash of the label to register.
-   * @param childNode The node to register, given as input because of parent computation
+   * @param childNode The node to register, given as input because of parent computation.
    */
   function _registerWithEnsRegistry(bytes32 labelHash, bytes32 childNode)
     internal
