@@ -19,36 +19,19 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable {
   ENSDaoToken public _daoToken;
 
   string _name;
-  bytes32 public constant ETHNODE =
+  bytes32 public constant ETH_NODE =
     keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
   uint256 public constant RESERVATION_PERIOD = 1 weeks;
   uint256 public immutable DAO_BIRTH_DATE;
 
-  modifier only_owner(bytes32 label) {
-    address currentOwner = _ens.owner(
-      keccak256(abi.encodePacked(_rootNode, label))
-    );
-    address dotethOwner = _ens.owner(
-      keccak256(abi.encodePacked(ETHNODE, label))
-    );
-    require(
-      currentOwner == address(0x0),
-      'ENS_DAO_REGISTRAR: subdomain already registered'
-    );
-    require(
-      dotethOwner == address(0x0) ||
-        dotethOwner == _msgSender() ||
-        _msgSender() == owner() ||
-        block.timestamp - DAO_BIRTH_DATE > RESERVATION_PERIOD,
-      'ENS_DAO_REGISTRAR: subdomain reserved for .eth holder'
-    );
-    _;
-  }
-
   /**
-   * Constructor.
+   * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
+   * @param resolverAddress The address of the Resolver.
+   * @param nameWrapper The address of the Name Wrapper.
+   * @param daoToken The address of the DAO Token.
    * @param node The node that this registrar administers.
+   * @param name The label string of the administered subdomain.
    */
   constructor(
     ENS ensAddr,
@@ -67,22 +50,72 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable {
     DAO_BIRTH_DATE = block.timestamp;
   }
 
+  modifier canRegister(bytes32 labelHash) {
+    address subdomainOwner = _ens.owner(
+      keccak256(abi.encodePacked(_rootNode, labelHash))
+    );
+    require(
+      subdomainOwner == address(0x0),
+      'ENS_DAO_REGISTRAR: subdomain already registered'
+    );
+
+    require(
+      _daoToken.balanceOf(_msgSender()) == 0 || _msgSender() == owner(),
+      'ENS_DAO_REGISTRAR: too many subdomains'
+    );
+
+    if (block.timestamp - DAO_BIRTH_DATE <= RESERVATION_PERIOD) {
+      address dotEthSubdomainOwner = _ens.owner(
+        keccak256(abi.encodePacked(ETH_NODE, labelHash))
+      );
+      require(
+        dotEthSubdomainOwner == address(0x0) ||
+          dotEthSubdomainOwner == _msgSender(),
+        'ENS_DAO_REGISTRAR: subdomain reserved for .eth holder during reservation period'
+      );
+    }
+    _;
+  }
+
   /**
-   * Register a name, or change the owner of an existing registration.
-   * @param label The the label to register.
+   * @notice Register a name.
+   * @dev TODO
+   * @param label The label to register.
    */
   function register(string memory label)
     public
-    only_owner(keccak256(bytes(label)))
+    canRegister(keccak256(bytes(label)))
   {
-    require(
-      _daoToken.balanceOf(msg.sender) == 0,
-      'ENS_DAO_REGISTRAR: TOO_MANY_SUBDOMAINS'
-    );
     bytes32 labelHash = keccak256(bytes(label));
     bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
 
-    // Set ownership to ENSDAO, so that the contract can set resolver
+    if (address(_nameWrapper) != address(0)) {
+      _registerWithNameWrapper(label, childNode);
+    } else {
+      _registerWithEnsRegistry(labelHash, childNode);
+    }
+
+    // Minting the DAO Token
+    _daoToken.mintTo(_msgSender(), uint256(childNode));
+  }
+
+  /**
+   * @notice Unwrap the root domain of the ENS Dao Registrar
+   * @dev Can be called by the owner of the registrar
+   */
+  function unwrapToDaoOwner() public onlyOwner {
+    _nameWrapper.unwrapETH2LD(keccak256(bytes(_name)), owner(), owner());
+  }
+
+  /**
+   * @dev Register a name using the Name Wrapper.
+   * @param label The label to register.
+   * @param childNode The node to register, given as input because of parent computation
+   */
+  function _registerWithNameWrapper(string memory label, bytes32 childNode)
+    internal
+  {
+    // Set ownership to ENS DAO, so that the contract can set resolver
     _nameWrapper.setSubnodeRecordAndWrap(
       _rootNode,
       label,
@@ -92,21 +125,39 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable {
       0
     );
     // Setting the resolver for the user
-    _resolver.setAddr(childNode, msg.sender);
+    _resolver.setAddr(childNode, _msgSender());
 
     // Giving back the ownership to the user
     _nameWrapper.safeTransferFrom(
       address(this),
-      msg.sender,
+      _msgSender(),
       uint256(childNode),
       1,
       ''
     );
-    // Minting the DAO Token
-    _daoToken.mintTo(msg.sender, uint256(childNode));
   }
 
-  function unwrapToDaoOwner() public onlyOwner {
-    _nameWrapper.unwrapETH2LD(keccak256(bytes(_name)), owner(), owner());
+  /**
+   * @dev Register a name using the ENS Registry.
+   * @param labelHash The hash of the label to register.
+   * @param childNode The node to register, given as input because of parent computation
+   */
+  function _registerWithEnsRegistry(bytes32 labelHash, bytes32 childNode)
+    internal
+  {
+    // Set ownership to ENS DAO, so that the contract can set resolver
+    _ens.setSubnodeRecord(
+      _rootNode,
+      labelHash,
+      address(this),
+      address(_resolver),
+      60
+    );
+
+    // Setting the resolver for the user
+    _resolver.setAddr(childNode, _msgSender());
+
+    // Giving back the ownership to the user
+    _ens.setSubnodeOwner(_rootNode, labelHash, _msgSender());
   }
 }
