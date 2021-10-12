@@ -18,60 +18,62 @@ import packet from 'dns-packet';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
 import { increaseTime } from '../evm-utils';
-const utils = ethers.utils;
-const getLabelhash = (label: string) =>
-  utils.keccak256(utils.toUtf8Bytes(label));
-let label: string;
-let labelhash: string;
-let domain: string;
-let node: string;
 
-function encodeName(name: string) {
-  return '0x' + packet.name.encode(name).toString('hex');
-}
-const year = 365 * 24 * 60 * 60;
+type FullDeploiementResult = {
+  ensDeployer: ENSDeployer;
+  registry: ENSRegistry;
+  registrar: EthRegistrar;
+  reverseRegistrar: ReverseRegistrar;
+  publicResolver: PublicResolver;
+  nameWrapper: NameWrapper;
+};
+
+type EnsDeploiementResult = {
+  ensDaoRegistrar: ENSDaoRegistrar;
+  ensDaoToken: ENSDaoToken;
+};
+
 describe('ENS', () => {
-  let ensDeployer: ENSDeployer;
-  // .eth registrar
-  let registrar: EthRegistrar;
-  let registry: ENSRegistry;
-  let reverseRegistrar: ReverseRegistrar;
-  let publicResolver: PublicResolver;
+  const utils = ethers.utils;
+  const year = 365 * 24 * 60 * 60;
+
+  const getLabelhash = (label: string) =>
+    utils.keccak256(utils.toUtf8Bytes(label));
+  const encodeName = (name: string) =>
+    `0x${packet.name.encode(name).toString('hex')}`;
+
   let userSigner: SignerWithAddress;
   let ownerSigner: SignerWithAddress;
   let otherSigner: SignerWithAddress;
-  let nameWrapper: NameWrapper;
-  let ensDaoRegistrar: ENSDaoRegistrar;
-  let ensDaoToken: ENSDaoToken;
-  let ens: any;
-  let tokenId: string;
+
   before(async () => {
     [ownerSigner, userSigner, otherSigner] = await HRE.ethers.getSigners();
-    const deployedENS: {
-      ensDeployer: ENSDeployer;
-      registry: ENSRegistry;
-      registrar: EthRegistrar;
-      reverseRegistrar: ReverseRegistrar;
-      publicResolver: PublicResolver;
-      nameWrapper: NameWrapper;
-    } = await HRE.run('deploy-ens-full');
-    ensDeployer = deployedENS.ensDeployer;
-    registrar = deployedENS.registrar;
-    registry = deployedENS.registry;
-    reverseRegistrar = deployedENS.reverseRegistrar;
-    publicResolver = deployedENS.publicResolver;
-    nameWrapper = deployedENS.nameWrapper;
-    label = 'dhadrien';
-    labelhash = getLabelhash(label);
-    domain = `${label}.eth`;
-    tokenId = ethers.BigNumber.from(labelhash).toString();
-    node = nameHash.hash(domain);
-    ens = await new ENS({
-      provider: HRE.ethers.provider,
-      ensAddress: registry.address,
-    });
   });
+
   describe('ENS: Register domain, set owners, set lookup and reverse lookup, create subdomain', async () => {
+    const label = 'dhadrien';
+    const labelhash = getLabelhash(label);
+    const domain = `${label}.eth`;
+    const node = nameHash.hash(domain);
+
+    let registrar: EthRegistrar;
+    let reverseRegistrar: ReverseRegistrar;
+    let registry: ENSRegistry;
+    let publicResolver: PublicResolver;
+    let ens: ENS;
+
+    before(async () => {
+      const deployedENS: FullDeploiementResult = await HRE.run(
+        'deploy-ens-full'
+      );
+      ({ registrar, registry, reverseRegistrar, publicResolver } = deployedENS);
+
+      ens = await new ENS({
+        provider: HRE.ethers.provider,
+        ensAddress: registry.address,
+      });
+    });
+
     it('owner registers dhadrien.eth for themselves', async () => {
       await registrar.register(labelhash, ownerSigner.address, year);
       expect(await registry.owner(node)).to.be.equal(ownerSigner.address);
@@ -106,11 +108,10 @@ describe('ENS', () => {
         ethers.constants.AddressZero
       );
       // setting the resolver in the record: now dhadrien.eth uses publicResolver to resolve
-      await (
-        await registry
-          .connect(userSigner)
-          .setResolver(node, publicResolver.address)
-      ).wait();
+      await registry
+        .connect(userSigner)
+        .setResolver(node, publicResolver.address);
+
       expect(await registry.resolver(node)).to.be.equal(publicResolver.address);
       // still does not resolve, we did not set the resolver
       expect(await ens.name(domain).getAddress()).to.be.equal(
@@ -131,49 +132,66 @@ describe('ENS', () => {
       );
     });
     it('user registers iam.dhadrien.eth', async () => {
-      label = 'iam';
-      labelhash = getLabelhash(label);
-      domain = `${label}.dhadrien.eth`;
-      const oldNode = node;
-      node = nameHash.hash(domain);
-      tokenId = ethers.BigNumber.from(labelhash).toString();
-      expect(await registry.resolver(node)).to.be.equal(
+      const subLabel = 'iam';
+      const subLabelhash = getLabelhash(subLabel);
+      const subDomain = `${subLabel}.${label}.eth`;
+      const subNode = nameHash.hash(subDomain);
+      expect(await registry.resolver(subNode)).to.be.equal(
         ethers.constants.AddressZero
       );
       await registry
         .connect(userSigner)
-        .setSubnodeOwner(oldNode, labelhash, userSigner.address);
+        .setSubnodeOwner(node, subLabelhash, userSigner.address);
       // setting the resolver in the record: now dhadrien.eth uses publicResolver to resolve
-      await (
-        await registry
-          .connect(userSigner)
-          .setResolver(node, publicResolver.address)
-      ).wait();
-      expect(await registry.resolver(node)).to.be.equal(publicResolver.address);
+      await registry
+        .connect(userSigner)
+        .setResolver(subNode, publicResolver.address);
+      expect(await registry.resolver(subNode)).to.be.equal(
+        publicResolver.address
+      );
       // still does not resolve, we did not set the resolver
-      expect(await ens.name(domain).getAddress()).to.be.equal(
+      expect(await ens.name(subDomain).getAddress()).to.be.equal(
         ethers.constants.AddressZero
       );
       // setting the public resolver to resolve address to user
       await publicResolver
         .connect(userSigner)
-        .functions['setAddr(bytes32,address)'](node, userSigner.address);
+        .functions['setAddr(bytes32,address)'](subNode, userSigner.address);
       // checking with contracts
-      expect(await publicResolver.functions['addr(bytes32)'](node)).to.be.eql([
-        userSigner.address,
-      ]);
+      expect(
+        await publicResolver.functions['addr(bytes32)'](subNode)
+      ).to.be.eql([userSigner.address]);
       // checking with lib
-      expect(await ens.name(domain).getAddress()).to.be.equal(
+      expect(await ens.name(subDomain).getAddress()).to.be.equal(
         userSigner.address
       );
     });
   });
+
   describe('ENS: NameWrapper', async () => {
+    const label = 'sismo';
+    const labelhash = getLabelhash(label);
+    const domain = `${label}.eth`;
+
+    let registrar: EthRegistrar;
+    let registry: ENSRegistry;
+    let publicResolver: PublicResolver;
+    let nameWrapper: NameWrapper;
+    let ens: ENS;
+
+    before(async () => {
+      const deployedENS: FullDeploiementResult = await HRE.run(
+        'deploy-ens-full'
+      );
+      ({ registrar, registry, nameWrapper, publicResolver } = deployedENS);
+
+      ens = await new ENS({
+        provider: HRE.ethers.provider,
+        ensAddress: registry.address,
+      });
+    });
+
     it('Should register sismo.eth with contract, do the rest with lib', async () => {
-      label = 'sismo';
-      labelhash = getLabelhash(label);
-      domain = `${label}.eth`;
-      node = nameHash.hash(domain);
       await registrar.register(labelhash, ownerSigner.address, year);
       // set resolver
       await ens.name(domain).setResolver(publicResolver.address);
@@ -237,22 +255,15 @@ describe('ENS', () => {
     it('Wrapped domain (subdomain.simsmo.eth) should be able to give subdomains to newUser', async () => {
       const subdomain = 'subdomain.sismo.eth';
       const userLabel = 'user';
-      const userLabelHash = getLabelhash(userLabel);
-      const subdomainNode = nameHash.hash(subdomain);
+      const subNode = nameHash.hash(subdomain);
       const userNode = nameHash.hash(`${userLabel}.${subdomain}`);
-      // const userNode = keccak256(
-      //   ethers.utils.solidityPack(
-      //     ['bytes', 'bytes'],
-      //     [subdomainNode, userLabelHash]
-      //   )
-      // );
 
       expect(
         await nameWrapper.balanceOf(ownerSigner.address, userNode)
       ).to.be.equal(0);
 
       await nameWrapper.setSubnodeRecordAndWrap(
-        subdomainNode,
+        subNode,
         userLabel,
         ownerSigner.address,
         publicResolver.address,
@@ -265,114 +276,219 @@ describe('ENS', () => {
       expect(await registry.owner(userNode)).to.be.equal(nameWrapper.address);
     });
   });
+
   describe('ENS DAO: Create a registrar for yourdomain.eth and let user register user.yourdomain.eth freely', async () => {
-    it('deploy the ENS dao that will own sismo.eth', async () => {
-      const ensDaoDeployment: {
-        ensDaoRegistrar: ENSDaoRegistrar;
-        ensDaoToken: ENSDaoToken;
-      } = await HRE.run('deploy-ens-dao', {
-        // name NEEEDS to be label of .eth name
-        name: 'sismo',
-        symbol: 'SISMO',
-        ens: registry.address,
-        resolver: publicResolver.address,
-        nameWrapper: nameWrapper.address,
-        reverseRegistrar: reverseRegistrar.address,
+    const sismoLabel = 'sismo';
+
+    let registrar: EthRegistrar;
+    let reverseRegistrar: ReverseRegistrar;
+    let registry: ENSRegistry;
+    let publicResolver: PublicResolver;
+    let nameWrapper: NameWrapper;
+    let ensDaoToken: ENSDaoToken;
+    let ensDaoRegistrar: ENSDaoRegistrar;
+    let ens: ENS;
+
+    before(async () => {
+      const deployedENS: FullDeploiementResult = await HRE.run(
+        'deploy-ens-full'
+      );
+      ({ registrar, registry, reverseRegistrar, publicResolver, nameWrapper } =
+        deployedENS);
+
+      ens = await new ENS({
+        provider: HRE.ethers.provider,
+        ensAddress: registry.address,
       });
-      ensDaoToken = ensDaoDeployment.ensDaoToken;
-      ensDaoRegistrar = ensDaoDeployment.ensDaoRegistrar;
-      tokenId = ethers.BigNumber.from(getLabelhash('sismo')).toString();
     });
-    it('sismo.eth owner wrap and gives wrapped ownership to sismo.eth ENS DAO', async () => {
-      await registry.setApprovalForAll(nameWrapper.address, true);
-      await (await registrar.approve(nameWrapper.address, tokenId)).wait();
-      await nameWrapper
-        .connect(ownerSigner)
-        .wrapETH2LD(
-          'sismo',
-          ensDaoRegistrar.address,
-          0,
-          publicResolver.address
+
+    describe('when a NameWrapper contract is provided', () => {
+      const label = 'vitalik';
+      const otherLabel = 'dhadrien';
+
+      before(async () => {
+        const deployedEnsDao: EnsDeploiementResult = await HRE.run(
+          'deploy-ens-dao',
+          {
+            // name NEEEDS to be label of .eth name
+            name: sismoLabel,
+            symbol: 'SISMO',
+            ens: registry.address,
+            resolver: publicResolver.address,
+            nameWrapper: nameWrapper.address,
+            reverseRegistrar: reverseRegistrar.address,
+          }
         );
-    });
-    it('not owners of vitalik.eth/ dhadrien.eth cannot register vitalik.sismo.eth', async () => {
-      await registrar.register(
-        getLabelhash('vitalik'),
-        ownerSigner.address,
-        year
-      );
-      await expect(
-        ensDaoRegistrar.connect(otherSigner).register('vitalik')
-      ).to.be.revertedWith('ENS_DAO: subdomain reserved for .eth holder');
-      // registered in previous test, owner is userSigner
-      await expect(
-        ensDaoRegistrar.connect(otherSigner).register('dhadrien')
-      ).to.be.revertedWith('ENS_DAO: subdomain reserved for .eth holder');
-    });
-    it('not owner of vitalik.eth can register vitalik.sismo.eth after 1 week', async () => {
-      // 1 week  + 5 sec
-      await increaseTime(
-        HRE,
-        (await ensDaoRegistrar.RESERVATION_PERIOD()).toNumber() + 5
-      );
-      const domain = `vitalik.sismo.eth`;
+        ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
+      });
 
-      await ensDaoRegistrar.connect(otherSigner).register('vitalik');
-      expect(await ens.name(domain).getAddress()).to.be.equal(
-        otherSigner.address
-      );
-    });
-    it('owner of dhadrien.eth can register dhadrien.sismo.eth, get the wrapped subdomain', async () => {
-      const userLabel = 'dhadrien';
-      const domain = `${userLabel}.sismo.eth`;
-      const userNode = nameHash.hash(domain);
-      await (
-        await ensDaoRegistrar.connect(userSigner).register('dhadrien')
-      ).wait();
-      expect(await ens.name(domain).getAddress()).to.be.equal(
-        userSigner.address
-      );
-      expect(await ensDaoToken.ownerOf(userNode)).to.be.equal(
-        userSigner.address
-      );
+      it('sismo.eth owner wrap and gives wrapped ownership to sismo.eth ENS DAO', async () => {
+        const sismoTokenId = ethers.BigNumber.from(
+          getLabelhash(sismoLabel)
+        ).toString();
+        await registry.setApprovalForAll(nameWrapper.address, true);
+        await registrar.approve(nameWrapper.address, sismoTokenId);
+        await nameWrapper
+          .connect(ownerSigner)
+          .wrapETH2LD(
+            sismoLabel,
+            ensDaoRegistrar.address,
+            0,
+            publicResolver.address
+          );
+      });
+      it(`not owners of ${label}.eth / ${otherLabel}.eth cannot register ${label}.${sismoLabel}.eth / ${otherLabel}.${sismoLabel}.eth`, async () => {
+        await registrar.register(
+          getLabelhash(label),
+          ownerSigner.address,
+          year
+        );
 
-      expect(
-        await nameWrapper.isTokenOwnerOrApproved(userNode, userSigner.address)
-      ).to.be.equal(true);
-      expect(await nameWrapper.ownerOf(userNode)).to.be.equal(
-        userSigner.address
-      );
-      expect(await registry.owner(userNode)).to.be.equal(nameWrapper.address);
+        await expect(
+          ensDaoRegistrar.connect(otherSigner).register(label)
+        ).to.be.revertedWith(
+          'ENS_DAO_REGISTRAR: subdomain reserved for .eth holder during reservation period'
+        );
+        // registered in previous test, owner is userSigner
+        await expect(
+          ensDaoRegistrar.connect(otherSigner).register(otherLabel)
+        ).to.be.revertedWith(
+          'ENS_DAO_REGISTRAR: subdomain reserved for .eth holder during reservation period'
+        );
+      });
+      it(`not owner of ${label}.eth can register ${label}.${sismoLabel}.eth after 1 week`, async () => {
+        // 1 week  + 5 sec
+        await increaseTime(
+          HRE,
+          (await ensDaoRegistrar.RESERVATION_PERIOD()).toNumber() + 5
+        );
+        const domain = `${label}.${sismoLabel}.eth`;
+
+        await ensDaoRegistrar.connect(otherSigner).register(label);
+        expect(await ens.name(domain).getAddress()).to.be.equal(
+          otherSigner.address
+        );
+      });
+      it(`owner of ${otherLabel}.eth can register ${otherLabel}.${sismoLabel}.eth, get the wrapped subdomain`, async () => {
+        const domain = `${otherLabel}.${sismoLabel}.eth`;
+        const userNode = nameHash.hash(domain);
+        await ensDaoRegistrar.connect(userSigner).register(otherLabel);
+        expect(await ens.name(domain).getAddress()).to.be.equal(
+          userSigner.address
+        );
+        expect(await ensDaoToken.ownerOf(userNode)).to.be.equal(
+          userSigner.address
+        );
+
+        expect(
+          await nameWrapper.isTokenOwnerOrApproved(userNode, userSigner.address)
+        ).to.be.equal(true);
+        expect(await nameWrapper.ownerOf(userNode)).to.be.equal(
+          userSigner.address
+        );
+        expect(await registry.owner(userNode)).to.be.equal(nameWrapper.address);
+      });
+      it('User cannot gen another subdomain', async () => {
+        await expect(
+          ensDaoRegistrar.connect(userSigner).register('dhadrien2')
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: too many subdomains');
+      });
+
+      it('User cannot gen an already registered subdomain', async () => {
+        await expect(
+          ensDaoRegistrar.connect(otherSigner).register(label)
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: subdomain already registered');
+      });
+
+      it('User should be able to unwrap', async () => {
+        const labelHash = getLabelhash(otherLabel);
+        const parentNode = nameHash.hash(`${sismoLabel}.eth`);
+        const domain = `${otherLabel}.${sismoLabel}.eth`;
+        const userNode = nameHash.hash(domain);
+        await nameWrapper
+          .connect(userSigner)
+          .unwrap(parentNode, labelHash, userSigner.address);
+        expect(await registry.owner(userNode)).to.be.equal(userSigner.address);
+      });
+      it('Sismo.eth initial owner should be able to get back ownership, get back the Eth ERC721 NFT', async () => {
+        const ethEnsBalanceBefore = await registrar.balanceOf(
+          ownerSigner.address
+        );
+        await expect(
+          ensDaoRegistrar.connect(userSigner).unwrapToDaoOwner()
+        ).to.be.revertedWith('Ownable: caller is not the owner');
+        await (
+          await ensDaoRegistrar.connect(ownerSigner).unwrapToDaoOwner()
+        ).wait();
+        expect(await registrar.balanceOf(ownerSigner.address)).to.be.equal(
+          ethEnsBalanceBefore.add(1)
+        );
+      });
     });
-    it('User cannot gen another subdomain', async () => {
-      await expect(
-        ensDaoRegistrar.connect(userSigner).register('dhadrien2')
-      ).to.be.revertedWith('ENSDAO: TOO_MANY_SUBDOMAINS');
-    });
-    it('User should be able to unwrap', async () => {
-      const userLabel = 'dhadrien';
-      const labelHash = getLabelhash(userLabel);
-      const parentNode = nameHash.hash('sismo.eth');
-      const domain = `${userLabel}.sismo.eth`;
-      const userNode = nameHash.hash(domain);
-      await nameWrapper
-        .connect(userSigner)
-        .unwrap(parentNode, labelHash, userSigner.address);
-      expect(await registry.owner(userNode)).to.be.equal(userSigner.address);
-    });
-    it('Sismo.eth initial owner should be able to get back ownership, get back the Eth ERC721 NFT', async () => {
-      const ethEnsBalanceBefore = await registrar.balanceOf(
-        ownerSigner.address
-      );
-      await expect(
-        ensDaoRegistrar.connect(userSigner).unwrapToDaoOwner()
-      ).to.be.revertedWith('Ownable: caller is not the owner');
-      await (
-        await ensDaoRegistrar.connect(ownerSigner).unwrapToDaoOwner()
-      ).wait();
-      expect(await registrar.balanceOf(ownerSigner.address)).to.be.equal(
-        ethEnsBalanceBefore.add(1)
-      );
+
+    // TODO: need to refactor test structure in order to properly deal with exceptions in the following test suite
+    describe('when a NameWrapper contract is not provided and ENS registry is used', () => {
+      before(async () => {
+        const deployedEnsDao: EnsDeploiementResult = await HRE.run(
+          'deploy-ens-dao',
+          {
+            // name NEEEDS to be label of .eth name
+            name: sismoLabel,
+            symbol: 'SISMO',
+            ens: registry.address,
+            resolver: publicResolver.address,
+            nameWrapper: ethers.constants.AddressZero,
+            reverseRegistrar: reverseRegistrar.address,
+          }
+        );
+        ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
+        [ownerSigner, , , userSigner, otherSigner] =
+          await HRE.ethers.getSigners();
+      });
+
+      const label = 'vitalikbuddy';
+      const otherLabel = 'dhadrienbuddy';
+
+      it('sismo.eth owner gives ownership of sismo.eth to ENS DAO', async () => {
+        await registry.setOwner(
+          nameHash.hash(`${sismoLabel}.eth`),
+          ensDaoRegistrar.address
+        );
+      });
+
+      it(`not owner of ${label}.eth can register ${label}.${sismoLabel}.eth`, async () => {
+        const domain = `${label}.${sismoLabel}.eth`;
+        const node = nameHash.hash(domain);
+
+        await ensDaoRegistrar.connect(otherSigner).register(label);
+        expect(await ens.name(domain).getAddress()).to.be.equal(
+          otherSigner.address
+        );
+        expect(await ensDaoToken.ownerOf(node)).to.be.equal(
+          otherSigner.address
+        );
+      });
+      it(`User can register ${otherLabel}.${sismoLabel}.eth`, async () => {
+        const domain = `${otherLabel}.${sismoLabel}.eth`;
+        const userNode = nameHash.hash(domain);
+        await ensDaoRegistrar.connect(userSigner).register(otherLabel);
+        expect(await ens.name(domain).getAddress()).to.be.equal(
+          userSigner.address
+        );
+        expect(await ensDaoToken.ownerOf(userNode)).to.be.equal(
+          userSigner.address
+        );
+      });
+      it('User cannot gen an already registered subdomain', async () => {
+        await expect(
+          ensDaoRegistrar.connect(otherSigner).register(label)
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: subdomain already registered');
+      });
+      it('User cannot gen another subdomain', async () => {
+        await expect(
+          ensDaoRegistrar.connect(userSigner).register('dhadrien2')
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: too many subdomains');
+      });
     });
   });
 });
