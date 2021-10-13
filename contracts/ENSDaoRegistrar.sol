@@ -106,7 +106,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable {
    * @notice Give back the root domain of the ENS Dao Registrar.
    * @dev Can be called by the owner of the registrar.
    */
-  function giveBackRootToDaoOwner() public onlyOwner {
+  function giveBackDomainOwnership() public onlyOwner {
     if (address(_nameWrapper) != address(0)) {
       _nameWrapper.unwrapETH2LD(keccak256(bytes(_name)), owner(), owner());
     } else {

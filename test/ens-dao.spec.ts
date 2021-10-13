@@ -415,9 +415,9 @@ describe('ENS', () => {
           ownerSigner.address
         );
         await expect(
-          ensDaoRegistrar.connect(userSigner).giveBackRootToDaoOwner()
+          ensDaoRegistrar.connect(userSigner).giveBackDomainOwnership()
         ).to.be.revertedWith('Ownable: caller is not the owner');
-        await ensDaoRegistrar.connect(ownerSigner).giveBackRootToDaoOwner();
+        await ensDaoRegistrar.connect(ownerSigner).giveBackDomainOwnership();
         expect(await registrar.balanceOf(ownerSigner.address)).to.be.equal(
           ethEnsBalanceBefore.add(1)
         );
@@ -489,10 +489,10 @@ describe('ENS', () => {
       });
       it('Sismo.eth initial owner should be able to get back ownership of the root domain', async () => {
         await expect(
-          ensDaoRegistrar.connect(userSigner).giveBackRootToDaoOwner()
+          ensDaoRegistrar.connect(userSigner).giveBackDomainOwnership()
         ).to.be.revertedWith('Ownable: caller is not the owner');
 
-        await ensDaoRegistrar.connect(ownerSigner).giveBackRootToDaoOwner();
+        await ensDaoRegistrar.connect(ownerSigner).giveBackDomainOwnership();
 
         expect(await ens.name(`${sismoLabel}.eth`).getOwner()).to.be.equal(
           ownerSigner.address
