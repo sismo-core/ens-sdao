@@ -415,11 +415,9 @@ describe('ENS', () => {
           ownerSigner.address
         );
         await expect(
-          ensDaoRegistrar.connect(userSigner).unwrapToDaoOwner()
+          ensDaoRegistrar.connect(userSigner).giveBackDomainOwnership()
         ).to.be.revertedWith('Ownable: caller is not the owner');
-        await (
-          await ensDaoRegistrar.connect(ownerSigner).unwrapToDaoOwner()
-        ).wait();
+        await ensDaoRegistrar.connect(ownerSigner).giveBackDomainOwnership();
         expect(await registrar.balanceOf(ownerSigner.address)).to.be.equal(
           ethEnsBalanceBefore.add(1)
         );
@@ -450,8 +448,8 @@ describe('ENS', () => {
       const otherLabel = 'dhadrienbuddy';
 
       it('sismo.eth owner gives ownership of sismo.eth to ENS DAO', async () => {
-        await registry.setOwner(
-          nameHash.hash(`${sismoLabel}.eth`),
+        await ens.name(`${sismoLabel}.eth`).setOwner(ensDaoRegistrar.address);
+        expect(await ens.name(`${sismoLabel}.eth`).getOwner()).to.be.equal(
           ensDaoRegistrar.address
         );
       });
@@ -488,6 +486,17 @@ describe('ENS', () => {
         await expect(
           ensDaoRegistrar.connect(userSigner).register('dhadrien2')
         ).to.be.revertedWith('ENS_DAO_REGISTRAR: too many subdomains');
+      });
+      it('Sismo.eth initial owner should be able to get back ownership of the root domain', async () => {
+        await expect(
+          ensDaoRegistrar.connect(userSigner).giveBackDomainOwnership()
+        ).to.be.revertedWith('Ownable: caller is not the owner');
+
+        await ensDaoRegistrar.connect(ownerSigner).giveBackDomainOwnership();
+
+        expect(await ens.name(`${sismoLabel}.eth`).getOwner()).to.be.equal(
+          ownerSigner.address
+        );
       });
     });
   });
