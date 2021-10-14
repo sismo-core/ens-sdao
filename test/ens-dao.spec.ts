@@ -610,11 +610,21 @@ describe('ENS', () => {
           await HRE.ethers.getSigners();
 
         await ens.name(`${sismoLabel}.eth`).setOwner(ensDaoRegistrar.address);
-      });
-      it('User can not register when the emission limitation is reached', async () => {
-        const label = 'istanbul';
-        await ensDaoRegistrar.register(label);
 
+        await ensDaoRegistrar.register('istanbul');
+        await ensDaoRegistrar.register('anotherstory');
+      });
+
+      it('Owner can not update the max emission number to a smaller number than the total supply', async () => {
+        const totalSupply = await ensDaoToken.totalSupply();
+        await expect(
+          ensDaoRegistrar.updateMaxEmissionNumber(totalSupply.sub(1).toString())
+        ).to.be.revertedWith(
+          'ENS_DAO_REGISTRAR: new maximum emission number too low'
+        );
+      });
+
+      it('User can not register when the emission limitation is reached', async () => {
         const totalSupply = await ensDaoToken.totalSupply();
 
         const tx = await ensDaoRegistrar.updateMaxEmissionNumber(
@@ -629,9 +639,9 @@ describe('ENS', () => {
         );
         expect(Boolean(maxEmissionNumberUpdatedEvent)).to.equal(true);
 
-        expect(ensDaoRegistrar.register(label)).to.be.revertedWith(
-          'ENS_DAO_REGISTRAR: too many emissions'
-        );
+        await expect(
+          ensDaoRegistrar.register('countryclub')
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: too many emissions');
       });
     });
   });

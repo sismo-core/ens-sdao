@@ -5,7 +5,6 @@ import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import './nameWrapper/NameWrapper.sol';
 import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/utils/Counters.sol';
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import {ENSDaoToken} from './ENSDaoToken.sol';
 import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
@@ -14,8 +13,6 @@ import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
  * A registrar that allocates subdomains to the first person to claim them.
  */
 contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
-  using Counters for Counters.Counter;
-
   ENS public _ens;
   bytes32 public _rootNode;
   PublicResolver public _resolver;
@@ -141,7 +138,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   {
     require(
       emissionNumber >= _daoToken.totalSupply(),
-      'ENS_DAO_REGISTRAR: new emission number too low'
+      'ENS_DAO_REGISTRAR: new maximum emission number too low'
     );
     _maxEmissionNumber = emissionNumber;
     emit MaxEmissionNumberUpdated(emissionNumber);
