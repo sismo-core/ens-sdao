@@ -26,7 +26,12 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
    * @param label The booked label.
    * @return The address associated to the booking.
    */
-  function getBooking(string memory label) external view returns (address) {
+  function getBooking(string memory label)
+    external
+    view
+    override
+    returns (address)
+  {
     bytes32 labelHash = keccak256(bytes(label));
     return _getBooking(labelHash);
   }
@@ -120,7 +125,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
   function _burnBooking(bytes32 labelHash) internal {
     bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
     _bookings[labelHash] = address(0);
-    emit BookingBurned(childNode);
+    emit BookingBurned(uint256(childNode));
   }
 
   /**

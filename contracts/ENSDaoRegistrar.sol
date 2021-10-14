@@ -99,7 +99,7 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
 
     bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
 
-    _register(account, label, labelHash, childNode);
+    _register(account, label, labelHash);
 
     _burnBooking(labelHash);
   }
