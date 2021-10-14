@@ -590,5 +590,49 @@ describe('ENS', () => {
         );
       });
     });
+
+    describe('max number of emission limitation', () => {
+      before(async () => {
+        const deployedEnsDao: EnsDeploiementResult = await HRE.run(
+          'deploy-ens-dao',
+          {
+            // name NEEEDS to be label of .eth name
+            name: sismoLabel,
+            symbol: 'SISMO',
+            ens: registry.address,
+            resolver: publicResolver.address,
+            nameWrapper: ethers.constants.AddressZero,
+            reverseRegistrar: reverseRegistrar.address,
+          }
+        );
+        ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
+        [ownerSigner, , , , , , userSigner, otherSigner] =
+          await HRE.ethers.getSigners();
+
+        await ens.name(`${sismoLabel}.eth`).setOwner(ensDaoRegistrar.address);
+      });
+      it('User can not register when the emission limitation is reached', async () => {
+        const label = 'istanbul';
+        await ensDaoRegistrar.register(label);
+
+        const totalSupply = await ensDaoToken.totalSupply();
+
+        const tx = await ensDaoRegistrar.updateMaxEmissionNumber(
+          totalSupply.toString()
+        );
+        const receipt = await tx.wait();
+
+        const maxEmissionNumberUpdatedEvent = receipt.events?.find(
+          (e) =>
+            e.event === 'MaxEmissionNumberUpdated' &&
+            e?.args?.maxEmissionNumber.toString() === totalSupply.toString()
+        );
+        expect(Boolean(maxEmissionNumberUpdatedEvent)).to.equal(true);
+
+        expect(ensDaoRegistrar.register(label)).to.be.revertedWith(
+          'ENS_DAO_REGISTRAR: too many emissions'
+        );
+      });
+    });
   });
 });

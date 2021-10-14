@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import './nameWrapper/NameWrapper.sol';
 import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/utils/Counters.sol';
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import {ENSDaoToken} from './ENSDaoToken.sol';
 import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
@@ -13,6 +14,8 @@ import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
  * A registrar that allocates subdomains to the first person to claim them.
  */
 contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
+  using Counters for Counters.Counter;
+
   ENS public _ens;
   bytes32 public _rootNode;
   PublicResolver public _resolver;
@@ -24,6 +27,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
   uint256 public constant RESERVATION_PERIOD = 1 weeks;
   uint256 public immutable DAO_BIRTH_DATE;
+  uint256 public _maxEmissionNumber;
 
   /**
    * @dev Constructor.
@@ -49,9 +53,15 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     _daoToken = daoToken;
     _name = name;
     DAO_BIRTH_DATE = block.timestamp;
+    _maxEmissionNumber = 500;
   }
 
   modifier canRegister(bytes32 labelHash) {
+    require(
+      _daoToken.totalSupply() < _maxEmissionNumber,
+      'ENS_DAO_REGISTRAR: too many emissions'
+    );
+
     address subdomainOwner = _ens.owner(
       keccak256(abi.encodePacked(_rootNode, labelHash))
     );
@@ -118,6 +128,23 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     }
 
     emit OwnershipConceded(_msgSender());
+  }
+
+  /**
+   * @notice Update max emission number.
+   * @dev Can only be called by owner.
+   */
+  function updateMaxEmissionNumber(uint256 emissionNumber)
+    external
+    override
+    onlyOwner
+  {
+    require(
+      emissionNumber >= _daoToken.totalSupply(),
+      'ENS_DAO_REGISTRAR: new emission number too low'
+    );
+    _maxEmissionNumber = emissionNumber;
+    emit MaxEmissionNumberUpdated(emissionNumber);
   }
 
   /**
