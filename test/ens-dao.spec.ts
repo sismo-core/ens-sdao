@@ -363,8 +363,19 @@ describe('ENS', () => {
           (await ensDaoRegistrar.RESERVATION_PERIOD()).toNumber() + 5
         );
         const domain = `${label}.${sismoLabel}.eth`;
+        const userNode = nameHash.hash(domain);
 
-        await ensDaoRegistrar.connect(otherSigner).register(label);
+        const tx = await ensDaoRegistrar.connect(otherSigner).register(label);
+        const receipt = await tx.wait();
+
+        const nameRegisteredEvent = receipt.events?.find(
+          (e) =>
+            e.event === 'NameRegistered' &&
+            e.address === ensDaoRegistrar.address
+        );
+        expect(nameRegisteredEvent?.args?.owner).to.equal(otherSigner.address);
+        expect(nameRegisteredEvent?.args?.id.toHexString()).to.equal(userNode);
+
         expect(await ens.name(domain).getAddress()).to.be.equal(
           otherSigner.address
         );
@@ -372,7 +383,20 @@ describe('ENS', () => {
       it(`owner of ${otherLabel}.eth can register ${otherLabel}.${sismoLabel}.eth, get the wrapped subdomain`, async () => {
         const domain = `${otherLabel}.${sismoLabel}.eth`;
         const userNode = nameHash.hash(domain);
-        await ensDaoRegistrar.connect(userSigner).register(otherLabel);
+
+        const tx = await ensDaoRegistrar
+          .connect(userSigner)
+          .register(otherLabel);
+        const receipt = await tx.wait();
+
+        const nameRegisteredEvent = receipt.events?.find(
+          (e) =>
+            e.event === 'NameRegistered' &&
+            e.address === ensDaoRegistrar.address
+        );
+        expect(nameRegisteredEvent?.args?.owner).to.equal(userSigner.address);
+        expect(nameRegisteredEvent?.args?.id.toHexString()).to.equal(userNode);
+
         expect(await ens.name(domain).getAddress()).to.be.equal(
           userSigner.address
         );
@@ -417,14 +441,24 @@ describe('ENS', () => {
         await expect(
           ensDaoRegistrar.connect(userSigner).giveBackDomainOwnership()
         ).to.be.revertedWith('Ownable: caller is not the owner');
-        await ensDaoRegistrar.connect(ownerSigner).giveBackDomainOwnership();
+        const tx = await ensDaoRegistrar
+          .connect(ownerSigner)
+          .giveBackDomainOwnership();
+        const receipt = await tx.wait();
+
+        const ownershipConcedEvent = receipt.events?.find(
+          (e) =>
+            e.event === 'OwnershipConceded' &&
+            e.address === ensDaoRegistrar.address
+        );
+        expect(ownershipConcedEvent?.args?.owner).to.equal(ownerSigner.address);
+
         expect(await registrar.balanceOf(ownerSigner.address)).to.be.equal(
           ethEnsBalanceBefore.add(1)
         );
       });
     });
 
-    // TODO: need to refactor test structure in order to properly deal with exceptions in the following test suite
     describe('when a NameWrapper contract is not provided and ENS registry is used', () => {
       before(async () => {
         const deployedEnsDao: EnsDeploiementResult = await HRE.run(
@@ -458,7 +492,17 @@ describe('ENS', () => {
         const domain = `${label}.${sismoLabel}.eth`;
         const node = nameHash.hash(domain);
 
-        await ensDaoRegistrar.connect(otherSigner).register(label);
+        const tx = await ensDaoRegistrar.connect(otherSigner).register(label);
+        const receipt = await tx.wait();
+
+        const nameRegisteredEvent = receipt.events?.find(
+          (e) =>
+            e.event === 'NameRegistered' &&
+            e.address === ensDaoRegistrar.address
+        );
+        expect(nameRegisteredEvent?.args?.owner).to.equal(otherSigner.address);
+        expect(nameRegisteredEvent?.args?.id.toHexString()).to.equal(node);
+
         expect(await ens.name(domain).getAddress()).to.be.equal(
           otherSigner.address
         );
@@ -469,7 +513,20 @@ describe('ENS', () => {
       it(`User can register ${otherLabel}.${sismoLabel}.eth`, async () => {
         const domain = `${otherLabel}.${sismoLabel}.eth`;
         const userNode = nameHash.hash(domain);
-        await ensDaoRegistrar.connect(userSigner).register(otherLabel);
+
+        const tx = await ensDaoRegistrar
+          .connect(userSigner)
+          .register(otherLabel);
+        const receipt = await tx.wait();
+
+        const nameRegisteredEvent = receipt.events?.find(
+          (e) =>
+            e.event === 'NameRegistered' &&
+            e.address === ensDaoRegistrar.address
+        );
+        expect(nameRegisteredEvent?.args?.owner).to.equal(userSigner.address);
+        expect(nameRegisteredEvent?.args?.id.toHexString()).to.equal(userNode);
+
         expect(await ens.name(domain).getAddress()).to.be.equal(
           userSigner.address
         );
@@ -492,7 +549,17 @@ describe('ENS', () => {
           ensDaoRegistrar.connect(userSigner).giveBackDomainOwnership()
         ).to.be.revertedWith('Ownable: caller is not the owner');
 
-        await ensDaoRegistrar.connect(ownerSigner).giveBackDomainOwnership();
+        const tx = await ensDaoRegistrar
+          .connect(ownerSigner)
+          .giveBackDomainOwnership();
+        const receipt = await tx.wait();
+
+        const ownershipConcedEvent = receipt.events?.find(
+          (e) =>
+            e.event === 'OwnershipConceded' &&
+            e.address === ensDaoRegistrar.address
+        );
+        expect(ownershipConcedEvent?.args?.owner).to.equal(ownerSigner.address);
 
         expect(await ens.name(`${sismoLabel}.eth`).getOwner()).to.be.equal(
           ownerSigner.address

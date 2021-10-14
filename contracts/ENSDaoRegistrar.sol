@@ -7,11 +7,12 @@ import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import {ENSDaoToken} from './ENSDaoToken.sol';
+import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
 
 /**
  * A registrar that allocates subdomains to the first person to claim them.
  */
-contract ENSDaoRegistrar is ERC1155Holder, Ownable {
+contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   ENS public _ens;
   bytes32 public _rootNode;
   PublicResolver public _resolver;
@@ -86,7 +87,8 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable {
    * @param label The label to register.
    */
   function register(string memory label)
-    public
+    external
+    override
     canRegister(keccak256(bytes(label)))
   {
     bytes32 labelHash = keccak256(bytes(label));
@@ -100,18 +102,22 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable {
 
     // Minting the DAO Token
     _daoToken.mintTo(_msgSender(), uint256(childNode));
+
+    emit NameRegistered(uint256(childNode), _msgSender());
   }
 
   /**
-   * @notice Give back the root domain of the ENS Dao Registrar.
+   * @notice Give back the root domain of the ENS DAO Registrar to DAO owner.
    * @dev Can be called by the owner of the registrar.
    */
-  function giveBackDomainOwnership() public onlyOwner {
+  function giveBackDomainOwnership() external override onlyOwner {
     if (address(_nameWrapper) != address(0)) {
       _nameWrapper.unwrapETH2LD(keccak256(bytes(_name)), owner(), owner());
     } else {
       _ens.setOwner(_rootNode, owner());
     }
+
+    emit OwnershipConceded(_msgSender());
   }
 
   /**
