@@ -62,10 +62,9 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
    */
   function register(string memory label) external override {
     bytes32 labelHash = keccak256(bytes(label));
-    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
 
     require(
-      getBooking(labelHash) == address(0),
+      _getBooking(labelHash) == address(0),
       'ENS_DAO_REGISTRAR: label booked'
     );
 
@@ -80,14 +79,18 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
       );
     }
 
-    _register(_msgSender(), label, labelHash, childNode);
-
-    emit NameRegistered(uint256(childNode), _msgSender());
+    _register(_msgSender(), label, labelHash);
   }
 
+  /**
+   * @notice Claim a booked name.
+   * @dev Can only be called by owner or registered booking address.
+   * @param label The label to claim.
+   * @param account The account to which the registration is done.
+   */
   function claim(string memory label, address account) external override {
     bytes32 labelHash = keccak256(bytes(label));
-    address bookedAddress = getBooking(labelHash);
+    address bookedAddress = _getBooking(labelHash);
     require(bookedAddress != address(0), 'ENS_DAO_REGISTRAR: label not booked');
     require(
       bookedAddress == _msgSender() || owner() == _msgSender(),
@@ -99,8 +102,6 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
     _register(account, label, labelHash, childNode);
 
     _burnBooking(labelHash);
-
-    emit NameClaimed(uint256(childNode), account);
   }
 
   /**
@@ -137,14 +138,15 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
   function _register(
     address account,
     string memory label,
-    bytes32 labelHash,
-    bytes32 childNode
+    bytes32 labelHash
   ) internal {
+    
     require(
       _daoToken.totalSupply() < _maxEmissionNumber,
       'ENS_DAO_REGISTRAR: too many emissions'
     );
 
+    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
     address subdomainOwner = _ens.owner(
       keccak256(abi.encodePacked(_rootNode, labelHash))
     );
@@ -166,6 +168,8 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
 
     // Minting the DAO Token
     _daoToken.mintTo(account, uint256(childNode));
+
+    emit NameRegistered(uint256(childNode), _msgSender());
   }
 
   /**

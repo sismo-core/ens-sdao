@@ -8,7 +8,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
   ENS public _ens;
   bytes32 public _rootNode;
 
-  mapping(bytes32 => address) private bookings;
+  mapping(bytes32 => address) private _bookings;
 
   /**
    * @dev Constructor.
@@ -20,12 +20,15 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
     _rootNode = node;
   }
 
-  function getBooking(bytes32 labelHash) public view returns (address) {
-    return bookings[labelHash];
-  }
-
-  function _burnBooking(bytes32 labelHash) internal {
-    bookings[labelHash] = address(0);
+  /**
+   * @notice Get the address of a booking.
+   *         The zero address means the booking does not exist.
+   * @param label The booked label.
+   * @return The address associated to the booking.
+   */
+  function getBooking(string memory label) external view returns (address) {
+    bytes32 labelHash = keccak256(bytes(label));
+    return _getBooking(labelHash);
   }
 
   /**
@@ -40,9 +43,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
     onlyOwner
   {
     bytes32 labelHash = keccak256(bytes(label));
-    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
     _book(labelHash, bookingAddress);
-    emit NameBooked(uint256(childNode), bookingAddress);
   }
 
   /**
@@ -63,9 +64,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
     );
     for (uint256 i; i < labels.length; i++) {
       bytes32 labelHash = keccak256(bytes(labels[i]));
-      bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
       _book(labelHash, bookingAddresses[i]);
-      emit NameBooked(uint256(childNode), bookingAddresses[i]);
     }
   }
 
@@ -81,9 +80,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
     onlyOwner
   {
     bytes32 labelHash = keccak256(bytes(label));
-    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
     _updateBook(labelHash, bookingAddress);
-    emit BookingUpdated(uint256(childNode), bookingAddress);
   }
 
   /**
@@ -103,19 +100,41 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
     );
     for (uint256 i; i < labels.length; i++) {
       bytes32 labelHash = keccak256(bytes(labels[i]));
-      bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
       _updateBook(labelHash, bookingAddresses[i]);
-      emit BookingUpdated(uint256(childNode), bookingAddresses[i]);
     }
   }
 
+  /**
+   * @dev Get the address of a booking.
+   * @param labelHash The hash of the label associated to the booking.
+   * @return The address associated to the booking.
+   */
+  function _getBooking(bytes32 labelHash) internal view returns (address) {
+    return _bookings[labelHash];
+  }
+
+  /**
+   * @dev Delete a booking
+   * @param labelHash The hash of the label associated to the booking.
+   */
+  function _burnBooking(bytes32 labelHash) internal {
+    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
+    _bookings[labelHash] = address(0);
+    emit BookingBurned(childNode);
+  }
+
+  /**
+   * @dev Create a booking
+   * @param labelHash The hash of the label associated to the booking.
+   * @param bookingAddress The address associated to the booking.
+   */
   function _book(bytes32 labelHash, address bookingAddress) internal {
     require(
       bookingAddress != address(0),
       'ENS_DAO_REGISTRAR: invalid booking address'
     );
     require(
-      bookings[labelHash] == address(0),
+      _bookings[labelHash] == address(0),
       'ENS_DAO_REGISTRAR: label already booked'
     );
     address subdomainOwner = _ens.owner(
@@ -125,18 +144,27 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
       subdomainOwner == address(0x0),
       'ENS_DAO_REGISTRAR: subdomain already registered'
     );
-    bookings[labelHash] = bookingAddress;
+    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
+    _bookings[labelHash] = bookingAddress;
+    emit NameBooked(uint256(childNode), bookingAddress);
   }
 
+  /**
+   * @dev Update the address of a booking
+   * @param labelHash The hash of the label associated to the booking.
+   * @param bookingAddress The new address associated to the booking.
+   */
   function _updateBook(bytes32 labelHash, address bookingAddress) internal {
     require(
       bookingAddress != address(0),
       'ENS_DAO_REGISTRAR: invalid zero address as booking address'
     );
     require(
-      bookings[labelHash] != address(0),
+      _bookings[labelHash] != address(0),
       'ENS_DAO_REGISTRAR: label not booked'
     );
-    bookings[labelHash] = bookingAddress;
+    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
+    _bookings[labelHash] = bookingAddress;
+    emit BookingUpdated(uint256(childNode), bookingAddress);
   }
 }
