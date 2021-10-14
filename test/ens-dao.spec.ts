@@ -380,13 +380,13 @@ describe('ENS', () => {
         const tx = await ensDaoRegistrar.connect(otherSigner).register(label);
         const receipt = await tx.wait();
 
-        const nameRegisteredEvent = receipt.events?.find(
-          (e) =>
-            e.event === 'NameRegistered' &&
-            e.address === ensDaoRegistrar.address
+        expectEvent(
+          receipt,
+          'NameRegistered',
+          (args) =>
+            args.owner === otherSigner.address &&
+            args.id.toHexString() === userNode
         );
-        expect(nameRegisteredEvent?.args?.owner).to.equal(otherSigner.address);
-        expect(nameRegisteredEvent?.args?.id.toHexString()).to.equal(userNode);
 
         expect(await ens.name(domain).getAddress()).to.be.equal(
           otherSigner.address
@@ -400,14 +400,13 @@ describe('ENS', () => {
           .connect(userSigner)
           .register(otherLabel);
         const receipt = await tx.wait();
-
-        const nameRegisteredEvent = receipt.events?.find(
-          (e) =>
-            e.event === 'NameRegistered' &&
-            e.address === ensDaoRegistrar.address
+        expectEvent(
+          receipt,
+          'NameRegistered',
+          (args) =>
+            args.owner === userSigner.address &&
+            args.id.toHexString() === userNode
         );
-        expect(nameRegisteredEvent?.args?.owner).to.equal(userSigner.address);
-        expect(nameRegisteredEvent?.args?.id.toHexString()).to.equal(userNode);
 
         expect(await ens.name(domain).getAddress()).to.be.equal(
           userSigner.address
@@ -456,12 +455,11 @@ describe('ENS', () => {
           .giveBackDomainOwnership();
         const receipt = await tx.wait();
 
-        const ownershipConcedEvent = receipt.events?.find(
-          (e) =>
-            e.event === 'OwnershipConceded' &&
-            e.address === ensDaoRegistrar.address
+        expectEvent(
+          receipt,
+          'OwnershipConceded',
+          (args) => args.owner === ownerSigner.address
         );
-        expect(ownershipConcedEvent?.args?.owner).to.equal(ownerSigner.address);
 
         expect(await registrar.balanceOf(ownerSigner.address)).to.be.equal(
           ethEnsBalanceBefore.add(1)
@@ -517,13 +515,12 @@ describe('ENS', () => {
         const tx = await ensDaoRegistrar.connect(otherSigner).register(label);
         const receipt = await tx.wait();
 
-        const nameRegisteredEvent = receipt.events?.find(
-          (e) =>
-            e.event === 'NameRegistered' &&
-            e.address === ensDaoRegistrar.address
+        expectEvent(
+          receipt,
+          'NameRegistered',
+          (args) =>
+            args.owner === otherSigner.address && args.id.toHexString() === node
         );
-        expect(nameRegisteredEvent?.args?.owner).to.equal(otherSigner.address);
-        expect(nameRegisteredEvent?.args?.id.toHexString()).to.equal(node);
 
         expect(await ens.name(domain).getAddress()).to.be.equal(
           otherSigner.address
@@ -541,13 +538,13 @@ describe('ENS', () => {
           .register(otherLabel);
         const receipt = await tx.wait();
 
-        const nameRegisteredEvent = receipt.events?.find(
-          (e) =>
-            e.event === 'NameRegistered' &&
-            e.address === ensDaoRegistrar.address
+        expectEvent(
+          receipt,
+          'NameRegistered',
+          (args) =>
+            args.owner === userSigner.address &&
+            args.id.toHexString() === userNode
         );
-        expect(nameRegisteredEvent?.args?.owner).to.equal(userSigner.address);
-        expect(nameRegisteredEvent?.args?.id.toHexString()).to.equal(userNode);
 
         expect(await ens.name(domain).getAddress()).to.be.equal(
           userSigner.address
@@ -576,12 +573,11 @@ describe('ENS', () => {
           .giveBackDomainOwnership();
         const receipt = await tx.wait();
 
-        const ownershipConcedEvent = receipt.events?.find(
-          (e) =>
-            e.event === 'OwnershipConceded' &&
-            e.address === ensDaoRegistrar.address
+        expectEvent(
+          receipt,
+          'OwnershipConceded',
+          (args) => args.owner === ownerSigner.address
         );
-        expect(ownershipConcedEvent?.args?.owner).to.equal(ownerSigner.address);
 
         expect(await ens.name(`${sismoLabel}.eth`).getOwner()).to.be.equal(
           ownerSigner.address
