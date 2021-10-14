@@ -7,18 +7,15 @@ import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import {ENSDaoToken} from './ENSDaoToken.sol';
+import {ENSLabelBooker} from './ENSLabelBooker.sol';
 import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
 
 /**
  * A registrar that allocates subdomains to the first person to claim them.
  */
-<<<<<<< HEAD
-contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
-=======
-contract ENSDaoRegistrar is ERC1155Holder, Ownable,  {
->>>>>>> a9d19b2 (--wip-- [skip ci])
-  ENS public _ens;
-  bytes32 public _rootNode;
+contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
+  // ENS public _ens;
+  // bytes32 public _rootNode;
   PublicResolver public _resolver;
   NameWrapper public _nameWrapper;
   ENSDaoToken public _daoToken;
@@ -29,8 +26,6 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable,  {
   uint256 public constant RESERVATION_PERIOD = 1 weeks;
   uint256 public immutable DAO_BIRTH_DATE;
   uint256 public _maxEmissionNumber;
-
-  mapping(bytes32 => address) private bookings;
 
   /**
    * @dev Constructor.
@@ -48,9 +43,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable,  {
     ENSDaoToken daoToken,
     bytes32 node,
     string memory name
-  ) {
-    _ens = ensAddr;
-    _rootNode = node;
+  ) ENSLabelBooker(ensAddr, node) {
     _resolver = resolverAddress;
     _nameWrapper = nameWrapper;
     _daoToken = daoToken;
@@ -59,23 +52,21 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable,  {
     _maxEmissionNumber = 500;
   }
 
-  modifier canRegister(bytes32 labelHash) {
-    require(
-      _daoToken.totalSupply() < _maxEmissionNumber,
-      'ENS_DAO_REGISTRAR: too many emissions'
-    );
-
-    address subdomainOwner = _ens.owner(
-      keccak256(abi.encodePacked(_rootNode, labelHash))
-    );
-    require(
-      subdomainOwner == address(0x0),
-      'ENS_DAO_REGISTRAR: subdomain already registered'
-    );
+  /**
+   * @notice Register a name and mints a DAO token.
+   * @dev Can only be called if and only if
+   *  - the subdomain of the root node is free
+   *  - sender does not already have a DAO token OR sender is the owner
+   *  - if still in the reservation period, the associated .eth subdomain is free OR owned by the sender
+   * @param label The label to register.
+   */
+  function register(string memory label) external override {
+    bytes32 labelHash = keccak256(bytes(label));
+    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
 
     require(
-      _daoToken.balanceOf(_msgSender()) == 0 || _msgSender() == owner(),
-      'ENS_DAO_REGISTRAR: too many subdomains'
+      getBooking(labelHash) == address(0),
+      'ENS_DAO_REGISTRAR: label booked'
     );
 
     if (block.timestamp - DAO_BIRTH_DATE <= RESERVATION_PERIOD) {
@@ -88,71 +79,28 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable,  {
         'ENS_DAO_REGISTRAR: subdomain reserved for .eth holder during reservation period'
       );
     }
-    _;
-  }
 
-  /**
-   * @notice Register a name and mints a DAO token.
-   * @dev Can only be called if and only if
-   *  - the subdomain of the root node is free
-   *  - sender does not already have a DAO token OR sender is the owner
-   *  - if still in the reservation period, the associated .eth subdomain is free OR owned by the sender
-   * @param label The label to register.
-   */
-  function register(string memory label)
-    external
-    override
-    canRegister(keccak256(bytes(label)))
-  {
-    bytes32 labelHash = keccak256(bytes(label));
-    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
-
-    if (address(_nameWrapper) != address(0)) {
-      _registerWithNameWrapper(label, childNode);
-    } else {
-      _registerWithEnsRegistry(labelHash, childNode);
-    }
-
-    // Minting the DAO Token
-    _daoToken.mintTo(_msgSender(), uint256(childNode));
+    _register(_msgSender(), label, labelHash, childNode);
 
     emit NameRegistered(uint256(childNode), _msgSender());
   }
 
-  /**
-   * @notice Book a label with an address for a later claim.
-   * @dev Can only be called by owner of the DAO registrar.
-   * @param label The label to book.
-   * @param account The address which can claim the label
-   */
-  function book(string memory label, address account) external override onlyOwner {
-    _book(label, account);
-  }
+  function claim(string memory label, address account) external override {
+    bytes32 labelHash = keccak256(bytes(label));
+    address bookedAddress = getBooking(labelHash);
+    require(bookedAddress != address(0), 'ENS_DAO_REGISTRAR: label not booked');
+    require(
+      bookedAddress == _msgSender() || owner() == _msgSender(),
+      'ENS_DAO_REGISTRAR: sender is neither booked address neither owner'
+    );
 
+    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
 
-  /**
-   * @notice Batch book operations given a list of labels and accounts.
-   * @dev Can only be called by owner of the DAO registrar.
-   * @dev Input lists must have the same length.
-   * @param labels The list of label to book.
-   * @param account The list of address which can claim the associated label.
-   */
-  function batchBook(string[] memory labels, address[] memory accounts) external override onlyOwner {
-    require(labels.length == accounts.length, 'ENS_DAO_REGISTRAR: invalid labels and accounts arguments');
-    for (uint256 i; i < labels.length; i++) {
-      _book(labels[i], accounts[i]);
-    }
-  }
+    _register(account, label, labelHash, childNode);
 
-  function updateBook(string memory label, address account) external override onlyOwner {
-    _updateBook(label, account);
-  }
+    _burnBooking(labelHash);
 
-  function batchUpdateBook(string[] memory labels, address[] memory accounts) external override onlyOwner {
-    require(labels.length == accounts.length, 'ENS_DAO_REGISTRAR: invalid labels and accounts arguments');
-    for (uint256 i; i < labels.length; i++) {
-      _updateBook(labels[i], accounts[i]);
-    }
+    emit NameClaimed(uint256(childNode), account);
   }
 
   /**
@@ -167,19 +115,6 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable,  {
     }
 
     emit OwnershipConceded(_msgSender());
-  }
-
-  function _updateBook(string memory label, address account) internal {
-    bytes32 labelHash = keccak256(bytes(label));
-    require(account != address(0), 'ENS_DAO_REGISTRAR: invalid zero address as booking address');
-    bookings[labelHash] = account;
-  }
-
-  function _book(string memory label, address account) internal {
-    bytes32 labelHash = keccak256(bytes(label));
-    require(account != address(0), 'ENS_DAO_REGISTRAR: invalid zero address as booking address');
-    require(bookings[labelHash] == address(0), 'ENS_DAO_REGISTRAR: label already booked');
-    bookings[labelHash] = account;
   }
 
   /**
@@ -199,14 +134,50 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable,  {
     emit MaxEmissionNumberUpdated(emissionNumber);
   }
 
+  function _register(
+    address account,
+    string memory label,
+    bytes32 labelHash,
+    bytes32 childNode
+  ) internal {
+    require(
+      _daoToken.totalSupply() < _maxEmissionNumber,
+      'ENS_DAO_REGISTRAR: too many emissions'
+    );
+
+    address subdomainOwner = _ens.owner(
+      keccak256(abi.encodePacked(_rootNode, labelHash))
+    );
+    require(
+      subdomainOwner == address(0x0),
+      'ENS_DAO_REGISTRAR: subdomain already registered'
+    );
+
+    require(
+      _daoToken.balanceOf(account) == 0 || _msgSender() == owner(),
+      'ENS_DAO_REGISTRAR: too many subdomains'
+    );
+
+    if (address(_nameWrapper) != address(0)) {
+      _registerWithNameWrapper(account, label, childNode);
+    } else {
+      _registerWithEnsRegistry(account, labelHash, childNode);
+    }
+
+    // Minting the DAO Token
+    _daoToken.mintTo(account, uint256(childNode));
+  }
+
   /**
    * @dev Register a name using the Name Wrapper.
    * @param label The label to register.
    * @param childNode The node to register, given as input because of parent computation.
    */
-  function _registerWithNameWrapper(string memory label, bytes32 childNode)
-    internal
-  {
+  function _registerWithNameWrapper(
+    address account,
+    string memory label,
+    bytes32 childNode
+  ) internal {
     // Set ownership to ENS DAO, so that the contract can set resolver
     _nameWrapper.setSubnodeRecordAndWrap(
       _rootNode,
@@ -217,12 +188,12 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable,  {
       0
     );
     // Setting the resolver for the user
-    _resolver.setAddr(childNode, _msgSender());
+    _resolver.setAddr(childNode, account);
 
     // Giving back the ownership to the user
     _nameWrapper.safeTransferFrom(
       address(this),
-      _msgSender(),
+      account,
       uint256(childNode),
       1,
       ''
@@ -234,9 +205,11 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable,  {
    * @param labelHash The hash of the label to register.
    * @param childNode The node to register, given as input because of parent computation.
    */
-  function _registerWithEnsRegistry(bytes32 labelHash, bytes32 childNode)
-    internal
-  {
+  function _registerWithEnsRegistry(
+    address account,
+    bytes32 labelHash,
+    bytes32 childNode
+  ) internal {
     // Set ownership to ENS DAO, so that the contract can set resolver
     _ens.setSubnodeRecord(
       _rootNode,
@@ -247,9 +220,9 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable,  {
     );
 
     // Setting the resolver for the user
-    _resolver.setAddr(childNode, _msgSender());
+    _resolver.setAddr(childNode, account);
 
     // Giving back the ownership to the user
-    _ens.setSubnodeOwner(_rootNode, labelHash, _msgSender());
+    _ens.setSubnodeOwner(_rootNode, labelHash, account);
   }
 }

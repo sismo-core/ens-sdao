@@ -5,6 +5,8 @@ import '@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol';
 interface IENSDaoRegistrar is IERC1155Receiver {
   // Logged when a new name is registered.
   event NameRegistered(uint256 indexed id, address indexed owner);
+  // Logged when a name is claimed.
+  event NameClaimed(uint256 indexed id, address indexed owner);
   // Logged when the root node ownership is conceded to the DAO owner.
   event OwnershipConceded(address indexed owner);
   // Logged when the max emission number is updated
@@ -24,6 +26,14 @@ interface IENSDaoRegistrar is IERC1155Receiver {
    * Emits a {OwnershipConceded} event.
    */
   function giveBackDomainOwnership() external;
+
+  /**
+   * @notice Claim a name, registers it and mints a DAO token.
+   * @param label The label to register.
+   *
+   * Emits a {NameClaimed} event.
+   */
+  function claim(string memory label, address account) external;
 
   /**
    * @notice Update max emission number.
