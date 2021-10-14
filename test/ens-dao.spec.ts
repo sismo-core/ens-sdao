@@ -422,6 +422,18 @@ describe('ENS', () => {
           ethEnsBalanceBefore.add(1)
         );
       });
+      it(`Owner can take back the ownership of ${otherLabel}.${sismoLabel}.eth`, async () => {
+        const domain = `${otherLabel}.${sismoLabel}.eth`;
+
+        await ens.name(`${sismoLabel}.eth`).deleteSubdomain(otherLabel);
+
+        expect(await ens.name(domain).getAddress()).to.be.equal(
+          ethers.constants.AddressZero
+        );
+        expect(await ens.name(domain).getOwner()).to.be.equal(
+          ethers.constants.AddressZero
+        );
+      });
     });
 
     // TODO: need to refactor test structure in order to properly deal with exceptions in the following test suite
@@ -496,6 +508,18 @@ describe('ENS', () => {
 
         expect(await ens.name(`${sismoLabel}.eth`).getOwner()).to.be.equal(
           ownerSigner.address
+        );
+      });
+      it(`Owner can take back the ownership of ${otherLabel}.${sismoLabel}.eth`, async () => {
+        const domain = `${otherLabel}.${sismoLabel}.eth`;
+
+        await ens.name(`${sismoLabel}.eth`).deleteSubdomain(otherLabel);
+
+        expect(await ens.name(domain).getAddress()).to.be.equal(
+          ethers.constants.AddressZero
+        );
+        expect(await ens.name(domain).getOwner()).to.be.equal(
+          ethers.constants.AddressZero
         );
       });
     });
