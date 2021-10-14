@@ -12,7 +12,11 @@ import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
 /**
  * A registrar that allocates subdomains to the first person to claim them.
  */
+<<<<<<< HEAD
 contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
+=======
+contract ENSDaoRegistrar is ERC1155Holder, Ownable,  {
+>>>>>>> a9d19b2 (--wip-- [skip ci])
   ENS public _ens;
   bytes32 public _rootNode;
   PublicResolver public _resolver;
@@ -25,6 +29,8 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   uint256 public constant RESERVATION_PERIOD = 1 weeks;
   uint256 public immutable DAO_BIRTH_DATE;
   uint256 public _maxEmissionNumber;
+
+  mapping(bytes32 => address) private bookings;
 
   /**
    * @dev Constructor.
@@ -114,6 +120,42 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   }
 
   /**
+   * @notice Book a label with an address for a later claim.
+   * @dev Can only be called by owner of the DAO registrar.
+   * @param label The label to book.
+   * @param account The address which can claim the label
+   */
+  function book(string memory label, address account) external override onlyOwner {
+    _book(label, account);
+  }
+
+
+  /**
+   * @notice Batch book operations given a list of labels and accounts.
+   * @dev Can only be called by owner of the DAO registrar.
+   * @dev Input lists must have the same length.
+   * @param labels The list of label to book.
+   * @param account The list of address which can claim the associated label.
+   */
+  function batchBook(string[] memory labels, address[] memory accounts) external override onlyOwner {
+    require(labels.length == accounts.length, 'ENS_DAO_REGISTRAR: invalid labels and accounts arguments');
+    for (uint256 i; i < labels.length; i++) {
+      _book(labels[i], accounts[i]);
+    }
+  }
+
+  function updateBook(string memory label, address account) external override onlyOwner {
+    _updateBook(label, account);
+  }
+
+  function batchUpdateBook(string[] memory labels, address[] memory accounts) external override onlyOwner {
+    require(labels.length == accounts.length, 'ENS_DAO_REGISTRAR: invalid labels and accounts arguments');
+    for (uint256 i; i < labels.length; i++) {
+      _updateBook(labels[i], accounts[i]);
+    }
+  }
+
+  /**
    * @notice Give back the root domain of the ENS DAO Registrar to DAO owner.
    * @dev Can be called by the owner of the registrar.
    */
@@ -125,6 +167,19 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     }
 
     emit OwnershipConceded(_msgSender());
+  }
+
+  function _updateBook(string memory label, address account) internal {
+    bytes32 labelHash = keccak256(bytes(label));
+    require(account != address(0), 'ENS_DAO_REGISTRAR: invalid zero address as booking address');
+    bookings[labelHash] = account;
+  }
+
+  function _book(string memory label, address account) internal {
+    bytes32 labelHash = keccak256(bytes(label));
+    require(account != address(0), 'ENS_DAO_REGISTRAR: invalid zero address as booking address');
+    require(bookings[labelHash] == address(0), 'ENS_DAO_REGISTRAR: label already booked');
+    bookings[labelHash] = account;
   }
 
   /**
