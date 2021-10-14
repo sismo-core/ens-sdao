@@ -101,7 +101,7 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
 
     _register(account, label, labelHash);
 
-    _burnBooking(labelHash);
+    _deleteBooking(labelHash);
   }
 
   /**

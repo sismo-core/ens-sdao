@@ -5,8 +5,8 @@ interface IENSLabelBooker {
   event NameBooked(uint256 indexed id, address indexed bookingAddress);
   // Logged when a booking is updated.
   event BookingUpdated(uint256 indexed id, address indexed bookingAddress);
-  // Logged when a booking is burned.
-  event BookingBurned(uint256 indexed id);
+  // Logged when a booking is deleted.
+  event BookingDeleted(uint256 indexed id);
 
   /**
    * @notice Get the address of a booking.
@@ -41,7 +41,7 @@ interface IENSLabelBooker {
    *
    * Emits a {BookingUpdated} event.
    */
-  function updateBook(string memory label, address bookingAddress) external;
+  function updateBooking(string memory label, address bookingAddress) external;
 
   /**
    * @notice Update a list of bookings.
@@ -50,8 +50,24 @@ interface IENSLabelBooker {
    *
    * Emits a {BookingUpdated} event for each updated booking.
    */
-  function batchUpdateBook(
+  function batchUpdateBooking(
     string[] memory labels,
     address[] memory bookingAddresses
   ) external;
+
+  /**
+   * @notice Delete a booking.
+   * @param label The booked label.
+   *
+   * Emits a {BookingDeleted} event.
+   */
+  function deleteBooking(string memory label) external;
+
+  /**
+   * @notice Delete a list of bookings.
+   * @param labels The list of labels of the bookings.
+   *
+   * Emits a {BookingDeleted} event for each deleted booking.
+   */
+  function batchDeleteBooking(string[] memory labels) external;
 }

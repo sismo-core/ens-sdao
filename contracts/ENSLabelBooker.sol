@@ -38,7 +38,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
 
   /**
    * @notice Book a label with an address for a later claim.
-   * @dev Can only be called by owner of the DAO registrar.
+   * @dev Can only be called by the contract owner.
    * @param label The label to book.
    * @param bookingAddress The address which can claim the label.
    */
@@ -53,7 +53,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
 
   /**
    * @notice Batch book operations given a list of labels and bookingAddresses.
-   * @dev Can only be called by owner of the DAO registrar.
+   * @dev Can only be called by the contract owner.
    *      Input lists must have the same length.
    * @param labels The list of label to book.
    * @param bookingAddresses The list of address which can claim the associated label.
@@ -75,27 +75,27 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
 
   /**
    * @notice Update the address of a book address.
-   * @dev Can only be called by owner of the DAO registrar.
+   * @dev Can only be called by the contract owner.
    * @param label The label of the book.
    * @param bookingAddress The address which can claim the label.
    */
-  function updateBook(string memory label, address bookingAddress)
+  function updateBooking(string memory label, address bookingAddress)
     external
     override
     onlyOwner
   {
     bytes32 labelHash = keccak256(bytes(label));
-    _updateBook(labelHash, bookingAddress);
+    _updateBooking(labelHash, bookingAddress);
   }
 
   /**
    * @notice Update the addresses of books.
-   * @dev Can only be called by owner of the DAO registrar.
+   * @dev Can only be called by the contract owner.
    *      Input lists must have the same length.
    * @param labels The list of label to book.
    * @param bookingAddresses The list of address which can claim the associated label.
    */
-  function batchUpdateBook(
+  function batchUpdateBooking(
     string[] memory labels,
     address[] memory bookingAddresses
   ) external override onlyOwner {
@@ -105,7 +105,33 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
     );
     for (uint256 i; i < labels.length; i++) {
       bytes32 labelHash = keccak256(bytes(labels[i]));
-      _updateBook(labelHash, bookingAddresses[i]);
+      _updateBooking(labelHash, bookingAddresses[i]);
+    }
+  }
+
+  /**
+   * @notice Delete a booking.
+   * @dev Can only be called by the contract owner.
+   * @param label The booked label.
+   */
+  function deleteBooking(string memory label) external override onlyOwner {
+    bytes32 labelHash = keccak256(bytes(label));
+    _deleteBooking(labelHash);
+  }
+
+  /**
+   * @notice Delete a list of bookings.
+   * @dev Can only be called by the contract owner.
+   * @param labels The list of labels of the bookings.
+   */
+  function batchDeleteBooking(string[] memory labels)
+    external
+    override
+    onlyOwner
+  {
+    for (uint256 i; i < labels.length; i++) {
+      bytes32 labelHash = keccak256(bytes(labels[i]));
+      _deleteBooking(labelHash);
     }
   }
 
@@ -122,10 +148,10 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
    * @dev Delete a booking
    * @param labelHash The hash of the label associated to the booking.
    */
-  function _burnBooking(bytes32 labelHash) internal {
+  function _deleteBooking(bytes32 labelHash) internal {
     bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
     _bookings[labelHash] = address(0);
-    emit BookingBurned(uint256(childNode));
+    emit BookingDeleted(uint256(childNode));
   }
 
   /**
@@ -159,7 +185,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
    * @param labelHash The hash of the label associated to the booking.
    * @param bookingAddress The new address associated to the booking.
    */
-  function _updateBook(bytes32 labelHash, address bookingAddress) internal {
+  function _updateBooking(bytes32 labelHash, address bookingAddress) internal {
     require(
       bookingAddress != address(0),
       'ENS_DAO_REGISTRAR: invalid zero address as booking address'

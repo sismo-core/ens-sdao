@@ -30,7 +30,7 @@ interface IENSDaoRegistrar is IERC1155Receiver, IENSLabelBooker {
    * @notice Claim a name, registers it and mints a DAO token.
    * @param label The label to register.
    *
-   * Emits a {NameRegistered} and {BookingBurned} events.
+   * Emits a {NameRegistered} and {BookingDeleted} events.
    */
   function claim(string memory label, address account) external;
 
