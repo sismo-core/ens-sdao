@@ -14,8 +14,6 @@ import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
  * A registrar that allocates subdomains to the first person to claim them.
  */
 contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
-  // ENS public _ens;
-  // bytes32 public _rootNode;
   PublicResolver public _resolver;
   NameWrapper public _nameWrapper;
   ENSDaoToken public _daoToken;
