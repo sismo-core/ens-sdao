@@ -422,7 +422,7 @@ describe('ENS', () => {
           ethEnsBalanceBefore.add(1)
         );
       });
-      it(`Owner can take back the ownership of ${otherLabel}.${sismoLabel}.eth`, async () => {
+      it(`Owner can delete the subdomain ${otherLabel}.${sismoLabel}.eth`, async () => {
         const domain = `${otherLabel}.${sismoLabel}.eth`;
 
         await ens.name(`${sismoLabel}.eth`).deleteSubdomain(otherLabel);
@@ -510,7 +510,7 @@ describe('ENS', () => {
           ownerSigner.address
         );
       });
-      it(`Owner can take back the ownership of ${otherLabel}.${sismoLabel}.eth`, async () => {
+      it(`Owner can delete the subdomain ${otherLabel}.${sismoLabel}.eth`, async () => {
         const domain = `${otherLabel}.${sismoLabel}.eth`;
 
         await ens.name(`${sismoLabel}.eth`).deleteSubdomain(otherLabel);
