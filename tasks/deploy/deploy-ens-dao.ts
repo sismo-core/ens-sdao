@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { getDeployer, logHre } from '../../evm-utils';
 import { ENSDaoRegistrar__factory, ENSDaoToken__factory } from '../../types';
 //@ts-ignore
@@ -12,7 +12,7 @@ task('deploy-ens-dao')
   .addOptionalParam('baseURI', 'baseURI')
   .addOptionalParam('name', 'name')
   .addOptionalParam('symbol', 'symbol')
-  .addOptionalParam('log', 'log')
+  .addFlag('log', 'log')
   .addFlag('verify', 'Verify Etherscan Contract')
   .setAction(
     async (
@@ -24,7 +24,7 @@ task('deploy-ens-dao')
         // this is the name of the .eth domain
         // the NFT name will be sismo.eth DAO Token
         name = 'sismo',
-        symbol = 'SISMO',
+        symbol = 'SDAO',
         log = false,
       },
       hre: HardhatRuntimeEnvironment

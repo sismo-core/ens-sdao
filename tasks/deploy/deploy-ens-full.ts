@@ -16,9 +16,10 @@ import {
 
 task('deploy-ens-full')
   .addFlag('ensDao', 'deploy ens-dao')
-  .setAction(async ({ ensDao }, hre: HardhatRuntimeEnvironment) => {
+  .addFlag('log', 'logging deployments')
+  .setAction(async ({ ensDao, log }, hre: HardhatRuntimeEnvironment) => {
     await logHre(hre);
-    const deployer = await getDeployer(hre, true);
+    const deployer = await getDeployer(hre, log);
     const newEnsDeployer = await hre.deployments.deploy('ENSDeployer', {
       from: deployer.address,
       args: [],
@@ -60,8 +61,9 @@ task('deploy-ens-full')
           resolver: publicResolver.address,
           nameWrapper: nameWrapper.address,
         });
-      console.log(
-        `Deployed by ${deployer.address}.
+      log &&
+        console.log(
+          `Deployed by ${deployer.address}.
         ensDeployer: ${ensDeployer.address}
         registry: ${registry.address}
         registrar: ${registrar.address}
@@ -71,7 +73,7 @@ task('deploy-ens-full')
         ensDaoRegistrar: ${ensDaoRegistrar.address}
         ensDaoRegistrar: ${ensDaoToken.address}
         `
-      );
+        );
       return {
         ensDeployer,
         registry,
@@ -83,8 +85,9 @@ task('deploy-ens-full')
         ensDaoToken,
       };
     }
-    console.log(
-      `Deployed by ${deployer.address}.
+    log &&
+      console.log(
+        `Deployed by ${deployer.address}.
         ensDeployer: ${ensDeployer.address}
         registry: ${registry.address}
         registrar: ${registrar.address}
@@ -92,7 +95,7 @@ task('deploy-ens-full')
         publicResolver: ${publicResolver.address}
         nameWrapper: ${nameWrapper.address}
         `
-    );
+      );
     return {
       ensDeployer,
       registry,
