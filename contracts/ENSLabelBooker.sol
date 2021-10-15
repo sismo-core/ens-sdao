@@ -4,6 +4,10 @@ import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import {IENSLabelBooker} from './interfaces/IENSLabelBooker.sol';
 
+/**
+ * @title ENSLabelBooker contract
+ * @dev Implementation of the {IENSLabelBooker}
+ */
 contract ENSLabelBooker is Ownable, IENSLabelBooker {
   ENS immutable ENS_REGISTRY;
   bytes32 immutable ROOT_NODE;
