@@ -12,13 +12,14 @@ import {IENSLabelBooker} from './IENSLabelBooker.sol';
  *
  *         A reservation period of one week is considered.
  *         Within the registration period, only the owners of the associated .eth subdomain may register this subdomain.
- *         After the registration period, any subdomain is first come first served.
+ *         After the registration period, any subdomain registration is first come first served.
  *
  *         Only one subdomain and one ERC721 token may be possessed by an address with the exception of the owner of the DAO Registrar.
  *
  *         Additionally, the owner has the possibility to book any subdomain, unless it is already owned.
  *         A booked subdomain can not be registered directly.
  *         A booked subdomain can be claimed either by the owner of the DAO Registrar, either by the address registered in the booking.
+ *         A claim performs a registration with an arbitrary address, chosen by the claimer.
  *
  *         See IENSLabelBooker interface for further details on the booking management.
  */
