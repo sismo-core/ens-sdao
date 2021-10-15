@@ -5,8 +5,8 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import {IENSLabelBooker} from './interfaces/IENSLabelBooker.sol';
 
 contract ENSLabelBooker is Ownable, IENSLabelBooker {
-  ENS public _ens;
-  bytes32 public _rootNode;
+  ENS immutable ENS_REGISTRY;
+  bytes32 immutable ROOT_NODE;
 
   mapping(bytes32 => address) private _bookings;
 
@@ -16,8 +16,8 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
    * @param node The node that this registrar administers.
    */
   constructor(ENS ensAddr, bytes32 node) {
-    _ens = ensAddr;
-    _rootNode = node;
+    ENS_REGISTRY = ensAddr;
+    ROOT_NODE = node;
   }
 
   /**
@@ -149,7 +149,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
    * @param labelHash The hash of the label associated to the booking.
    */
   function _deleteBooking(bytes32 labelHash) internal {
-    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
+    bytes32 childNode = keccak256(abi.encodePacked(ROOT_NODE, labelHash));
     _bookings[labelHash] = address(0);
     emit BookingDeleted(uint256(childNode));
   }
@@ -168,14 +168,14 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
       _bookings[labelHash] == address(0),
       'ENS_DAO_REGISTRAR: label already booked'
     );
-    address subdomainOwner = _ens.owner(
-      keccak256(abi.encodePacked(_rootNode, labelHash))
+    address subdomainOwner = ENS_REGISTRY.owner(
+      keccak256(abi.encodePacked(ROOT_NODE, labelHash))
     );
     require(
       subdomainOwner == address(0x0),
       'ENS_DAO_REGISTRAR: subdomain already registered'
     );
-    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
+    bytes32 childNode = keccak256(abi.encodePacked(ROOT_NODE, labelHash));
     _bookings[labelHash] = bookingAddress;
     emit NameBooked(uint256(childNode), bookingAddress);
   }
@@ -194,7 +194,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
       _bookings[labelHash] != address(0),
       'ENS_DAO_REGISTRAR: label not booked'
     );
-    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
+    bytes32 childNode = keccak256(abi.encodePacked(ROOT_NODE, labelHash));
     _bookings[labelHash] = bookingAddress;
     emit BookingUpdated(uint256(childNode), bookingAddress);
   }
