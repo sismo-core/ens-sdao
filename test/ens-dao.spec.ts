@@ -597,7 +597,7 @@ describe('ENS', () => {
       });
     });
 
-    describe('max number of emission limitation', () => {
+    describe('booking and claim', () => {
       before(async () => {
         const deployedEnsDao: EnsDeploiementResult = await HRE.run(
           'deploy-ens-dao',
@@ -612,62 +612,9 @@ describe('ENS', () => {
           }
         );
         ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
-        [ownerSigner, , , , , , userSigner, otherSigner] =
+        [ownerSigner, , , , , , , , , userSigner, otherSigner] =
           await HRE.ethers.getSigners();
-
-        await ens.name(`${sismoLabel}.eth`).setOwner(ensDaoRegistrar.address);
-
-        await ensDaoRegistrar.register('istanbul');
-        await ensDaoRegistrar.register('anotherstory');
       });
-
-      it('Owner can not update the max emission number to a smaller number than the total supply', async () => {
-        const totalSupply = await ensDaoToken.totalSupply();
-        await expect(
-          ensDaoRegistrar.updateMaxEmissionNumber(totalSupply.sub(1).toString())
-        ).to.be.revertedWith(
-          'ENS_DAO_REGISTRAR: new maximum emission number too low'
-        );
-      });
-
-      it('User can not register when the emission limitation is reached', async () => {
-        const totalSupply = await ensDaoToken.totalSupply();
-
-        const tx = await ensDaoRegistrar.updateMaxEmissionNumber(
-          totalSupply.toString()
-        );
-        const receipt = await tx.wait();
-
-        const maxEmissionNumberUpdatedEvent = receipt.events?.find(
-          (e) =>
-            e.event === 'MaxEmissionNumberUpdated' &&
-            e?.args?.maxEmissionNumber.toString() === totalSupply.toString()
-        );
-        expect(Boolean(maxEmissionNumberUpdatedEvent)).to.equal(true);
-
-        await expect(
-          ensDaoRegistrar.register('countryclub')
-        ).to.be.revertedWith('ENS_DAO_REGISTRAR: too many emissions');
-      });
-
-      describe('booking and claim', () => {
-        before(async () => {
-          const deployedEnsDao: EnsDeploiementResult = await HRE.run(
-            'deploy-ens-dao',
-            {
-              // name NEEEDS to be label of .eth name
-              name: sismoLabel,
-              symbol: 'SISMO',
-              ens: registry.address,
-              resolver: publicResolver.address,
-              nameWrapper: ethers.constants.AddressZero,
-              reverseRegistrar: reverseRegistrar.address,
-            }
-          );
-          ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
-          [ownerSigner, , , , , ,,,, userSigner, otherSigner] =
-            await HRE.ethers.getSigners();
-        })
 
       const bookedLabel = 'testlabel';
       const additionalBookedLabels = ['anotherlabel', 'yetanotherlabel'];
@@ -919,6 +866,60 @@ describe('ENS', () => {
         expect(await ensDaoRegistrar.getBooking(labels[1])).to.equal(
           ethers.constants.AddressZero
         );
+      });
+    });
+
+    describe('max number of emission limitation', () => {
+      before(async () => {
+        const deployedEnsDao: EnsDeploiementResult = await HRE.run(
+          'deploy-ens-dao',
+          {
+            // name NEEEDS to be label of .eth name
+            name: sismoLabel,
+            symbol: 'SISMO',
+            ens: registry.address,
+            resolver: publicResolver.address,
+            nameWrapper: ethers.constants.AddressZero,
+            reverseRegistrar: reverseRegistrar.address,
+          }
+        );
+        ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
+        [ownerSigner, , , , , , userSigner, otherSigner] =
+          await HRE.ethers.getSigners();
+
+        // await ens.name(`${sismoLabel}.eth`).setOwner(ensDaoRegistrar.address);
+
+        await ensDaoRegistrar.register('istanbul');
+        await ensDaoRegistrar.register('anotherstory');
+      });
+
+      it('Owner can not update the max emission number to a smaller number than the total supply', async () => {
+        const totalSupply = await ensDaoToken.totalSupply();
+        await expect(
+          ensDaoRegistrar.updateMaxEmissionNumber(totalSupply.sub(1).toString())
+        ).to.be.revertedWith(
+          'ENS_DAO_REGISTRAR: new maximum emission number too low'
+        );
+      });
+
+      it('User can not register when the emission limitation is reached', async () => {
+        const totalSupply = await ensDaoToken.totalSupply();
+
+        const tx = await ensDaoRegistrar.updateMaxEmissionNumber(
+          totalSupply.toString()
+        );
+        const receipt = await tx.wait();
+
+        const maxEmissionNumberUpdatedEvent = receipt.events?.find(
+          (e) =>
+            e.event === 'MaxEmissionNumberUpdated' &&
+            e?.args?.maxEmissionNumber.toString() === totalSupply.toString()
+        );
+        expect(Boolean(maxEmissionNumberUpdatedEvent)).to.equal(true);
+
+        await expect(
+          ensDaoRegistrar.register('countryclub')
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: too many emissions');
       });
     });
   });

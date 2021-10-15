@@ -95,8 +95,6 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
       'ENS_DAO_REGISTRAR: sender is neither booked address neither owner'
     );
 
-    bytes32 childNode = keccak256(abi.encodePacked(_rootNode, labelHash));
-
     _register(account, label, labelHash);
 
     _deleteBooking(labelHash);
@@ -133,12 +131,21 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
     emit MaxEmissionNumberUpdated(emissionNumber);
   }
 
+  /**
+   * @dev Register a name and mint a DAO token.
+   *      Can only be called if and only if
+   *        - the maximum number of emissions has not been reached,
+   *        - the subdomain is free to be registered,
+   *        - the destination address does not alreay own a subdomain or the sender is the owner
+   * @param account The address that will receive the subdomain and the DAO token.
+   * @param label The label to register.
+   * @param labelHash The hash of the label to register, given as input because of parent computation.
+   */
   function _register(
     address account,
     string memory label,
     bytes32 labelHash
   ) internal {
-    
     require(
       _daoToken.totalSupply() < _maxEmissionNumber,
       'ENS_DAO_REGISTRAR: too many emissions'
