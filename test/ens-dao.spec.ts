@@ -887,8 +887,6 @@ describe('ENS', () => {
         [ownerSigner, , , , , , userSigner, otherSigner] =
           await HRE.ethers.getSigners();
 
-        // await ens.name(`${sismoLabel}.eth`).setOwner(ensDaoRegistrar.address);
-
         await ensDaoRegistrar.register('istanbul');
         await ensDaoRegistrar.register('anotherstory');
       });
@@ -910,12 +908,11 @@ describe('ENS', () => {
         );
         const receipt = await tx.wait();
 
-        const maxEmissionNumberUpdatedEvent = receipt.events?.find(
-          (e) =>
-            e.event === 'MaxEmissionNumberUpdated' &&
-            e?.args?.maxEmissionNumber.toString() === totalSupply.toString()
+        expectEvent(
+          receipt,
+          'MaxEmissionNumberUpdated',
+          (args) => args.maxEmissionNumber.toString() === totalSupply.toString()
         );
-        expect(Boolean(maxEmissionNumberUpdatedEvent)).to.equal(true);
 
         await expect(
           ensDaoRegistrar.register('countryclub')
