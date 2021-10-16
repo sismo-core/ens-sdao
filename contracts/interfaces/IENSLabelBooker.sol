@@ -1,11 +1,33 @@
 pragma solidity >=0.8.4;
 
+/**
+ * @title IENSLabelBooker interface
+ * @notice An owned contract that allows the owner to manage bookings of ENS sudomain.
+ *         No modification of the ENS Registry state is performed in this contract.
+ *         The bookings are meant for external uses.
+ *
+ *         A booking is a link between the hash of a label, representing the subdomain, and an address.
+ *         A link to the zero address means that the label is not booked.
+ *
+ *         Any action may be performed on a single label or subdomain or by batch.
+ *
+ *         A booking may be
+ *          - created: the hash of the label is linked to a non zero address,
+ *          - updated: the booking address is updated to a non zero address,
+ *          - deleted: the booking address is set to the zero address.
+ */
 interface IENSLabelBooker {
-  // Logged when a booking is created.
+  /**
+   * @dev Emitted when a name is booked.
+   */
   event NameBooked(uint256 indexed id, address indexed bookingAddress);
-  // Logged when a booking is updated.
+  /**
+   * @dev Emitted when a booking is updated.
+   */
   event BookingUpdated(uint256 indexed id, address indexed bookingAddress);
-  // Logged when a booking is deleted.
+  /**
+   * @dev Emitted when a booking is deleted.
+   */
   event BookingDeleted(uint256 indexed id);
   event NewRegistrar(address indexed registrar);
 
