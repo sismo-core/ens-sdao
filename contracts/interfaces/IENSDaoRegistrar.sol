@@ -1,7 +1,6 @@
 pragma solidity >=0.8.4;
 
 import '@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol';
-import {IENSLabelBooker} from './IENSLabelBooker.sol';
 
 /**
  * @title IEnsDaoRegistrar interface
@@ -23,7 +22,7 @@ import {IENSLabelBooker} from './IENSLabelBooker.sol';
  *
  *         See IENSLabelBooker interface for further details on the booking management.
  */
-interface IENSDaoRegistrar is IERC1155Receiver, IENSLabelBooker {
+interface IENSDaoRegistrar is IERC1155Receiver {
   /**
    * @dev Emitted when a new name is registered through standard registration or claiming.
    */

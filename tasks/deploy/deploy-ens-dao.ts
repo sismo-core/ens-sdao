@@ -2,7 +2,11 @@ import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ethers } from 'ethers';
 import { getDeployer, logHre } from '../../evm-utils';
-import { ENSDaoRegistrar__factory, ENSDaoToken__factory } from '../../types';
+import {
+  ENSDaoRegistrar__factory,
+  ENSDaoToken__factory,
+  ENSLabelBooker__factory,
+} from '../../types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
 task('deploy-ens-dao')
@@ -12,6 +16,7 @@ task('deploy-ens-dao')
   .addOptionalParam('baseURI', 'baseURI')
   .addOptionalParam('name', 'name')
   .addOptionalParam('symbol', 'symbol')
+  .addOptionalParam('owner', 'symbol')
   .addFlag('log', 'log')
   .addFlag('verify', 'Verify Etherscan Contract')
   .setAction(
@@ -26,6 +31,7 @@ task('deploy-ens-dao')
         name = 'sismo',
         symbol = 'SDAO',
         log = false,
+        owner,
       },
       hre: HardhatRuntimeEnvironment
     ) => {
@@ -38,9 +44,16 @@ task('deploy-ens-dao')
           name + '.eth DAO',
           symbol,
           'https://tokens.sismo.io/',
-          deployer.address,
+          owner || deployer.address,
         ],
       });
+      const deployedLabelBooker = await hre.deployments.deploy(
+        'ENSLabelBooker',
+        {
+          from: deployer.address,
+          args: [ens, node, owner || deployer.address],
+        }
+      );
       const deployedRegistrar = await hre.deployments.deploy(
         'ENSDaoRegistrar',
         {
@@ -50,26 +63,40 @@ task('deploy-ens-dao')
             resolver,
             nameWrapper,
             deployedDaoToken.address,
+            deployedLabelBooker.address,
             node,
             name,
+            owner || deployer.address,
           ],
         }
       );
-      if (log) {
-        console.log(`Deployed ENS DAO Token: ${deployedDaoToken.address}`);
-        console.log(`Deployed ENS DAO Registrar: ${deployedRegistrar.address}`);
-      }
+
       const ensDaoRegistrar = ENSDaoRegistrar__factory.connect(
         deployedRegistrar.address,
+        deployer
+      );
+      const ensDaoLabelBooker = ENSLabelBooker__factory.connect(
+        deployedLabelBooker.address,
         deployer
       );
       const ensDaoToken = ENSDaoToken__factory.connect(
         deployedDaoToken.address,
         deployer
       );
+      await (
+        await ensDaoLabelBooker.setRegistrar(ensDaoRegistrar.address)
+      ).wait();
+      if (log) {
+        console.log(`Deployed ENS DAO Token: ${deployedDaoToken.address}`);
+        console.log(
+          `Deployed ENS DAO Label Book: ${deployedLabelBooker.address}`
+        );
+        console.log(`Deployed ENS DAO Registrar: ${deployedRegistrar.address}`);
+      }
       await (await ensDaoToken.setMinter(ensDaoRegistrar.address)).wait();
       return {
         ensDaoRegistrar,
+        ensDaoLabelBooker,
         ensDaoToken,
       };
     }
