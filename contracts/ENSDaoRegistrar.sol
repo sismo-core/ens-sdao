@@ -13,10 +13,12 @@ import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
 /**
  * A registrar that allocates subdomains to the first person to claim them.
  */
-contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
-  PublicResolver immutable RESOLVER;
-  NameWrapper immutable NAME_WRAPPER;
-  ENSDaoToken immutable DAO_TOKEN;
+contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
+  PublicResolver public immutable RESOLVER;
+  NameWrapper public immutable NAME_WRAPPER;
+  ENSDaoToken public immutable DAO_TOKEN;
+  ENS public immutable ENS_REGISTRY;
+  bytes32 public immutable ROOT_NODE;
 
   string NAME;
   bytes32 public constant ETH_NODE =
@@ -24,6 +26,7 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
   uint256 public constant RESERVATION_PERIOD = 1 weeks;
   uint256 public immutable DAO_BIRTH_DATE;
   uint256 public _maxEmissionNumber;
+  ENSLabelBooker public _ensLabelBooker;
 
   /**
    * @dev Constructor.
@@ -39,15 +42,29 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
     PublicResolver resolverAddress,
     NameWrapper nameWrapper,
     ENSDaoToken daoToken,
+    ENSLabelBooker ensLabelBooker,
     bytes32 node,
-    string memory name
-  ) ENSLabelBooker(ensAddr, node) {
+    string memory name,
+    address owner
+  ) {
+    require(
+      address(ensAddr) == address(ensLabelBooker.ENS_REGISTRY()),
+      'ENS_DAO_REGISTRAR: REGISTRY_MISMATCH'
+    );
+    require(
+      node == ensLabelBooker.ROOT_NODE(),
+      'ENS_DAO_REGISTRAR: NODE_MISMATCH'
+    );
+    ENS_REGISTRY = ensAddr;
     RESOLVER = resolverAddress;
     NAME_WRAPPER = nameWrapper;
     DAO_TOKEN = daoToken;
     NAME = name;
+    ROOT_NODE = node;
     DAO_BIRTH_DATE = block.timestamp;
     _maxEmissionNumber = 500;
+    _ensLabelBooker = ensLabelBooker;
+    transferOwnership(owner);
   }
 
   /**
@@ -62,7 +79,7 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
     bytes32 labelHash = keccak256(bytes(label));
 
     require(
-      _getBooking(labelHash) == address(0),
+      _ensLabelBooker.getBooking(label) == address(0),
       'ENS_DAO_REGISTRAR: label booked'
     );
 
@@ -88,7 +105,7 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
    */
   function claim(string memory label, address account) external override {
     bytes32 labelHash = keccak256(bytes(label));
-    address bookedAddress = _getBooking(labelHash);
+    address bookedAddress = _ensLabelBooker.getBooking(label);
     require(bookedAddress != address(0), 'ENS_DAO_REGISTRAR: label not booked');
     require(
       bookedAddress == _msgSender() || owner() == _msgSender(),
@@ -97,7 +114,7 @@ contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
 
     _register(account, label, labelHash);
 
-    _deleteBooking(labelHash);
+    _ensLabelBooker.deleteBooking(label);
   }
 
   /**

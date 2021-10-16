@@ -7,6 +7,7 @@ interface IENSLabelBooker {
   event BookingUpdated(uint256 indexed id, address indexed bookingAddress);
   // Logged when a booking is deleted.
   event BookingDeleted(uint256 indexed id);
+  event NewRegistrar(address indexed registrar);
 
   /**
    * @notice Get the address of a booking.
@@ -70,4 +71,12 @@ interface IENSLabelBooker {
    * Emits a {BookingDeleted} event for each deleted booking.
    */
   function batchDeleteBooking(string[] memory labels) external;
+
+  /**
+   * @notice Set the registrar, that can use this lib.
+   * @param registrar the newt registrar.
+   *
+   * Emits a {NewRegistrar} event
+   */
+  function setRegistrar(address registrar) external;
 }

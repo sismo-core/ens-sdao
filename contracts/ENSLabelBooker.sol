@@ -5,19 +5,33 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import {IENSLabelBooker} from './interfaces/IENSLabelBooker.sol';
 
 contract ENSLabelBooker is Ownable, IENSLabelBooker {
-  ENS immutable ENS_REGISTRY;
-  bytes32 immutable ROOT_NODE;
+  ENS public immutable ENS_REGISTRY;
+  bytes32 public immutable ROOT_NODE;
+  address public _registrar;
 
   mapping(bytes32 => address) private _bookings;
+
+  modifier onlyOwnerOrRegistrar() {
+    require(
+      owner() == _msgSender() || _registrar == _msgSender(),
+      'ENS_LABEL_BOOKER: caller is not the owner or registry'
+    );
+    _;
+  }
 
   /**
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
    * @param node The node that this registrar administers.
    */
-  constructor(ENS ensAddr, bytes32 node) {
+  constructor(
+    ENS ensAddr,
+    bytes32 node,
+    address owner
+  ) {
     ENS_REGISTRY = ensAddr;
     ROOT_NODE = node;
+    transferOwnership(owner);
   }
 
   /**
@@ -38,14 +52,14 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
 
   /**
    * @notice Book a label with an address for a later claim.
-   * @dev Can only be called by the contract owner.
+   * @dev Can only be called by the contract owner or the registrar.
    * @param label The label to book.
    * @param bookingAddress The address which can claim the label.
    */
   function book(string memory label, address bookingAddress)
     external
     override
-    onlyOwner
+    onlyOwnerOrRegistrar
   {
     bytes32 labelHash = keccak256(bytes(label));
     _book(labelHash, bookingAddress);
@@ -53,7 +67,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
 
   /**
    * @notice Batch book operations given a list of labels and bookingAddresses.
-   * @dev Can only be called by the contract owner.
+   * @dev Can only be called by the contract owner or the registrar.
    *      Input lists must have the same length.
    * @param labels The list of label to book.
    * @param bookingAddresses The list of address which can claim the associated label.
@@ -61,7 +75,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
   function batchBook(string[] memory labels, address[] memory bookingAddresses)
     external
     override
-    onlyOwner
+    onlyOwnerOrRegistrar
   {
     require(
       labels.length == bookingAddresses.length,
@@ -75,14 +89,14 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
 
   /**
    * @notice Update the address of a book address.
-   * @dev Can only be called by the contract owner.
+   * @dev Can only be called by the contract owner or the registrar.
    * @param label The label of the book.
    * @param bookingAddress The address which can claim the label.
    */
   function updateBooking(string memory label, address bookingAddress)
     external
     override
-    onlyOwner
+    onlyOwnerOrRegistrar
   {
     bytes32 labelHash = keccak256(bytes(label));
     _updateBooking(labelHash, bookingAddress);
@@ -90,7 +104,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
 
   /**
    * @notice Update the addresses of books.
-   * @dev Can only be called by the contract owner.
+   * @dev Can only be called by the contract owner or the registrar.
    *      Input lists must have the same length.
    * @param labels The list of label to book.
    * @param bookingAddresses The list of address which can claim the associated label.
@@ -111,28 +125,42 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
 
   /**
    * @notice Delete a booking.
-   * @dev Can only be called by the contract owner.
+   * @dev Can only be called by the contract owner or the registrar.
    * @param label The booked label.
    */
-  function deleteBooking(string memory label) external override onlyOwner {
+  function deleteBooking(string memory label)
+    external
+    override
+    onlyOwnerOrRegistrar
+  {
     bytes32 labelHash = keccak256(bytes(label));
     _deleteBooking(labelHash);
   }
 
   /**
    * @notice Delete a list of bookings.
-   * @dev Can only be called by the contract owner.
+   * @dev Can only be called by the contract owner or the registrar.
    * @param labels The list of labels of the bookings.
    */
   function batchDeleteBooking(string[] memory labels)
     external
     override
-    onlyOwner
+    onlyOwnerOrRegistrar
   {
     for (uint256 i; i < labels.length; i++) {
       bytes32 labelHash = keccak256(bytes(labels[i]));
       _deleteBooking(labelHash);
     }
+  }
+
+  /**
+   * @notice Delete a list of bookings.
+   * @dev Can only be called by the contract owner.
+   * @param registrar The new registrar that uses this contract as labelBooker Lib
+   */
+  function setRegistrar(address registrar) external override onlyOwner {
+    _registrar = registrar;
+    emit NewRegistrar(registrar);
   }
 
   /**

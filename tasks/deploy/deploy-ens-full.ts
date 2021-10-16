@@ -12,6 +12,7 @@ import {
   ENSDeployer,
   ENSDaoToken,
   ENSDaoRegistrar,
+  ENSLabelBooker,
 } from '../../types';
 
 task('deploy-ens-full')
@@ -52,15 +53,19 @@ task('deploy-ens-full')
       const {
         ensDaoRegistrar,
         ensDaoToken,
-      }: { ensDaoRegistrar: ENSDaoRegistrar; ensDaoToken: ENSDaoToken } =
-        await hre.run('deploy-ens-dao', {
-          // name NEEEDS to be label of .eth name
-          name: 'sismo',
-          symbol: 'SISMO',
-          ens: registry.address,
-          resolver: publicResolver.address,
-          nameWrapper: nameWrapper.address,
-        });
+        ensDaoLabelBooker,
+      }: {
+        ensDaoRegistrar: ENSDaoRegistrar;
+        ensDaoToken: ENSDaoToken;
+        ensDaoLabelBooker: ENSLabelBooker;
+      } = await hre.run('deploy-ens-dao', {
+        // name NEEEDS to be label of .eth name
+        name: 'sismo',
+        symbol: 'SISMO',
+        ens: registry.address,
+        resolver: publicResolver.address,
+        nameWrapper: nameWrapper.address,
+      });
       log &&
         console.log(
           `Deployed by ${deployer.address}.
@@ -71,7 +76,8 @@ task('deploy-ens-full')
         publicResolver: ${publicResolver.address}
         nameWrapper: ${nameWrapper.address}
         ensDaoRegistrar: ${ensDaoRegistrar.address}
-        ensDaoRegistrar: ${ensDaoToken.address}
+        ensDaoLabelBooker: ${ensDaoLabelBooker.address}
+        ensDaoToken: ${ensDaoToken.address}
         `
         );
       return {

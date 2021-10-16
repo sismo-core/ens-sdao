@@ -12,6 +12,7 @@ import {
   NameWrapper,
   ENSDaoRegistrar,
   ENSDaoToken,
+  ENSLabelBooker,
 } from '../types';
 //@ts-ignore
 import packet from 'dns-packet';
@@ -32,6 +33,7 @@ type FullDeploiementResult = {
 type EnsDeploiementResult = {
   ensDaoRegistrar: ENSDaoRegistrar;
   ensDaoToken: ENSDaoToken;
+  ensDaoLabelBooker: ENSLabelBooker;
 };
 
 function expectEvent(
@@ -299,6 +301,7 @@ describe('ENS', () => {
     let nameWrapper: NameWrapper;
     let ensDaoToken: ENSDaoToken;
     let ensDaoRegistrar: ENSDaoRegistrar;
+    let ensDaoLabelBooker: ENSLabelBooker;
     let ens: ENS;
 
     before(async () => {
@@ -331,7 +334,7 @@ describe('ENS', () => {
             reverseRegistrar: reverseRegistrar.address,
           }
         );
-        ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
+        ({ ensDaoToken, ensDaoRegistrar, ensDaoLabelBooker } = deployedEnsDao);
       });
 
       it('sismo.eth owner wrap and gives wrapped ownership to sismo.eth ENS DAO', async () => {
@@ -629,7 +632,7 @@ describe('ENS', () => {
       it(`Owner can book a label ${bookedLabel}`, async () => {
         const domain = `${bookedLabel}.${sismoLabel}.eth`;
         const userNode = nameHash.hash(domain);
-        const tx = await ensDaoRegistrar.book(
+        const tx = await ensDaoLabelBooker.book(
           bookedLabel,
           ensDaoRegistrar.address
         );
@@ -643,25 +646,25 @@ describe('ENS', () => {
             args.bookingAddress === otherSigner.address
         );
 
-        expect(await ensDaoRegistrar.getBooking(bookedLabel)).to.equal(
+        expect(await ensDaoLabelBooker.getBooking(bookedLabel)).to.equal(
           ensDaoRegistrar.address
         );
       });
       it(`Owner can not book an already booked label`, async () => {
         await expect(
-          ensDaoRegistrar.book(bookedLabel, ensDaoRegistrar.address)
+          ensDaoLabelBooker.book(bookedLabel, ensDaoRegistrar.address)
         ).to.be.revertedWith('ENS_DAO_REGISTRAR: label already booked');
       });
       it(`Owner can not book with a zero address`, async () => {
         await expect(
-          ensDaoRegistrar.book(bookedLabel, ethers.constants.AddressZero)
+          ensDaoLabelBooker.book(bookedLabel, ethers.constants.AddressZero)
         ).to.be.revertedWith('ENS_DAO_REGISTRAR: invalid booking address');
       });
       it(`Owner can book multiple labels by batch`, async () => {
         const additionalNodes = additionalBookedLabels.map((label) =>
           nameHash.hash(`${label}.${sismoLabel}.eth`)
         );
-        const tx = await ensDaoRegistrar.batchBook(additionalBookedLabels, [
+        const tx = await ensDaoLabelBooker.batchBook(additionalBookedLabels, [
           userSigner.address,
           otherSigner.address,
         ]);
@@ -683,10 +686,10 @@ describe('ENS', () => {
         );
 
         expect(
-          await ensDaoRegistrar.getBooking(additionalBookedLabels[0])
+          await ensDaoLabelBooker.getBooking(additionalBookedLabels[0])
         ).to.equal(userSigner.address);
         expect(
-          await ensDaoRegistrar.getBooking(additionalBookedLabels[1])
+          await ensDaoLabelBooker.getBooking(additionalBookedLabels[1])
         ).to.equal(otherSigner.address);
       });
       it(`User can not claim a label if it is not the associated address`, async () => {
@@ -731,7 +734,7 @@ describe('ENS', () => {
         expect(await ensDaoToken.ownerOf(userNode)).to.be.equal(
           userSigner.address
         );
-        expect(await ensDaoRegistrar.getBooking(bookedLabel)).to.equal(
+        expect(await ensDaoLabelBooker.getBooking(bookedLabel)).to.equal(
           ethers.constants.AddressZero
         );
       });
@@ -765,13 +768,13 @@ describe('ENS', () => {
           otherSigner.address
         );
         expect(
-          await ensDaoRegistrar.getBooking(additionalBookedLabels[1])
+          await ensDaoLabelBooker.getBooking(additionalBookedLabels[1])
         ).to.equal(ethers.constants.AddressZero);
       });
 
       it(`Owner can not book an already registered label`, async () => {
         await expect(
-          ensDaoRegistrar.book(
+          ensDaoLabelBooker.book(
             additionalBookedLabels[1],
             ensDaoRegistrar.address
           )
@@ -782,8 +785,8 @@ describe('ENS', () => {
         const label = 'blabla';
         const domain = `${label}.${sismoLabel}.eth`;
         const userNode = nameHash.hash(domain);
-        await ensDaoRegistrar.book(label, ensDaoRegistrar.address);
-        const tx = await ensDaoRegistrar.updateBooking(
+        await ensDaoLabelBooker.book(label, ensDaoRegistrar.address);
+        const tx = await ensDaoLabelBooker.updateBooking(
           label,
           ownerSigner.address
         );
@@ -795,18 +798,18 @@ describe('ENS', () => {
             args.id.toHexString() === userNode &&
             args.bookingAddress === ownerSigner.address
         );
-        expect(await ensDaoRegistrar.getBooking(label)).to.equal(
+        expect(await ensDaoLabelBooker.getBooking(label)).to.equal(
           ownerSigner.address
         );
 
-        const deleteTx = await ensDaoRegistrar.deleteBooking(label);
+        const deleteTx = await ensDaoLabelBooker.deleteBooking(label);
         const deleteReceipt = await deleteTx.wait();
         expectEvent(
           deleteReceipt,
           'BookingDeleted',
           (args) => args.id.toHexString() === userNode
         );
-        expect(await ensDaoRegistrar.getBooking(label)).to.equal(
+        expect(await ensDaoLabelBooker.getBooking(label)).to.equal(
           ethers.constants.AddressZero
         );
       });
@@ -817,11 +820,11 @@ describe('ENS', () => {
           nameHash.hash(`${label}.${sismoLabel}.eth`)
         );
 
-        await ensDaoRegistrar.batchBook(
+        await ensDaoLabelBooker.batchBook(
           labels,
           labels.map(() => ensDaoRegistrar.address)
         );
-        const tx = await ensDaoRegistrar.batchUpdateBooking(labels, [
+        const tx = await ensDaoLabelBooker.batchUpdateBooking(labels, [
           userSigner.address,
           otherSigner.address,
         ]);
@@ -841,14 +844,14 @@ describe('ENS', () => {
             args.bookingAddress === otherSigner.address
         );
 
-        expect(await ensDaoRegistrar.getBooking(labels[0])).to.equal(
+        expect(await ensDaoLabelBooker.getBooking(labels[0])).to.equal(
           userSigner.address
         );
-        expect(await ensDaoRegistrar.getBooking(labels[1])).to.equal(
+        expect(await ensDaoLabelBooker.getBooking(labels[1])).to.equal(
           otherSigner.address
         );
 
-        const deleteTx = await ensDaoRegistrar.batchDeleteBooking(labels);
+        const deleteTx = await ensDaoLabelBooker.batchDeleteBooking(labels);
         const deleteReceipt = await deleteTx.wait();
         expectEvent(
           deleteReceipt,
@@ -860,10 +863,10 @@ describe('ENS', () => {
           'BookingDeleted',
           (args) => args.id.toHexString() === nodes[1]
         );
-        expect(await ensDaoRegistrar.getBooking(labels[0])).to.equal(
+        expect(await ensDaoLabelBooker.getBooking(labels[0])).to.equal(
           ethers.constants.AddressZero
         );
-        expect(await ensDaoRegistrar.getBooking(labels[1])).to.equal(
+        expect(await ensDaoLabelBooker.getBooking(labels[1])).to.equal(
           ethers.constants.AddressZero
         );
       });
