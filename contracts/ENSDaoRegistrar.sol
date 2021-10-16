@@ -11,7 +11,8 @@ import {ENSLabelBooker} from './ENSLabelBooker.sol';
 import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
 
 /**
- * A registrar that allocates subdomains to the first person to claim them.
+ * @title EnsDaoRegistrar contract
+ * @dev Implementation of the {IENSDaoRegistrar}
  */
 contract ENSDaoRegistrar is ERC1155Holder, ENSLabelBooker, IENSDaoRegistrar {
   PublicResolver immutable RESOLVER;
