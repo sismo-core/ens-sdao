@@ -13,6 +13,15 @@ import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
 /**
  * @title EnsDaoRegistrar contract
  * @dev Implementation of the {IENSDaoRegistrar}
+ *
+ *      An arbitrary reservation period is considered.
+ *      Within the registration period, only the owners of the associated .eth subdomain may register this subdomain.
+ *      After the registration period, any subdomain registration is first come first served.
+ *
+ *      The booking mechanism is described by an implementation of IENSLabelBooker.
+ *      The owner has the possibility to book any subdomain, unless it is already owned.
+ *      A booked subdomain can be claimed either by the owner of the DAO Registrar, either by the address registered in the booking.
+ *      See IENSLabelBooker interface for further details on the booking management.
  */
 contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   PublicResolver public immutable RESOLVER;
@@ -75,9 +84,11 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   /**
    * @notice Register a name and mints a DAO token.
    * @dev Can only be called if and only if
-   *  - the subdomain of the root node is free
-   *  - sender does not already have a DAO token OR sender is the owner
-   *  - if still in the reservation period, the associated .eth subdomain is free OR owned by the sender
+   *  - the subdomain is not booked,
+   *  - the subdomain of the root node is free,
+   *  - sender does not already have a DAO token OR sender is the owner,
+   *  - still in the reservation period, the associated .eth subdomain is free OR owned by the sender,
+   *  - the maximum number of emissions has not been reached.
    * @param label The label to register.
    */
   function register(string memory label) external override {
@@ -105,7 +116,12 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
 
   /**
    * @notice Claim a booked name.
-   * @dev Can only be called by owner or registered booking address if ENS label booker setup.
+   * @dev Can only be called if and only if
+   *  - the subdomain is booked,
+   *  - the sender is either the booked address, either the owner,
+   *  - the subdomain of the root node is free,
+   *  - sender does not already have a DAO token OR sender is the owner,
+   *  - the maximum number of emissions has not been reached.
    * @param label The label to claim.
    * @param account The account to which the registration is done.
    */
