@@ -361,21 +361,17 @@ describe('ENS', () => {
 
         await expect(
           ensDaoRegistrar.connect(otherSigner).register(label)
-        ).to.be.revertedWith(
-          'ENS_DAO_REGISTRAR: subdomain reserved for .eth holder during reservation period'
-        );
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: SUBDOMAIN_RESERVED');
         // registered in previous test, owner is userSigner
         await expect(
           ensDaoRegistrar.connect(otherSigner).register(otherLabel)
-        ).to.be.revertedWith(
-          'ENS_DAO_REGISTRAR: subdomain reserved for .eth holder during reservation period'
-        );
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: SUBDOMAIN_RESERVED');
       });
       it(`not owner of ${label}.eth can register ${label}.${sismoLabel}.eth after 1 week`, async () => {
         // 1 week  + 5 sec
         await increaseTime(
           HRE,
-          (await ensDaoRegistrar.RESERVATION_PERIOD()).toNumber() + 5
+          (await ensDaoRegistrar.RESERVATION_DURATION()).toNumber() + 5
         );
         const domain = `${label}.${sismoLabel}.eth`;
         const userNode = nameHash.hash(domain);
@@ -429,12 +425,12 @@ describe('ENS', () => {
       it('User cannot gen another subdomain', async () => {
         await expect(
           ensDaoRegistrar.connect(userSigner).register('dhadrien2')
-        ).to.be.revertedWith('ENS_DAO_REGISTRAR: too many subdomains');
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: TOO_MANY_SUBDOMAINS');
       });
       it('User cannot gen an already registered subdomain', async () => {
         await expect(
           ensDaoRegistrar.connect(otherSigner).register(label)
-        ).to.be.revertedWith('ENS_DAO_REGISTRAR: subdomain already registered');
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: SUBDOMAIN_ALREADY_REGISTERED');
       });
       it('User should be able to unwrap', async () => {
         const labelHash = getLabelhash(otherLabel);
@@ -559,12 +555,12 @@ describe('ENS', () => {
       it('User cannot gen an already registered subdomain', async () => {
         await expect(
           ensDaoRegistrar.connect(otherSigner).register(label)
-        ).to.be.revertedWith('ENS_DAO_REGISTRAR: subdomain already registered');
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: SUBDOMAIN_ALREADY_REGISTERED');
       });
       it('User cannot gen another subdomain', async () => {
         await expect(
           ensDaoRegistrar.connect(userSigner).register('dhadrien2')
-        ).to.be.revertedWith('ENS_DAO_REGISTRAR: too many subdomains');
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: TOO_MANY_SUBDOMAINS');
       });
       it('Sismo.eth initial owner should be able to get back ownership of the root domain', async () => {
         await expect(
@@ -653,12 +649,12 @@ describe('ENS', () => {
       it(`Owner can not book an already booked label`, async () => {
         await expect(
           ensDaoLabelBooker.book(bookedLabel, ensDaoRegistrar.address)
-        ).to.be.revertedWith('ENS_DAO_REGISTRAR: label already booked');
+        ).to.be.revertedWith('ENS_LABEL_BOOKER: LABEL_ALREADY_BOOKED');
       });
       it(`Owner can not book with a zero address`, async () => {
         await expect(
           ensDaoLabelBooker.book(bookedLabel, ethers.constants.AddressZero)
-        ).to.be.revertedWith('ENS_DAO_REGISTRAR: invalid booking address');
+        ).to.be.revertedWith('ENS_LABEL_BOOKER: INVALID_BOOKING_ADDRESS');
       });
       it(`Owner can book multiple labels by batch`, async () => {
         const additionalNodes = additionalBookedLabels.map((label) =>
@@ -697,16 +693,14 @@ describe('ENS', () => {
           ensDaoRegistrar
             .connect(otherSigner)
             .claim(additionalBookedLabels[0], otherSigner.address)
-        ).to.be.revertedWith(
-          'ENS_DAO_REGISTRAR: sender is neither booked address neither owner'
-        );
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: SENDER_NOT_ALLOWED');
       });
       it(`User can not register a label if it is already booked`, async () => {
         await expect(
           ensDaoRegistrar
             .connect(otherSigner)
             .register(additionalBookedLabels[0])
-        ).to.be.revertedWith('ENS_DAO_REGISTRAR: label booked');
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: LABEL_BOOKED');
       });
       it(`Owner can claim a label and associate it to an arbitrary address`, async () => {
         const domain = `${bookedLabel}.${sismoLabel}.eth`;
@@ -778,7 +772,7 @@ describe('ENS', () => {
             additionalBookedLabels[1],
             ensDaoRegistrar.address
           )
-        ).to.be.revertedWith('ENS_DAO_REGISTRAR: subdomain already registered');
+        ).to.be.revertedWith('ENS_LABEL_BOOKER: SUBDOMAINS_ALREADY_REGISTERED');
       });
 
       it(`Owner can update an already registered label and delete it`, async () => {
@@ -898,9 +892,7 @@ describe('ENS', () => {
         const totalSupply = await ensDaoToken.totalSupply();
         await expect(
           ensDaoRegistrar.updateMaxEmissionNumber(totalSupply.sub(1).toString())
-        ).to.be.revertedWith(
-          'ENS_DAO_REGISTRAR: new maximum emission number too low'
-        );
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: NEW_MAX_EMISSION_TOO_LOW');
       });
 
       it('User can not register when the emission limitation is reached', async () => {
@@ -919,7 +911,7 @@ describe('ENS', () => {
 
         await expect(
           ensDaoRegistrar.register('countryclub')
-        ).to.be.revertedWith('ENS_DAO_REGISTRAR: too many emissions');
+        ).to.be.revertedWith('ENS_DAO_REGISTRAR: TOO_MANY_EMISSION');
       });
     });
   });
