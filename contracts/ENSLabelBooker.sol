@@ -14,7 +14,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
   modifier onlyOwnerOrRegistrar() {
     require(
       owner() == _msgSender() || _registrar == _msgSender(),
-      'ENS_LABEL_BOOKER: caller is not the owner or registry'
+      'ENS_LABEL_BOOKER: CALL_NOT_AUTHORIZED'
     );
     _;
   }
@@ -79,7 +79,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
   {
     require(
       labels.length == bookingAddresses.length,
-      'ENS_DAO_REGISTRAR: invalid labels and bookingAddresses arguments'
+      'ENS_LABEL_BOOKER: INVALID_PARAMS'
     );
     for (uint256 i; i < labels.length; i++) {
       bytes32 labelHash = keccak256(bytes(labels[i]));
@@ -115,7 +115,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
   ) external override onlyOwner {
     require(
       labels.length == bookingAddresses.length,
-      'ENS_DAO_REGISTRAR: invalid labels and bookingAddresses arguments'
+      'ENS_LABEL_BOOKER: INVALID_PARAMS'
     );
     for (uint256 i; i < labels.length; i++) {
       bytes32 labelHash = keccak256(bytes(labels[i]));
@@ -190,18 +190,18 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
   function _book(bytes32 labelHash, address bookingAddress) internal {
     require(
       bookingAddress != address(0),
-      'ENS_DAO_REGISTRAR: invalid booking address'
+      'ENS_LABEL_BOOKER: INVALID_BOOKING_ADDRESS'
     );
     require(
       _bookings[labelHash] == address(0),
-      'ENS_DAO_REGISTRAR: label already booked'
+      'ENS_LABEL_BOOKER: LABEL_ALREADY_BOOKED'
     );
     address subdomainOwner = ENS_REGISTRY.owner(
       keccak256(abi.encodePacked(ROOT_NODE, labelHash))
     );
     require(
       subdomainOwner == address(0x0),
-      'ENS_DAO_REGISTRAR: subdomain already registered'
+      'ENS_LABEL_BOOKER: SUBDOMAINS_ALREADY_REGISTERED'
     );
     bytes32 childNode = keccak256(abi.encodePacked(ROOT_NODE, labelHash));
     _bookings[labelHash] = bookingAddress;
@@ -214,13 +214,10 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
    * @param bookingAddress The new address associated to the booking.
    */
   function _updateBooking(bytes32 labelHash, address bookingAddress) internal {
-    require(
-      bookingAddress != address(0),
-      'ENS_DAO_REGISTRAR: invalid zero address as booking address'
-    );
+    require(bookingAddress != address(0), 'ENS_LABEL_BOOKER: INVALID_ADDRESS');
     require(
       _bookings[labelHash] != address(0),
-      'ENS_DAO_REGISTRAR: label not booked'
+      'ENS_LABEL_BOOKER: LABEL_NOT_BOOKED'
     );
     bytes32 childNode = keccak256(abi.encodePacked(ROOT_NODE, labelHash));
     _bookings[labelHash] = bookingAddress;

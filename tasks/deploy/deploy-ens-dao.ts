@@ -16,7 +16,8 @@ task('deploy-ens-dao')
   .addOptionalParam('baseURI', 'baseURI')
   .addOptionalParam('name', 'name')
   .addOptionalParam('symbol', 'symbol')
-  .addOptionalParam('owner', 'symbol')
+  .addOptionalParam('owner', 'owner')
+  .addOptionalParam('reservationDuration', 'reservationDuration')
   .addFlag('log', 'log')
   .addFlag('verify', 'Verify Etherscan Contract')
   .setAction(
@@ -32,6 +33,7 @@ task('deploy-ens-dao')
         symbol = 'SDAO',
         log = false,
         owner,
+        reservationDuration = (7 * 24 * 3600).toString(),
       },
       hre: HardhatRuntimeEnvironment
     ) => {
@@ -67,6 +69,7 @@ task('deploy-ens-dao')
             node,
             name,
             owner || deployer.address,
+            reservationDuration,
           ],
         }
       );
