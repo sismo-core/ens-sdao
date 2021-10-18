@@ -33,7 +33,7 @@ task('deploy-ens-dao')
         symbol = 'SDAO',
         log = false,
         owner,
-        reservationDuration = (7 * 24 * 3600).toString(),
+        reservationDuration = (4 * 7 * 24 * 3600).toString(),
       },
       hre: HardhatRuntimeEnvironment
     ) => {
