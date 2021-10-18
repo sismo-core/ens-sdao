@@ -18,7 +18,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   NameWrapper public immutable NAME_WRAPPER;
   ENSDaoToken public immutable DAO_TOKEN;
   ENS public immutable ENS_REGISTRY;
-  ENSLabelBooker public ENS_LABLEL_BOOKER;
+  ENSLabelBooker public immutable ENS_LABLEL_BOOKER;
   bytes32 public immutable ROOT_NODE;
 
   string NAME;
