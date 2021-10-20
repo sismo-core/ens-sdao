@@ -5,7 +5,13 @@
   "main": "index.js",
   "scripts": {
     "compile": "SKIP_LOAD=true hardhat compile",
-    "test": "hardhat test ./test/ens-dao.spec.ts"
+    "test:ens-dao-registry": "hardhat test ./test/ens-dao-registry.spec.ts",
+    "test:ens-dao-name-wrapper": "hardhat test ./test/ens-dao-name-wrapper.spec.ts",
+    "test:ens-label-booker": "hardhat test ./test/ens-label-booker.spec.ts",
+    "test:ens-registry": "hardhat test ./test/ens-registry.spec.ts",
+    "test:name-wrapper": "hardhat test ./test/name-wrapper.spec.ts",
+    "test": "npm run test:ens-dao-registry && npm run test:ens-dao-name-wrapper && npm run test:ens-label-booker && npm run test:ens-registry && npm run test:name-wrapper",
+    "format": "pretty-quick --pattern 'contracts/**/*.sol' --pattern 'libs/**/*.ts'  --pattern 'test/**/*.ts' --pattern 'tasks/**/*.ts' --pattern 'server/**/*.ts'"
   },
   "keywords": [],
   "author": "Sismo",
