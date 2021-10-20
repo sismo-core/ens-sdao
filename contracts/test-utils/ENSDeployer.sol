@@ -3,7 +3,7 @@ import {INameWrapper, PublicResolver} from '@ensdomains/ens-contracts/contracts/
 import '@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol';
 import {EthRegistrar} from './EthRegistrar.sol';
 import {NameResolver, ReverseRegistrar} from '@ensdomains/ens-contracts/contracts/registry/ReverseRegistrar.sol';
-import {NameWrapper, IMetadataService, BaseRegistrar} from './nameWrapper/NameWrapper.sol';
+import {NameWrapper, IMetadataService, BaseRegistrar} from '../nameWrapper/NameWrapper.sol';
 
 // Construct a set of test ENS contracts.
 contract ENSDeployer {
