@@ -18,7 +18,7 @@ import {
 import packet from 'dns-packet';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
-import { increaseTime } from '../evm-utils';
+import { increaseTime } from './helpers';
 import { ContractReceipt } from '@ethersproject/contracts';
 
 type FullDeploiementResult = {
