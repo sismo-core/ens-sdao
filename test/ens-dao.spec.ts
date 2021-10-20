@@ -18,8 +18,7 @@ import {
 import packet from 'dns-packet';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
-import { increaseTime } from './helpers';
-import { ContractReceipt } from '@ethersproject/contracts';
+import { increaseTime, expectEvent } from './helpers';
 
 type FullDeploiementResult = {
   ensDeployer: ENSDeployer;
@@ -35,17 +34,6 @@ type EnsDeploiementResult = {
   ensDaoToken: ENSDaoToken;
   ensDaoLabelBooker: ENSLabelBooker;
 };
-
-function expectEvent(
-  receipt: ContractReceipt,
-  name: string,
-  argsCondition: (args: any) => boolean
-) {
-  const index = receipt.events?.findIndex((e) => {
-    return e.event === name && argsCondition(e?.args);
-  });
-  return Number(index) >= 0;
-}
 
 describe('ENS', () => {
   const utils = ethers.utils;
