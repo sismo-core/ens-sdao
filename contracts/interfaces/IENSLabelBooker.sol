@@ -3,13 +3,11 @@ pragma solidity >=0.8.4;
 /**
  * @title IENSLabelBooker interface
  * @notice An owned contract that allows the owner to manage bookings of ENS sudomain.
- *         No modification of the ENS Registry state is performed in this contract.
- *         The bookings are meant for external uses.
  *
  *         A booking is a link between the hash of a label, representing the subdomain, and an address.
  *         A link to the zero address means that the label is not booked.
  *
- *         Any action may be performed on a single label or subdomain or by batch.
+ *         Any action may be performed on a single label or by batch.
  *
  *         A booking may be
  *          - created: the hash of the label is linked to a non zero address,

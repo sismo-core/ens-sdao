@@ -2,40 +2,57 @@
 
 We set up a goal of enabling every user of Sismo to get a free ENS subdomain `user.sismo.eth`, while simultaneously starting our DAO, giving each DAO member a unique ERC721 NFT. This NFT gates our discord.
 
-It is a great Community tool, and a great UX improvement for our product (We aim to replace in our UX all addresses for ENS names).
+It is a great Community tool, and a great UX improvement for our product. We aim to replace in our UX all addresses for ENS names.
 
 You will find in this repository what we built to kickstart our ENS centric DAO as well as the result of our exploration of the ENS smart contracts and its npm library `ensjs`. 
 
-We open-source it: 
-  - For teams: Use this codebase to offer free ENS and kickstart your ENS Powered DAO.
-  - For Devs
-    - `ENSDeployer.sol` and `deploy-ens-full` hardhat task: Deploy locally a full ENS system with latest contracts (such as NameWrapper) and with a simplified EthRegistrar (no need to go through the 2-phase registration process)
-    -  `ENSDaoRegistrar.sol`, `ENSDaoToken.sol` and `deploy-ens-dao`: deploy a domain registrar that is able to create on the go subdomains + NFTs for your users.
-    - `ens-dao.spec.ts` was thought as a tutorial to discover all features of the ENS system (contracts and `ensjs` lib).
-    
+Use this codebase to offer free ENS and kickstart your ENS Powered DAO.
+
 ## Contracts
 
-1. `ENSDaoRegistrar.sol` and `EnsDaoToken.sol`
+1. `ENSDaoRegistrar.sol`
 
-FIFS (Fist In First Served) Registrar for your `domain.eth`.
-It lets anyone register a `subdomain.domain.eth` for free, wrap it as a ERC1155 (shared with all eth names) and mint a DAO Token (ERC721) (for you subdomain holders only).
+First in first served Registrar for your `domain.eth`.
 
-Note: For 1 week, only `vitalik.eth` will be able to register `vitalik.domain.eth`
+It lets anyone register a `subdomain.domain.eth` for free and mint an ERC721 DAO Token.
 
-2. `ENSDeployer.sol`
+An address can not register if already owns an ERC721 DAO token.
 
-Simple deployer contract, updated with latest ENS smart contracts.
+A reservation period, set and starting at the deploiement of the contract, is preventing the registration of `lando.domain.eth` if `lando.eth` is owned by a different address than the transaction sender.
 
-3. `EthRegistrar.sol` 
+A booking mechanism, managed by the DAO owner, has been introduced in order to prevent indefinitely the registration of selected subdomains.
+
+A booked subdomain can be claimed, hence registering the subdomain and minting the ERC721 DAO Token for an arbitrary beneficiary.
+
+Internally, registration of the subdomain is handled in two flavors. The first possibility is through the usual ENS Registry contract, we consider this approach as the safest for now. The second approach relies on the [Name Wrapper contract](https://github.com/ensdomains/name-wrapper), the subdomain in this case is wrapped as a ERC1155 token shared with all `.eth` name. Our goal is to invest time into the second flavor.
+
+2. `EnsDaoToken.sol`
+
+An ERC721 contract based on the `ERC721PresetMinterPauserAutoId` preset of [OpenZeppelin](https://openzeppelin.com/).
+
+
+3. `ENSLabelBooker.sol`
+
+A managed booking of ENS subdomains.
+
+The owner can book a subdomain by linking it to a particular address.
+
+A booking can then be updated or deleted by the owner.
+
+
+4. `EthRegistrar.sol` 
    
-Modified EthRegistrar (`@ensdomains/ens-contracts/contracts/ethregistrar/BaseRegistrarImplementation.sol`) so that we can easily register `.eth` names without going through the controler and 2 step registration process.
+Modified `EthRegistrar` based on the [ENS Base Registrar](https://github.com/ensdomains/ens-contracts/blob/master/contracts/ethregistrar/BaseRegistrarImplementation.sol) for testing purposes. The registration process is simplified in order to be able to register `.eth` subdomains in a single transaction.
+
+5. `ENSDeployer.sol`
+
+Deployer contract used for testing purposes. It deploys a full set of ENS smart contracts.
 
 ## Hardhat tasks:
 
-Do no forget to set up a $MNEMONIC environment variable, trough .env file or `$ export MNEMONIC= 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm'`
+A `MNEMONIC` environment variable may be configured. If not specified, it will fallback to `'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm'`, **do not use this default mnemonic in production or any other personal use**.
 
-1. `deploy-name-wrapper-and-resolver`: (for networks where ens and ethRegistrar already deployed)
-Deploys a nameWrapper linked to the ethRegistrar
+1. `deploy-name-wrapper-and-resolver`: deploys a nameWrapper. The addresses of the Eth Registrar and ENS Registry are needed as inputs.
 
 ```typescript
 const deployedENS: {
@@ -51,7 +68,7 @@ or inline
 
 <br />
 
-2.  `deploy-ens-dao`: deploy the ENS DAO (FirstInFirstServed), which enable users to register subdomain and mint DAO Token
+2.  `deploy-ens-dao`: deploys the ENS DAO Registrar, ENS DAO Token and a ENS Label Booker. The addresses of the ENS Registry, Public Resolver and Name Wrapper are needed as inputs. If the zero address is given for the Name Wrapper, the ENS DAO Registrar will use the ENS Registry only, otherwise it will use the provided Name Wrapper.
 
 ```typescript
       const {
@@ -69,14 +86,17 @@ or inline
         resolver: publicResolver.address,
         // ENS nameWrapper 
         nameWrapper: nameWrapper.address,
+        // Reservation duration, fallback to 4 weeks if not specified
+        reservationDuration,
+        // Owner of the contracts, fallback to deployer address if not specified
+        owner
       });
 ```
 or inline
-`npx hardhat deploy-ens-dao --ens $ENS_ADDR --resolver $ETH_RESOLVER_ADDRESS --network main`
+`npx hardhat deploy-ens-dao --ens $ENS_ADDR --resolver $ETH_RESOLVER_ADDRESS --nameWrapper $NAME_WRAPPER_ADDRESS --network main`
 <br />
 
-3. `deploy-ens-full`: (for local env or private network) 
-Deploys the full ENS system: the registry, a modified ethRegistrar (behaves similar as testnets but no controller in front), a reverse Registrar, a nameWrapper, a publicResolver and a ENS DAO.
+3. `deploy-ens-full`: deploys the full ENS system: the registry, a modified ethRegistrar, a reverse Registrar, a nameWrapper, a publicResolver and optionally an ENS DAO Registrar with its associated ENS DAO Token and ENS Label Booker.
 
 ```typescript
 const deployedENS: {
@@ -86,13 +106,33 @@ const deployedENS: {
       reverseRegistrar: ReverseRegistrar;
       publicResolver: PublicResolver;
       nameWrapper: NameWrapper;
-      ensDaoRegistrar: ENSDaoRegistrar,
-      ensDaoToken: ENSDaoToken,
-    } = await HRE.run('deploy-ens-full');
+      ensDaoRegistrar?: ENSDaoRegistrar,
+      ensDaoToken?: ENSDaoToken,
+      ensDaoLabelBooker?: ENSLabelBooker,
+    } = await HRE.run('deploy-ens-full', {
+      // Boolean value in order to choose to additionally deploy ENS DAO related contracts
+      ensDao: true
+    });
 ```
 or inline
 `npx hardhat deploy-ens-full --ens-dao`
 or without the `--ens-dao`flag if you don't want to deploy the ensDAO
 
-If you need help to deploy this for your community, please join our discord: sismo.io
+## Development
+
+### Installation and setup
+
+```bash
+npm install
+```
+
+### Testing
+
+```bash
+npm run test
+```
+
+## Contact
+
+If you need help to deploy this for your community, please contact us at sismo.io.
 
