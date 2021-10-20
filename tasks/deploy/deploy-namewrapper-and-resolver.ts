@@ -6,9 +6,11 @@ import {
   ENS__factory,
   PublicResolver__factory,
   NameWrapper__factory,
+  NameWrapper,
+  PublicResolver,
 } from '../../types';
 
-type DeployNameWrapperAndResolver = {
+type DeployNameWrapperAndResolverArgs = {
   // ENS Registry address
   ens: string;
   // Eth Registrar address
@@ -17,10 +19,15 @@ type DeployNameWrapperAndResolver = {
   log?: boolean;
 };
 
+export type DeployedNameWrapperAndResolver = {
+  nameWrapper: NameWrapper;
+  publicResolver: PublicResolver;
+};
+
 async function deploiementAction(
-  { ens, ethRegistrar, log }: DeployNameWrapperAndResolver,
+  { ens, ethRegistrar, log }: DeployNameWrapperAndResolverArgs,
   hre: HardhatRuntimeEnvironment
-) {
+): Promise<DeployedNameWrapperAndResolver> {
   if (log) await logHre(hre);
 
   const deployer = await getDeployer(hre, log);

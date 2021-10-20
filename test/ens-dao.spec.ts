@@ -19,21 +19,7 @@ import packet from 'dns-packet';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
 import { increaseTime, expectEvent } from './helpers';
-
-type FullDeploiementResult = {
-  ensDeployer: ENSDeployer;
-  registry: ENSRegistry;
-  registrar: EthRegistrar;
-  reverseRegistrar: ReverseRegistrar;
-  publicResolver: PublicResolver;
-  nameWrapper: NameWrapper;
-};
-
-type EnsDeploiementResult = {
-  ensDaoRegistrar: ENSDaoRegistrar;
-  ensDaoToken: ENSDaoToken;
-  ensDaoLabelBooker: ENSLabelBooker;
-};
+import { DeployedEnsDao, DeployedEns } from '../tasks';
 
 describe('ENS', () => {
   const utils = ethers.utils;
@@ -65,9 +51,7 @@ describe('ENS', () => {
     let ens: ENS;
 
     before(async () => {
-      const deployedENS: FullDeploiementResult = await HRE.run(
-        'deploy-ens-full'
-      );
+      const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
       ({ registrar, registry, reverseRegistrar, publicResolver } = deployedENS);
 
       ens = await new ENS({
@@ -182,9 +166,7 @@ describe('ENS', () => {
     let ens: ENS;
 
     before(async () => {
-      const deployedENS: FullDeploiementResult = await HRE.run(
-        'deploy-ens-full'
-      );
+      const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
       ({ registrar, registry, nameWrapper, publicResolver } = deployedENS);
 
       ens = await new ENS({
@@ -293,9 +275,7 @@ describe('ENS', () => {
     let ens: ENS;
 
     before(async () => {
-      const deployedENS: FullDeploiementResult = await HRE.run(
-        'deploy-ens-full'
-      );
+      const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
       ({ registrar, registry, reverseRegistrar, publicResolver, nameWrapper } =
         deployedENS);
 
@@ -310,18 +290,15 @@ describe('ENS', () => {
       const otherLabel = 'dhadrien';
 
       before(async () => {
-        const deployedEnsDao: EnsDeploiementResult = await HRE.run(
-          'deploy-ens-dao',
-          {
-            // name NEEEDS to be label of .eth name
-            name: sismoLabel,
-            symbol: 'SISMO',
-            ens: registry.address,
-            resolver: publicResolver.address,
-            nameWrapper: nameWrapper.address,
-            reverseRegistrar: reverseRegistrar.address,
-          }
-        );
+        const deployedEnsDao: DeployedEnsDao = await HRE.run('deploy-ens-dao', {
+          // name NEEEDS to be label of .eth name
+          name: sismoLabel,
+          symbol: 'SISMO',
+          ens: registry.address,
+          resolver: publicResolver.address,
+          nameWrapper: nameWrapper.address,
+          reverseRegistrar: reverseRegistrar.address,
+        });
         ({ ensDaoToken, ensDaoRegistrar, ensDaoLabelBooker } = deployedEnsDao);
       });
 
@@ -468,18 +445,15 @@ describe('ENS', () => {
 
     describe('when a NameWrapper contract is not provided and ENS registry is used', () => {
       before(async () => {
-        const deployedEnsDao: EnsDeploiementResult = await HRE.run(
-          'deploy-ens-dao',
-          {
-            // name NEEEDS to be label of .eth name
-            name: sismoLabel,
-            symbol: 'SISMO',
-            ens: registry.address,
-            resolver: publicResolver.address,
-            nameWrapper: ethers.constants.AddressZero,
-            reverseRegistrar: reverseRegistrar.address,
-          }
-        );
+        const deployedEnsDao: DeployedEnsDao = await HRE.run('deploy-ens-dao', {
+          // name NEEEDS to be label of .eth name
+          name: sismoLabel,
+          symbol: 'SISMO',
+          ens: registry.address,
+          resolver: publicResolver.address,
+          nameWrapper: ethers.constants.AddressZero,
+          reverseRegistrar: reverseRegistrar.address,
+        });
         ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
         [ownerSigner, , , userSigner, otherSigner] =
           await HRE.ethers.getSigners();
@@ -586,18 +560,15 @@ describe('ENS', () => {
 
     describe('booking and claim', () => {
       before(async () => {
-        const deployedEnsDao: EnsDeploiementResult = await HRE.run(
-          'deploy-ens-dao',
-          {
-            // name NEEEDS to be label of .eth name
-            name: sismoLabel,
-            symbol: 'SISMO',
-            ens: registry.address,
-            resolver: publicResolver.address,
-            nameWrapper: ethers.constants.AddressZero,
-            reverseRegistrar: reverseRegistrar.address,
-          }
-        );
+        const deployedEnsDao: DeployedEnsDao = await HRE.run('deploy-ens-dao', {
+          // name NEEEDS to be label of .eth name
+          name: sismoLabel,
+          symbol: 'SISMO',
+          ens: registry.address,
+          resolver: publicResolver.address,
+          nameWrapper: ethers.constants.AddressZero,
+          reverseRegistrar: reverseRegistrar.address,
+        });
         ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
         [ownerSigner, , , , , , , , , userSigner, otherSigner] =
           await HRE.ethers.getSigners();
@@ -856,18 +827,15 @@ describe('ENS', () => {
 
     describe('max number of emission limitation', () => {
       before(async () => {
-        const deployedEnsDao: EnsDeploiementResult = await HRE.run(
-          'deploy-ens-dao',
-          {
-            // name NEEEDS to be label of .eth name
-            name: sismoLabel,
-            symbol: 'SISMO',
-            ens: registry.address,
-            resolver: publicResolver.address,
-            nameWrapper: ethers.constants.AddressZero,
-            reverseRegistrar: reverseRegistrar.address,
-          }
-        );
+        const deployedEnsDao: DeployedEnsDao = await HRE.run('deploy-ens-dao', {
+          // name NEEEDS to be label of .eth name
+          name: sismoLabel,
+          symbol: 'SISMO',
+          ens: registry.address,
+          resolver: publicResolver.address,
+          nameWrapper: ethers.constants.AddressZero,
+          reverseRegistrar: reverseRegistrar.address,
+        });
         ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
         [ownerSigner, , , , , , userSigner, otherSigner] =
           await HRE.ethers.getSigners();

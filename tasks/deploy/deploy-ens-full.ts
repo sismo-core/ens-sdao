@@ -11,19 +11,37 @@ import {
   ENSDaoToken,
   ENSDaoRegistrar,
   ENSLabelBooker,
+  ENSDeployer,
+  ENSRegistry,
+  EthRegistrar,
+  ReverseRegistrar,
+  PublicResolver,
+  NameWrapper,
 } from '../../types';
+import { DeployedEnsDao } from './deploy-ens-dao';
 
-type DeployEnsFull = {
+type DeployEnsFullArgs = {
   // additionally deploy ENS DAO contracts
   ensDao?: boolean;
   // enabling logging
   log?: boolean;
 };
 
+export type DeployedEns = {
+  ensDeployer: ENSDeployer;
+  registry: ENSRegistry;
+  registrar: EthRegistrar;
+  reverseRegistrar: ReverseRegistrar;
+  publicResolver: PublicResolver;
+  nameWrapper: NameWrapper;
+};
+
+export type DeployedFullSuite = DeployedEns | (DeployedEns & DeployedEnsDao);
+
 async function deploiementAction(
-  { ensDao, log }: DeployEnsFull,
+  { ensDao, log }: DeployEnsFullArgs,
   hre: HardhatRuntimeEnvironment
-) {
+): Promise<DeployedFullSuite> {
   if (log) await logHre(hre);
 
   const deployer = await getDeployer(hre, log);

@@ -5,12 +5,15 @@ import { ethers } from 'ethers';
 import nameHash from 'eth-ens-namehash';
 import { getDeployer, logHre } from '../helpers';
 import {
+  ENSDaoRegistrar,
   ENSDaoRegistrar__factory,
+  ENSDaoToken,
   ENSDaoToken__factory,
+  ENSLabelBooker,
   ENSLabelBooker__factory,
 } from '../../types';
 
-type DeployEnsDao = {
+type DeployEnsDaoArgs = {
   // ENS Registry address
   ens: string;
   // Public Resolver address
@@ -29,6 +32,12 @@ type DeployEnsDao = {
   log?: boolean;
 };
 
+export type DeployedEnsDao = {
+  ensDaoRegistrar: ENSDaoRegistrar;
+  ensDaoToken: ENSDaoToken;
+  ensDaoLabelBooker: ENSLabelBooker;
+};
+
 async function deploiementAction(
   {
     ens,
@@ -39,9 +48,9 @@ async function deploiementAction(
     owner: optionalOwner,
     reservationDuration = (4 * 7 * 24 * 3600).toString(),
     log,
-  }: DeployEnsDao,
+  }: DeployEnsDaoArgs,
   hre: HardhatRuntimeEnvironment
-) {
+): Promise<DeployedEnsDao> {
   if (log) await logHre(hre);
 
   const deployer = await getDeployer(hre, log);
