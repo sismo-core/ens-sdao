@@ -116,7 +116,7 @@ or inline
 `npx hardhat deploy-ens-full --ens-dao`
 or without the `--ens-dao`flag if you don't want to deploy the ensDAO
 
-3. `deploy-label-booker`: deploys the full ENS system: the registry, a modified ethRegistrar, a reverse Registrar, a nameWrapper, a publicResolver and optionally an ENS DAO Registrar with its associated ENS DAO Token and ENS Label Booker.
+4. `deploy-label-booker`: deploys the full ENS system: the registry, a modified ethRegistrar, a reverse Registrar, a nameWrapper, a publicResolver and optionally an ENS DAO Registrar with its associated ENS DAO Token and ENS Label Booker.
 
 ```typescript
 const deployedLabelBooker: {
