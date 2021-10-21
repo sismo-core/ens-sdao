@@ -8,9 +8,6 @@ import {
   ReverseRegistrar__factory,
   PublicResolver__factory,
   NameWrapper__factory,
-  ENSDaoToken,
-  ENSDaoRegistrar,
-  ENSLabelBooker,
   ENSDeployer,
   ENSRegistry,
   EthRegistrar,
@@ -97,22 +94,17 @@ async function deploiementAction(
       nameWrapper,
     };
 
-  const {
-    ensDaoRegistrar,
-    ensDaoToken,
-    ensDaoLabelBooker,
-  }: {
-    ensDaoRegistrar: ENSDaoRegistrar;
-    ensDaoToken: ENSDaoToken;
-    ensDaoLabelBooker: ENSLabelBooker;
-  } = await hre.run('deploy-ens-dao', {
-    name: 'sismo',
-    symbol: 'SISMO',
-    ens: registry.address,
-    resolver: publicResolver.address,
-    nameWrapper: nameWrapper.address,
-    log,
-  });
+  const { ensDaoRegistrar, ensDaoToken }: DeployedEnsDao = await hre.run(
+    'deploy-ens-dao',
+    {
+      name: 'sismo',
+      symbol: 'SISMO',
+      ens: registry.address,
+      resolver: publicResolver.address,
+      nameWrapper: nameWrapper.address,
+      log,
+    }
+  );
 
   return {
     ensDeployer,
@@ -123,7 +115,6 @@ async function deploiementAction(
     nameWrapper,
     ensDaoRegistrar,
     ensDaoToken,
-    ensDaoLabelBooker,
   };
 }
 

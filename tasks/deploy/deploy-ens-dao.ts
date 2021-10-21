@@ -9,8 +9,6 @@ import {
   ENSDaoRegistrar__factory,
   ENSDaoToken,
   ENSDaoToken__factory,
-  ENSLabelBooker,
-  ENSLabelBooker__factory,
 } from '../../types';
 
 type DeployEnsDaoArgs = {
@@ -35,7 +33,6 @@ type DeployEnsDaoArgs = {
 export type DeployedEnsDao = {
   ensDaoRegistrar: ENSDaoRegistrar;
   ensDaoToken: ENSDaoToken;
-  ensDaoLabelBooker: ENSLabelBooker;
 };
 
 async function deploiementAction(
@@ -63,10 +60,6 @@ async function deploiementAction(
     from: deployer.address,
     args: [`${name}.eth DAO`, symbol, 'https://tokens.sismo.io/', owner],
   });
-  const deployedLabelBooker = await hre.deployments.deploy('ENSLabelBooker', {
-    from: deployer.address,
-    args: [ens, node, owner],
-  });
   const deployedRegistrar = await hre.deployments.deploy('ENSDaoRegistrar', {
     from: deployer.address,
     args: [
@@ -74,7 +67,6 @@ async function deploiementAction(
       resolver,
       nameWrapper,
       deployedDaoToken.address,
-      deployedLabelBooker.address,
       node,
       name,
       owner,
@@ -86,30 +78,21 @@ async function deploiementAction(
     deployedRegistrar.address,
     deployer
   );
-  const ensDaoLabelBooker = ENSLabelBooker__factory.connect(
-    deployedLabelBooker.address,
-    deployer
-  );
   const ensDaoToken = ENSDaoToken__factory.connect(
     deployedDaoToken.address,
     deployer
   );
-
-  // Allow the ENS Label Booker to be modified by the deployed ENS DAO Registrar
-  await (await ensDaoLabelBooker.setRegistrar(ensDaoRegistrar.address)).wait();
 
   // Allow the ENS DAO Token to be minted by the deployed ENS DAO Registrar
   await (await ensDaoToken.setMinter(ensDaoRegistrar.address)).wait();
 
   if (log) {
     console.log(`Deployed ENS DAO Token: ${deployedDaoToken.address}`);
-    console.log(`Deployed ENS DAO Label Book: ${deployedLabelBooker.address}`);
     console.log(`Deployed ENS DAO Registrar: ${deployedRegistrar.address}`);
   }
 
   return {
     ensDaoRegistrar,
-    ensDaoLabelBooker,
     ensDaoToken,
   };
 }

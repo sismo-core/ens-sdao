@@ -3,45 +3,36 @@ import { expect } from 'chai';
 import ENS from '@ensdomains/ensjs';
 import HRE, { ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
-import {
-  ENSRegistry,
-  ReverseRegistrar,
-  PublicResolver,
-  ENSDaoRegistrar,
-  ENSLabelBooker,
-} from '../types';
+import { ENSRegistry, ENSLabelBooker } from '../types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
 import { expectEvent, evmSnapshot, evmRevert } from './helpers';
-import { DeployedEnsDao, DeployedEns } from '../tasks';
+import { DeployedEns, DeployedLabelBooker } from '../tasks';
 
 describe('ENS Label Booker', () => {
   let otherSigner: SignerWithAddress;
+  let unknownSigner: SignerWithAddress;
 
   const sismoLabel = 'sismo';
 
-  let reverseRegistrar: ReverseRegistrar;
   let registry: ENSRegistry;
-  let publicResolver: PublicResolver;
-  let ensDaoRegistrar: ENSDaoRegistrar;
   let ensDaoLabelBooker: ENSLabelBooker;
 
   let snapshotId: string;
 
   before(async () => {
     const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
-    ({ registry, reverseRegistrar, publicResolver } = deployedENS);
+    ({ registry } = deployedENS);
 
-    const deployedEnsDao: DeployedEnsDao = await HRE.run('deploy-ens-dao', {
-      name: sismoLabel,
-      symbol: 'SISMO',
-      ens: registry.address,
-      resolver: publicResolver.address,
-      nameWrapper: ethers.constants.AddressZero,
-      reverseRegistrar: reverseRegistrar.address,
-    });
-    ({ ensDaoLabelBooker, ensDaoRegistrar } = deployedEnsDao);
-    [, otherSigner] = await HRE.ethers.getSigners();
+    const deployedEnsDao: DeployedLabelBooker = await HRE.run(
+      'deploy-label-booker',
+      {
+        ens: registry.address,
+        name: sismoLabel,
+      }
+    );
+    ({ ensDaoLabelBooker } = deployedEnsDao);
+    [, otherSigner, unknownSigner] = await HRE.ethers.getSigners();
 
     snapshotId = await evmSnapshot(HRE);
   });
@@ -64,7 +55,7 @@ describe('ENS Label Booker', () => {
   );
 
   it(`Owner can book a label`, async () => {
-    const tx = await ensDaoLabelBooker.book(label0, ensDaoRegistrar.address);
+    const tx = await ensDaoLabelBooker.book(label0, unknownSigner.address);
     const receipt = await tx.wait();
 
     expectEvent(
@@ -72,18 +63,18 @@ describe('ENS Label Booker', () => {
       'NameBooked',
       (args) =>
         args.id.toHexString() === userNode0 &&
-        args.bookingAddress === ensDaoRegistrar.address
+        args.bookingAddress === unknownSigner.address
     );
 
     expect(await ensDaoLabelBooker.getBooking(label0)).to.equal(
-      ensDaoRegistrar.address
+      unknownSigner.address
     );
   });
 
   it(`Owner can not book an already booked label`, async () => {
-    await ensDaoLabelBooker.book(label0, ensDaoRegistrar.address);
+    await ensDaoLabelBooker.book(label0, unknownSigner.address);
     await expect(
-      ensDaoLabelBooker.book(label0, ensDaoRegistrar.address)
+      ensDaoLabelBooker.book(label0, unknownSigner.address)
     ).to.be.revertedWith('ENS_LABEL_BOOKER: LABEL_ALREADY_BOOKED');
   });
 
@@ -95,9 +86,9 @@ describe('ENS Label Booker', () => {
 
   it(`Owner can book multiple labels by batch`, async () => {
     const tx = await ensDaoLabelBooker.batchBook(labels, [
-      ensDaoRegistrar.address,
-      ensDaoRegistrar.address,
-      ensDaoRegistrar.address,
+      unknownSigner.address,
+      unknownSigner.address,
+      unknownSigner.address,
     ]);
     const receipt = await tx.wait();
 
@@ -105,37 +96,37 @@ describe('ENS Label Booker', () => {
       receipt,
       'NameBooked',
       (args) =>
-        args.bookingAddress === ensDaoRegistrar.address &&
+        args.bookingAddress === unknownSigner.address &&
         args.id.toHexString() === nodes[0]
     );
     expectEvent(
       receipt,
       'NameBooked',
       (args) =>
-        args.bookingAddress === ensDaoRegistrar.address &&
+        args.bookingAddress === unknownSigner.address &&
         args.id.toHexString() === nodes[1]
     );
     expectEvent(
       receipt,
       'NameBooked',
       (args) =>
-        args.bookingAddress === ensDaoRegistrar.address &&
+        args.bookingAddress === unknownSigner.address &&
         args.id.toHexString() === nodes[2]
     );
 
     expect(await ensDaoLabelBooker.getBooking(labels[0])).to.equal(
-      ensDaoRegistrar.address
+      unknownSigner.address
     );
     expect(await ensDaoLabelBooker.getBooking(labels[1])).to.equal(
-      ensDaoRegistrar.address
+      unknownSigner.address
     );
     expect(await ensDaoLabelBooker.getBooking(labels[2])).to.equal(
-      ensDaoRegistrar.address
+      unknownSigner.address
     );
   });
 
   it(`Owner can update a booking`, async () => {
-    await ensDaoLabelBooker.book(label0, ensDaoRegistrar.address);
+    await ensDaoLabelBooker.book(label0, unknownSigner.address);
     const tx = await ensDaoLabelBooker.updateBooking(
       label0,
       otherSigner.address
@@ -154,9 +145,9 @@ describe('ENS Label Booker', () => {
 
   it(`Owner can update bookings by batch`, async () => {
     await ensDaoLabelBooker.batchBook(labels, [
-      ensDaoRegistrar.address,
-      ensDaoRegistrar.address,
-      ensDaoRegistrar.address,
+      unknownSigner.address,
+      unknownSigner.address,
+      unknownSigner.address,
     ]);
     const tx = await ensDaoLabelBooker.batchUpdateBooking(labels, [
       otherSigner.address,
@@ -198,7 +189,7 @@ describe('ENS Label Booker', () => {
   });
 
   it(`Owner can delete a booking`, async () => {
-    await ensDaoLabelBooker.book(label0, ensDaoRegistrar.address);
+    await ensDaoLabelBooker.book(label0, unknownSigner.address);
     const tx = await ensDaoLabelBooker.deleteBooking(label0);
     expectEvent(
       await tx.wait(),
@@ -211,9 +202,9 @@ describe('ENS Label Booker', () => {
   });
   it(`Owner can delete bookings by batch`, async () => {
     await ensDaoLabelBooker.batchBook(labels, [
-      ensDaoRegistrar.address,
-      ensDaoRegistrar.address,
-      ensDaoRegistrar.address,
+      unknownSigner.address,
+      unknownSigner.address,
+      unknownSigner.address,
     ]);
     const tx = await ensDaoLabelBooker.batchDeleteBooking(labels);
     const receipt = await tx.wait();

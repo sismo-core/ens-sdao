@@ -20,10 +20,6 @@ An address can not register if already owns an ERC721 DAO token.
 
 A reservation period, set and starting at the deploiement of the contract, is preventing the registration of `lando.domain.eth` if `lando.eth` is owned by a different address than the transaction sender.
 
-A booking mechanism, managed by the DAO owner, has been introduced in order to prevent indefinitely the registration of selected subdomains.
-
-A booked subdomain can be claimed, hence registering the subdomain and minting the ERC721 DAO Token for an arbitrary beneficiary.
-
 Internally, registration of the subdomain is handled in two flavors. The first possibility is through the usual ENS Registry contract, we consider this approach as the safest for now. The second approach relies on the [Name Wrapper contract](https://github.com/ensdomains/name-wrapper), the subdomain in this case is wrapped as a ERC1155 token shared with all `.eth` name. Our goal is to invest time into the second flavor.
 
 2. `EnsDaoToken.sol`
@@ -35,10 +31,13 @@ An ERC721 contract based on the `ERC721PresetMinterPauserAutoId` preset of [Open
 
 A managed booking of ENS subdomains.
 
+**It is currently not used**
+
 The owner can book a subdomain by linking it to a particular address.
 
 A booking can then be updated or deleted by the owner.
 
+This booking system may be added to the `ENSDaoRegistrar` contract if needed.
 
 4. `EthRegistrar.sol` 
    
@@ -68,7 +67,7 @@ or inline
 
 <br />
 
-2.  `deploy-ens-dao`: deploys the ENS DAO Registrar, ENS DAO Token and a ENS Label Booker. The addresses of the ENS Registry, Public Resolver and Name Wrapper are needed as inputs. If the zero address is given for the Name Wrapper, the ENS DAO Registrar will use the ENS Registry only, otherwise it will use the provided Name Wrapper.
+2.  `deploy-ens-dao`: deploys the ENS DAO Registrar and ENS DAO Token. The addresses of the ENS Registry, Public Resolver and Name Wrapper are needed as inputs. If the zero address is given for the Name Wrapper, the ENS DAO Registrar will use the ENS Registry only, otherwise it will use the provided Name Wrapper.
 
 ```typescript
       const {
@@ -108,7 +107,6 @@ const deployedENS: {
       nameWrapper: NameWrapper;
       ensDaoRegistrar?: ENSDaoRegistrar,
       ensDaoToken?: ENSDaoToken,
-      ensDaoLabelBooker?: ENSLabelBooker,
     } = await HRE.run('deploy-ens-full', {
       // Boolean value in order to choose to additionally deploy ENS DAO related contracts
       ensDao: true
@@ -116,6 +114,24 @@ const deployedENS: {
 ```
 or inline
 `npx hardhat deploy-ens-full --ens-dao`
+or without the `--ens-dao`flag if you don't want to deploy the ensDAO
+
+3. `deploy-label-booker`: deploys the full ENS system: the registry, a modified ethRegistrar, a reverse Registrar, a nameWrapper, a publicResolver and optionally an ENS DAO Registrar with its associated ENS DAO Token and ENS Label Booker.
+
+```typescript
+const deployedLabelBooker: {
+      ensLabelBooker: ENSLabelBooker;
+    } = await HRE.run('deploy-label-booker', {
+      // This is the main domain. Here sismo.eth
+        name: 'sismo',
+        // ENS registry address
+        ens: registry.address,
+        // Owner of the contracts, fallback to deployer address if not specified
+        owner
+    });
+```
+or inline
+`npx hardhat deploy-label-booker --ens $ENS_ADDR --network main`
 or without the `--ens-dao`flag if you don't want to deploy the ensDAO
 
 ## Development
