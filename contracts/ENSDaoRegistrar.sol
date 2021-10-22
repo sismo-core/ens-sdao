@@ -97,26 +97,45 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     _register(_msgSender(), label, labelHash);
   }
 
+  /**
+   * @notice Consume a named ticket, update the max emission number if needed and register a name.
+   * @dev Can only be called if and only if
+   *  - the sender is the address used to generate the ticket and the ticket is valid,
+   *  - the subdomain of the root node is free,
+   *  - sender does not already have a DAO token OR sender is the owner.
+   * @param label The label to register.
+   * @param signature The signature of the data field of the ticket.
+   */
   function registerWithNamedTicket(string memory label, bytes memory signature)
     external
   {
-    uint256 groupNonce = block.timestamp / DAY_IN_SECONDS;
+    uint256 groupNonce = _ticketNonce();
     bytes32 data = keccak256(
       abi.encodePacked(keccak256(abi.encodePacked(_msgSender())), groupNonce)
     );
 
-    _registerWithTicket(label, data, signature, groupNonce);
+    _registerWithTicket(label, groupNonce, data, signature);
   }
 
+  /**
+   * @notice Consume an anonymous ticket, update the max emission number if needed and register a name.
+   * @dev Can only be called if and only if
+   *  - the ticket is valid,
+   *  - the subdomain of the root node is free,
+   *  - sender does not already have a DAO token OR sender is the owner.
+   * @param label The label to register.
+   * @param message The .
+   * @param signature The signature of the data field of the ticket.
+   */
   function registerWithAnonymousTicket(
     string memory label,
     bytes32 message,
     bytes memory signature
   ) external {
-    uint256 groupNonce = block.timestamp / DAY_IN_SECONDS;
+    uint256 groupNonce = _ticketNonce();
     bytes32 data = keccak256(abi.encodePacked(message, groupNonce));
 
-    _registerWithTicket(label, data, signature, groupNonce);
+    _registerWithTicket(label, groupNonce, data, signature);
   }
 
   /**
@@ -146,11 +165,18 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     _updateMaxEmissionNumber(emissionNumber);
   }
 
+  /**
+   * @dev Consume a ticket, update the max emission number if needed and register a name.
+   * @param label The label to register.
+   * @param groupNonce Nonce of the group the ticket belongs too.
+   * @param data The data field of the ticket.
+   * @param signature The signature of the data field of the ticket.
+   */
   function _registerWithTicket(
     string memory label,
+    uint256 groupNonce,
     bytes32 data,
-    bytes memory signature,
-    uint256 groupNonce
+    bytes memory signature
   ) internal {
     TICKET_MANAGER.consumeTicket(groupNonce, data, signature);
 
@@ -278,5 +304,13 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
 
     // Giving back the ownership to the user
     ENS_REGISTRY.setSubnodeOwner(ROOT_NODE, labelHash, account);
+  }
+
+  /**
+   * @dev Derive ticket group nonce from current timestamp.
+   * @return The ticket group nonce.
+   */
+  function _ticketNonce() internal view returns (uint256) {
+    return block.timestamp / DAY_IN_SECONDS;
   }
 }

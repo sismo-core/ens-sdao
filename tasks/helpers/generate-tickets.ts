@@ -19,10 +19,22 @@ type GeneratedTickets = {
   anonymousTickets: TicketWrapper[];
 };
 
+// ###### To be filled by ticket signer ######
+
+// To be filled with needed number
+const defaultAnonymousTicketNumber = 5;
+// To be filled with needed addresses
+const addresses: string[] = [];
+
+// ###### ###### ###### ###### ###### ###### ######
+
+const defaultRawNamedTicketAddresses = JSON.stringify(addresses);
+
 async function action(
   {
-    namedticketaddresses = '[]',
-    anonymousticketnumber = 0,
+    namedticketaddresses:
+      rawNamedTicketAddresses = defaultRawNamedTicketAddresses,
+    anonymousticketnumber = defaultAnonymousTicketNumber,
     log,
   }: GenerateTicketsArgs,
   hre: HardhatRuntimeEnvironment
@@ -31,13 +43,12 @@ async function action(
 
   const ticketSigner = await getDeployer(hre, log);
 
-  console.log(
-    'namedticketaddresses: ',
-    namedticketaddresses,
-    typeof namedticketaddresses
-  );
-
-  const namedTicketAddresses: string[] = JSON.parse(namedticketaddresses);
+  let namedTicketAddresses: string[];
+  try {
+    namedTicketAddresses = JSON.parse(rawNamedTicketAddresses);
+  } catch (err) {
+    throw new Error('Invalid namedticketaddresses arguments');
+  }
 
   namedTicketAddresses.forEach((address) => {
     const isValidAddress = hre.ethers.utils.isAddress(address);
