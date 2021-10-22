@@ -7,6 +7,8 @@ pragma solidity >=0.8.4;
  *         A ticket is defined by a bytes32 data and its signature by the owner.
  *
  *         A ticket can only be consumed.
+ *         At consuming time, a ticket belongs to a group identified by an uint256.
+ *         A limit is controlled by the owner in order to limit the number of consumed tickets by group.
  */
 interface ITicketManager {
   /**
