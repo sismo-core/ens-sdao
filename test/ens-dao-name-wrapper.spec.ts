@@ -8,7 +8,7 @@ import {
   EthRegistrar,
   ReverseRegistrar,
   PublicResolver,
-  ENSDaoRegistrar,
+  ENSDaoRegistrarPresetReservedLimited,
   ENSDaoToken,
   NameWrapper,
 } from '../types';
@@ -33,7 +33,7 @@ describe('ENS DAO Registrar - With Name Wrapper', () => {
   let nameWrapper: NameWrapper;
   let publicResolver: PublicResolver;
   let ensDaoToken: ENSDaoToken;
-  let ensDaoRegistrar: ENSDaoRegistrar;
+  let ensDaoRegistrar: ENSDaoRegistrarPresetReservedLimited;
   let ens: ENS;
 
   let ownerSigner: SignerWithAddress;
@@ -125,13 +125,13 @@ describe('ENS DAO Registrar - With Name Wrapper', () => {
       await registrar.register(getLabelhash(label), signer1.address, year);
       await expect(
         ensDaoRegistrar.connect(signer2).register(label)
-      ).to.be.revertedWith('ENS_DAO_REGISTRAR: SUBDOMAIN_RESERVED');
+      ).to.be.revertedWith('ENS_DAO_REGISTRAR_RESERVED: SUBDOMAIN_RESERVED');
     });
   });
 
   describe('when the reservation is over', () => {
     beforeEach(async () => {
-      const reservationDuration = await ensDaoRegistrar.RESERVATION_DURATION();
+      const reservationDuration = await ensDaoRegistrar._reservationDuration();
       await increaseTime(HRE, reservationDuration.toNumber() + 5);
     });
 
@@ -206,27 +206,28 @@ describe('ENS DAO Registrar - With Name Wrapper', () => {
       const otherLabel = 'second';
       await ensDaoRegistrar.connect(signer1).register(label);
 
-      const totalSupply = await ensDaoToken.totalSupply();
-
-      const tx = await ensDaoRegistrar.updateMaxEmissionNumber(
-        totalSupply.toString()
+      const registrationNumber = await ensDaoRegistrar._counter();
+      const tx = await ensDaoRegistrar.updateRegistrationLimit(
+        registrationNumber.toString()
       );
+
       const receipt = await tx.wait();
 
       expectEvent(
         receipt,
-        'MaxEmissionNumberUpdated',
-        (args) => args.maxEmissionNumber.toString() === totalSupply.toString()
+        'RegistrationLimitUpdated',
+        (args) =>
+          args.registrationLimit.toString() === registrationNumber.toString()
       );
 
       await expect(ensDaoRegistrar.register(otherLabel)).to.be.revertedWith(
-        'ENS_DAO_REGISTRAR: TOO_MANY_EMISSION'
+        'ENS_DAO_REGISTRAR_LIMITED: REGISTRATION_LIMIT_REACHED'
       );
     });
 
     it('user can not update the max emission number if not owner', async () => {
       await expect(
-        ensDaoRegistrar.connect(signer1).updateMaxEmissionNumber('100')
+        ensDaoRegistrar.connect(signer1).updateRegistrationLimit('100')
       ).to.be.revertedWith('Ownable: caller is not the owner');
     });
 
@@ -234,8 +235,10 @@ describe('ENS DAO Registrar - With Name Wrapper', () => {
       await ensDaoRegistrar.connect(signer1).register(label);
       const totalSupply = await ensDaoToken.totalSupply();
       await expect(
-        ensDaoRegistrar.updateMaxEmissionNumber(totalSupply.sub(1).toString())
-      ).to.be.revertedWith('ENS_DAO_REGISTRAR: NEW_MAX_EMISSION_TOO_LOW');
+        ensDaoRegistrar.updateRegistrationLimit(totalSupply.sub(1).toString())
+      ).to.be.revertedWith(
+        'ENS_DAO_REGISTRAR_LIMITED: NEW_REGISTRATION_LIMIT_TOO_LOW'
+      );
     });
   });
 

@@ -10,8 +10,8 @@ import {ENSDaoToken} from './ENSDaoToken.sol';
 import {IENSDaoRegistrar} from './IENSDaoRegistrar.sol';
 
 /**
- * @title EnsDaoRegistrar contract
- * @dev Implementation of the {IENSDaoRegistrar}
+ * @title EnsDaoRegistrar contract.
+ * @dev Implementation of the {IENSDaoRegistrar}.
  *
  *      An arbitrary reservation period is considered.
  *      Within the registration period, only the owners of the associated .eth subdomain may register this subdomain.
@@ -27,9 +27,6 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   string NAME;
   bytes32 public constant ETH_NODE =
     keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
-  uint256 public immutable RESERVATION_DURATION;
-  uint256 public immutable DAO_BIRTH_DATE;
-  uint256 public _maxEmissionNumber;
 
   /**
    * @dev Constructor.
@@ -39,6 +36,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
    * @param daoToken The address of the DAO Token.
    * @param node The node that this registrar administers.
    * @param name The label string of the administered subdomain.
+   * @param owner The owner of the contract.
    */
   constructor(
     ENS ensAddr,
@@ -47,8 +45,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     ENSDaoToken daoToken,
     bytes32 node,
     string memory name,
-    address owner,
-    uint256 reservationDuration
+    address owner
   ) {
     ENS_REGISTRY = ensAddr;
     RESOLVER = resolver;
@@ -56,9 +53,6 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     DAO_TOKEN = daoToken;
     NAME = name;
     ROOT_NODE = node;
-    DAO_BIRTH_DATE = block.timestamp;
-    RESERVATION_DURATION = reservationDuration;
-    _maxEmissionNumber = 500;
 
     transferOwnership(owner);
   }
@@ -74,17 +68,6 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
    */
   function register(string memory label) external override {
     bytes32 labelHash = keccak256(bytes(label));
-
-    if (block.timestamp - DAO_BIRTH_DATE <= RESERVATION_DURATION) {
-      address dotEthSubdomainOwner = ENS_REGISTRY.owner(
-        keccak256(abi.encodePacked(ETH_NODE, labelHash))
-      );
-      require(
-        dotEthSubdomainOwner == address(0x0) ||
-          dotEthSubdomainOwner == _msgSender(),
-        'ENS_DAO_REGISTRAR: SUBDOMAIN_RESERVED'
-      );
-    }
 
     _register(_msgSender(), label, labelHash);
   }
@@ -104,23 +87,6 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   }
 
   /**
-   * @notice Update max emission number.
-   * @dev Can only be called by owner.
-   */
-  function updateMaxEmissionNumber(uint256 emissionNumber)
-    external
-    override
-    onlyOwner
-  {
-    require(
-      emissionNumber >= DAO_TOKEN.totalSupply(),
-      'ENS_DAO_REGISTRAR: NEW_MAX_EMISSION_TOO_LOW'
-    );
-    _maxEmissionNumber = emissionNumber;
-    emit MaxEmissionNumberUpdated(emissionNumber);
-  }
-
-  /**
    * @dev Register a name and mint a DAO token.
    *      Can only be called if and only if
    *        - the maximum number of emissions has not been reached,
@@ -135,10 +101,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     string memory label,
     bytes32 labelHash
   ) internal {
-    require(
-      DAO_TOKEN.totalSupply() < _maxEmissionNumber,
-      'ENS_DAO_REGISTRAR: TOO_MANY_EMISSION'
-    );
+    _beforeRegistration(account, labelHash);
 
     bytes32 childNode = keccak256(abi.encodePacked(ROOT_NODE, labelHash));
     address subdomainOwner = ENS_REGISTRY.owner(
@@ -162,6 +125,8 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
 
     // Minting the DAO Token
     DAO_TOKEN.mintTo(account, uint256(childNode));
+
+    _afterRegistration(account, labelHash);
 
     emit NameRegistered(uint256(childNode), _msgSender());
   }
@@ -223,4 +188,26 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     // Giving back the ownership to the user
     ENS_REGISTRY.setSubnodeOwner(ROOT_NODE, labelHash, account);
   }
+
+  /**
+   * @dev Hook that is called before any registration.
+   *
+   * @param account The address for which the reservation is made.
+   * @param labelHash The hash of the label to register.
+   */
+  function _beforeRegistration(address account, bytes32 labelHash)
+    internal
+    virtual
+  {}
+
+  /**
+   * @dev Hook that is called after any registration.
+   *
+   * @param account The address for which the reservation is made.
+   * @param labelHash The hash of the label to register.
+   */
+  function _afterRegistration(address account, bytes32 labelHash)
+    internal
+    virtual
+  {}
 }

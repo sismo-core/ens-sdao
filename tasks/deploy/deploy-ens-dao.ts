@@ -5,8 +5,8 @@ import { ethers } from 'ethers';
 import nameHash from 'eth-ens-namehash';
 import { getDeployer, logHre } from '../helpers';
 import {
-  ENSDaoRegistrar,
-  ENSDaoRegistrar__factory,
+  ENSDaoRegistrarPresetReservedLimited,
+  ENSDaoRegistrarPresetReservedLimited__factory,
   ENSDaoToken,
   ENSDaoToken__factory,
 } from '../../types';
@@ -26,12 +26,14 @@ type DeployEnsDaoArgs = {
   owner?: string;
   // reservation duration of the ENS DAO Registrar
   reservationDuration?: string;
+  // limit of registrations
+  registrationLimit?: number;
   // enabling logging
   log?: boolean;
 };
 
 export type DeployedEnsDao = {
-  ensDaoRegistrar: ENSDaoRegistrar;
+  ensDaoRegistrar: ENSDaoRegistrarPresetReservedLimited;
   ensDaoToken: ENSDaoToken;
 };
 
@@ -44,6 +46,7 @@ async function deploiementAction(
     symbol = 'SDAO',
     owner: optionalOwner,
     reservationDuration = (4 * 7 * 24 * 3600).toString(),
+    registrationLimit = 500,
     log,
   }: DeployEnsDaoArgs,
   hre: HardhatRuntimeEnvironment
@@ -60,21 +63,25 @@ async function deploiementAction(
     from: deployer.address,
     args: [`${name}.eth DAO`, symbol, 'https://tokens.sismo.io/', owner],
   });
-  const deployedRegistrar = await hre.deployments.deploy('ENSDaoRegistrar', {
-    from: deployer.address,
-    args: [
-      ens,
-      resolver,
-      nameWrapper,
-      deployedDaoToken.address,
-      node,
-      name,
-      owner,
-      reservationDuration,
-    ],
-  });
+  const deployedRegistrar = await hre.deployments.deploy(
+    'ENSDaoRegistrarPresetReservedLimited',
+    {
+      from: deployer.address,
+      args: [
+        ens,
+        resolver,
+        nameWrapper,
+        deployedDaoToken.address,
+        node,
+        name,
+        owner,
+        reservationDuration,
+        registrationLimit,
+      ],
+    }
+  );
 
-  const ensDaoRegistrar = ENSDaoRegistrar__factory.connect(
+  const ensDaoRegistrar = ENSDaoRegistrarPresetReservedLimited__factory.connect(
     deployedRegistrar.address,
     deployer
   );
