@@ -14,13 +14,14 @@ import {
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
 import { increaseTime, expectEvent, evmSnapshot, evmRevert } from './helpers';
-import { DeployedEnsDao, DeployedEns } from '../tasks';
 import {
+  DeployedEnsDao,
+  DeployedEns,
   generateAnonymousTicket,
   generateNamedTicket,
   getDailyNonceGroup,
-  Ticket,
-} from '../tasks/utils';
+  TicketWrapper,
+} from '../tasks';
 
 describe('ENS DAO Registrar - Without Name Wrapper', () => {
   const utils = ethers.utils;
@@ -59,7 +60,7 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
       resolver: publicResolver.address,
       nameWrapper: ethers.constants.AddressZero,
       reverseRegistrar: reverseRegistrar.address,
-      maxDailyTicketConsumption: 2,
+      ticketGroupLimit: 2,
     });
     ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
 
@@ -180,7 +181,7 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
 
   describe('registration with tickets', () => {
     describe('with named tickets', () => {
-      let namedTicket: Ticket;
+      let namedTicket: TicketWrapper;
 
       beforeEach(async () => {
         const nonceGroup = await getDailyNonceGroup(HRE);
@@ -262,7 +263,7 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
     });
 
     describe('with anonymous tickets', () => {
-      let anonymousTicket: Ticket;
+      let anonymousTicket: TicketWrapper;
 
       beforeEach(async () => {
         const nonceGroup = await getDailyNonceGroup(HRE);

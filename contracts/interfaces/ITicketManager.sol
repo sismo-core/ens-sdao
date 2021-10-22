@@ -24,20 +24,18 @@ interface ITicketManager {
   event TicketGroupLimitUpdated(uint256 newTicketGroupLimit);
 
   /**
-   * @notice Update the ticket group limit number.
-   * @param newTicketGroupLimit The new ticket group limit.
-   *
-   * Emits a {TicketGroupLimitUpdated} event.
+   * @notice Get if a ticket has been consumed.
+   * @param data The data field of the ticket.
+   * @return True if the ticket is consumed, false otherwise.
    */
-  function updateTicketGroupLimit(uint256 newTicketGroupLimit) external;
+  function isTicketConsumed(bytes32 data) external view returns (bool);
 
   /**
-   * @notice Set the auxiliary.
-   * @param auxiliary the new auxiliary.
-   *
-   * Emits a {NewAuxiliary} event.
+   * @notice Get the amount of consumed tickets for a particular nonce.
+   * @param groupNonce Nonce of the group the ticket belongs too.
+   * @return The amount of consumed tickets for the nonce parameter.
    */
-  function setAuxiliary(address auxiliary) external;
+  function consumedNumber(uint256 groupNonce) external view returns (uint256);
 
   /**
    * @notice Consume a ticket after validating it.
@@ -52,4 +50,20 @@ interface ITicketManager {
     bytes32 data,
     bytes memory signature
   ) external;
+
+  /**
+   * @notice Update the ticket group limit number.
+   * @param newTicketGroupLimit The new ticket group limit.
+   *
+   * Emits a {TicketGroupLimitUpdated} event.
+   */
+  function updateTicketGroupLimit(uint256 newTicketGroupLimit) external;
+
+  /**
+   * @notice Set the auxiliary.
+   * @param auxiliary the new auxiliary.
+   *
+   * Emits a {NewAuxiliary} event.
+   */
+  function setAuxiliary(address auxiliary) external;
 }

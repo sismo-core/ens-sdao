@@ -4,7 +4,7 @@ import {
   generateAnonymousTicket,
   generateNamedTicket,
   getDailyNonceGroup,
-  Ticket,
+  TicketWrapper,
 } from '../utils';
 import { getDeployer, logHre } from '../utils/hre-utils';
 
@@ -15,8 +15,8 @@ type GenerateTicketsArgs = {
 };
 
 type GeneratedTickets = {
-  namedTickets: Ticket[];
-  anonymousTickets: Ticket[];
+  namedTickets: TicketWrapper[];
+  anonymousTickets: TicketWrapper[];
 };
 
 async function action(
@@ -54,7 +54,7 @@ async function action(
     )
   );
 
-  const anonymousTickets: Ticket[] = [];
+  const anonymousTickets: TicketWrapper[] = [];
   for (let i = 0; i < anonymousticketnumber; i++) {
     const ticket = await generateAnonymousTicket(hre, ticketSigner, nonceGroup);
     anonymousTickets.push(ticket);

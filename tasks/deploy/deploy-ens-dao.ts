@@ -29,7 +29,7 @@ type DeployEnsDaoArgs = {
   // reservation duration of the ENS DAO Registrar
   reservationDuration?: string;
   // maximum daily consumption of ticket
-  maxDailyTicketConsumption?: number;
+  ticketGroupLimit?: number;
   // enabling logging
   log?: boolean;
 };
@@ -49,7 +49,7 @@ async function deploiementAction(
     symbol = 'SDAO',
     owner: optionalOwner,
     reservationDuration = (4 * 7 * 24 * 3600).toString(),
-    maxDailyTicketConsumption = 30,
+    ticketGroupLimit = 30,
     log,
   }: DeployEnsDaoArgs,
   hre: HardhatRuntimeEnvironment
@@ -68,7 +68,7 @@ async function deploiementAction(
   });
   const deployedTicketManager = await hre.deployments.deploy('TicketManager', {
     from: deployer.address,
-    args: [maxDailyTicketConsumption, owner],
+    args: [ticketGroupLimit, owner],
   });
   const deployedRegistrar = await hre.deployments.deploy('ENSDaoRegistrar', {
     from: deployer.address,

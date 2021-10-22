@@ -1,8 +1,9 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 
-export type Ticket = {
+export type TicketWrapper = {
   message: string;
+  messageWithNonce: string;
   signature: string;
   ticket: string;
 };
@@ -12,7 +13,7 @@ export async function generateNamedTicket(
   signer: SignerWithAddress,
   account: string,
   nonceGroup: number
-): Promise<Ticket> {
+): Promise<TicketWrapper> {
   const { solidityKeccak256, solidityPack, arrayify } = hre.ethers.utils;
 
   const salt = solidityPack(['address'], [account]);
@@ -27,6 +28,7 @@ export async function generateNamedTicket(
 
   return {
     message,
+    messageWithNonce: messageToBeSigned,
     signature,
     ticket: signature,
   };
@@ -36,7 +38,7 @@ export async function generateAnonymousTicket(
   hre: HardhatRuntimeEnvironment,
   signer: SignerWithAddress,
   nonceGroup: number
-): Promise<Ticket> {
+): Promise<TicketWrapper> {
   const { solidityKeccak256, solidityPack, arrayify } = hre.ethers.utils;
 
   const salt = solidityPack(
@@ -54,6 +56,7 @@ export async function generateAnonymousTicket(
 
   return {
     message,
+    messageWithNonce: messageToBeSigned,
     signature,
     ticket: `${message}${signature.substr(2)}`,
   };
