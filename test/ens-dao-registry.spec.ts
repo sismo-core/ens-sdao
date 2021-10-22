@@ -241,17 +241,6 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
         ).to.be.revertedWith('TICKET_MANAGER: INVALID_TICKET');
       });
 
-      it('user can not use the ticket twice', async () => {
-        await ensDaoRegistrar
-          .connect(signer1)
-          .registerWithNamedTicket(label, namedTicket.ticket);
-        await expect(
-          ensDaoRegistrar
-            .connect(signer1)
-            .registerWithNamedTicket(label, namedTicket.ticket)
-        ).to.be.revertedWith('TICKET_MANAGER: TICKET_ALREADY_CONSUMED');
-      });
-
       it('user can not use a ticket from another day', async () => {
         await increaseTime(HRE, 3600 * 24);
         await expect(
@@ -322,25 +311,6 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
         );
       });
 
-      it('user can not use the ticket twice', async () => {
-        await ensDaoRegistrar
-          .connect(signer1)
-          .registerWithAnonymousTicket(
-            label,
-            anonymousTicket.message,
-            anonymousTicket.signature
-          );
-        await expect(
-          ensDaoRegistrar
-            .connect(signer1)
-            .registerWithAnonymousTicket(
-              label,
-              anonymousTicket.message,
-              anonymousTicket.signature
-            )
-        ).to.be.revertedWith('TICKET_MANAGER: TICKET_ALREADY_CONSUMED');
-      });
-
       it('user can not use a ticket from another day', async () => {
         await increaseTime(HRE, 3600 * 24);
         await expect(
@@ -352,40 +322,6 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
               anonymousTicket.signature
             )
         ).to.be.revertedWith('TICKET_MANAGER: INVALID_TICKET');
-      });
-
-      it('a user can not use a ticket if limit of consumption is reached', async () => {
-        const nonceGroup = await getDailyNonceGroup(HRE);
-        const anonymousTickets = await Promise.all(
-          [null, null, null].map(() =>
-            generateAnonymousTicket(HRE, ownerSigner, nonceGroup)
-          )
-        );
-        const labels = [label, 'second', 'third'];
-        await ensDaoRegistrar
-          .connect(signer1)
-          .registerWithAnonymousTicket(
-            labels[0],
-            anonymousTickets[0].message,
-            anonymousTickets[0].signature
-          );
-        await ensDaoRegistrar
-          .connect(signer2)
-          .registerWithAnonymousTicket(
-            labels[1],
-            anonymousTickets[1].message,
-            anonymousTickets[1].signature
-          );
-
-        await expect(
-          ensDaoRegistrar
-            .connect(ownerSigner)
-            .registerWithAnonymousTicket(
-              labels[2],
-              anonymousTickets[2].message,
-              anonymousTickets[2].signature
-            )
-        ).to.be.revertedWith('TICKET_MANAGER: TICKET_GROUP_LIMIT_REACHED');
       });
     });
   });

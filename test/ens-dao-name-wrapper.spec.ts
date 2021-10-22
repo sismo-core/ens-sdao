@@ -271,17 +271,6 @@ describe('ENS DAO Registrar - With Name Wrapper', () => {
         ).to.be.revertedWith('TICKET_MANAGER: INVALID_TICKET');
       });
 
-      it('user can not use the ticket twice', async () => {
-        await ensDaoRegistrar
-          .connect(signer1)
-          .registerWithNamedTicket(label, namedTicket.ticket);
-        await expect(
-          ensDaoRegistrar
-            .connect(signer1)
-            .registerWithNamedTicket(label, namedTicket.ticket)
-        ).to.be.revertedWith('TICKET_MANAGER: TICKET_ALREADY_CONSUMED');
-      });
-
       it('user can not use a ticket from another day', async () => {
         await increaseTime(HRE, 3600 * 24);
         await expect(
@@ -350,25 +339,6 @@ describe('ENS DAO Registrar - With Name Wrapper', () => {
         expect(updatedMaxEmissionNumber.toString()).to.equal(
           totalSupply.add(1).toString()
         );
-      });
-
-      it('user can not use the ticket twice', async () => {
-        await ensDaoRegistrar
-          .connect(signer1)
-          .registerWithAnonymousTicket(
-            label,
-            anonymousTicket.message,
-            anonymousTicket.signature
-          );
-        await expect(
-          ensDaoRegistrar
-            .connect(signer1)
-            .registerWithAnonymousTicket(
-              label,
-              anonymousTicket.message,
-              anonymousTicket.signature
-            )
-        ).to.be.revertedWith('TICKET_MANAGER: TICKET_ALREADY_CONSUMED');
       });
 
       it('user can not use a ticket from another day', async () => {
