@@ -2,7 +2,7 @@ pragma solidity >=0.8.4;
 
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
-import {IENSLabelBooker} from './interfaces/IENSLabelBooker.sol';
+import {IENSLabelBooker} from './IENSLabelBooker.sol';
 
 /**
  * @title ENSLabelBooker contract

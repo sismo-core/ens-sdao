@@ -2,12 +2,12 @@ pragma solidity >=0.8.4;
 
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
-import './nameWrapper/NameWrapper.sol';
+import '../nameWrapper/NameWrapper.sol';
 import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import {ENSDaoToken} from './ENSDaoToken.sol';
-import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
+import {IENSDaoRegistrar} from './IENSDaoRegistrar.sol';
 
 /**
  * @title EnsDaoRegistrar contract
