@@ -47,7 +47,7 @@ contract ENSDaoRegistrarPresetReservedLimited is
   function _beforeRegistration(address account, bytes32 labelHash)
     internal
     virtual
-    override(ENSDaoRegistrar, ENSDaoRegistrarLimited, ENSDaoRegistrarReserved)
+    override(ENSDaoRegistrarLimited, ENSDaoRegistrarReserved)
   {
     super._beforeRegistration(account, labelHash);
   }

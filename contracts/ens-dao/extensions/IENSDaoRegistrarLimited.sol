@@ -15,6 +15,7 @@ interface IENSDaoRegistrarLimited is IENSDaoRegistrar {
   /**
    * @notice Update registration limit.
    * @param registrationLimit The new registration limit.
+   *
    * Emits a {RegistrationLimitUpdated} event.
    */
   function updateRegistrationLimit(uint256 registrationLimit) external;

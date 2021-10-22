@@ -41,31 +41,29 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
   /**
    * @notice Get the address of a booking.
    *         The zero address means the booking does not exist.
-   * @param label The booked label.
+   * @param labelHash The hash of the label, ID of the book.
    * @return The address associated to the booking.
    */
-  function getBooking(string memory label)
+  function getBooking(bytes32 labelHash)
     external
     view
     override
     returns (address)
   {
-    bytes32 labelHash = keccak256(bytes(label));
     return _getBooking(labelHash);
   }
 
   /**
    * @notice Book a label with an address for a later claim.
    * @dev Can only be called by the contract owner or the registrar.
-   * @param label The label to book.
+   * @param labelHash The hash of the label to book.
    * @param bookingAddress The address which can claim the label.
    */
-  function book(string memory label, address bookingAddress)
+  function book(bytes32 labelHash, address bookingAddress)
     external
     override
     onlyOwnerOrRegistrar
   {
-    bytes32 labelHash = keccak256(bytes(label));
     _book(labelHash, bookingAddress);
   }
 
@@ -73,36 +71,33 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
    * @notice Batch book operations given a list of labels and bookingAddresses.
    * @dev Can only be called by the contract owner or the registrar.
    *      Input lists must have the same length.
-   * @param labels The list of label to book.
+   * @param labelHashes The list of hashes of the labels to book.
    * @param bookingAddresses The list of address which can claim the associated label.
    */
-  function batchBook(string[] memory labels, address[] memory bookingAddresses)
-    external
-    override
-    onlyOwnerOrRegistrar
-  {
+  function batchBook(
+    bytes32[] memory labelHashes,
+    address[] memory bookingAddresses
+  ) external override onlyOwnerOrRegistrar {
     require(
-      labels.length == bookingAddresses.length,
+      labelHashes.length == bookingAddresses.length,
       'ENS_LABEL_BOOKER: INVALID_PARAMS'
     );
-    for (uint256 i; i < labels.length; i++) {
-      bytes32 labelHash = keccak256(bytes(labels[i]));
-      _book(labelHash, bookingAddresses[i]);
+    for (uint256 i; i < labelHashes.length; i++) {
+      _book(labelHashes[i], bookingAddresses[i]);
     }
   }
 
   /**
    * @notice Update the address of a book address.
    * @dev Can only be called by the contract owner or the registrar.
-   * @param label The label of the book.
+   * @param labelHash The hash of the label, ID of the book.
    * @param bookingAddress The address which can claim the label.
    */
-  function updateBooking(string memory label, address bookingAddress)
+  function updateBooking(bytes32 labelHash, address bookingAddress)
     external
     override
     onlyOwnerOrRegistrar
   {
-    bytes32 labelHash = keccak256(bytes(label));
     _updateBooking(labelHash, bookingAddress);
   }
 
@@ -110,50 +105,47 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
    * @notice Update the addresses of books.
    * @dev Can only be called by the contract owner or the registrar.
    *      Input lists must have the same length.
-   * @param labels The list of label to book.
+   * @param labelHashes The list of hashes of the labels of the bookings.
    * @param bookingAddresses The list of address which can claim the associated label.
    */
   function batchUpdateBooking(
-    string[] memory labels,
+    bytes32[] memory labelHashes,
     address[] memory bookingAddresses
   ) external override onlyOwner {
     require(
-      labels.length == bookingAddresses.length,
+      labelHashes.length == bookingAddresses.length,
       'ENS_LABEL_BOOKER: INVALID_PARAMS'
     );
-    for (uint256 i; i < labels.length; i++) {
-      bytes32 labelHash = keccak256(bytes(labels[i]));
-      _updateBooking(labelHash, bookingAddresses[i]);
+    for (uint256 i; i < labelHashes.length; i++) {
+      _updateBooking(labelHashes[i], bookingAddresses[i]);
     }
   }
 
   /**
    * @notice Delete a booking.
    * @dev Can only be called by the contract owner or the registrar.
-   * @param label The booked label.
+   * @param labelHash The hash of the label, ID of the book.
    */
-  function deleteBooking(string memory label)
+  function deleteBooking(bytes32 labelHash)
     external
     override
     onlyOwnerOrRegistrar
   {
-    bytes32 labelHash = keccak256(bytes(label));
     _deleteBooking(labelHash);
   }
 
   /**
    * @notice Delete a list of bookings.
    * @dev Can only be called by the contract owner or the registrar.
-   * @param labels The list of labels of the bookings.
+   * @param labelHashes The list of the hashes of the labels of the bookings.
    */
-  function batchDeleteBooking(string[] memory labels)
+  function batchDeleteBooking(bytes32[] memory labelHashes)
     external
     override
     onlyOwnerOrRegistrar
   {
-    for (uint256 i; i < labels.length; i++) {
-      bytes32 labelHash = keccak256(bytes(labels[i]));
-      _deleteBooking(labelHash);
+    for (uint256 i; i < labelHashes.length; i++) {
+      _deleteBooking(labelHashes[i]);
     }
   }
 

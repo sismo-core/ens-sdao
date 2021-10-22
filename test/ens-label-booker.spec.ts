@@ -10,6 +10,9 @@ import { expectEvent, evmSnapshot, evmRevert } from './helpers';
 import { DeployedEns, DeployedLabelBooker } from '../tasks';
 
 describe('ENS Label Booker', () => {
+  const getLabelhash = (label: string) =>
+    ethers.utils.keccak256(ethers.utils.toUtf8Bytes(label));
+
   let otherSigner: SignerWithAddress;
   let unknownSigner: SignerWithAddress;
 
@@ -42,9 +45,9 @@ describe('ENS Label Booker', () => {
     snapshotId = await evmSnapshot(HRE);
   });
 
-  const label0 = 'testlabel';
-  const label1 = 'anotherlabel';
-  const label2 = 'yetanotherlabel';
+  const label0 = getLabelhash('testlabel');
+  const label1 = getLabelhash('anotherlabel');
+  const label2 = getLabelhash('yetanotherlabel');
   const labels = [label0, label1, label2];
 
   const domain0 = `${label0}.${sismoLabel}.eth`;
