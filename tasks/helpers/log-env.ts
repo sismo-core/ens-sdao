@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { getDeployer, logHre } from './hre-utils';
+import { getDeployer, logHre } from '../utils/hre-utils';
 
 task('log-env').setAction(async ({}, hre: HardhatRuntimeEnvironment) => {
   await logHre(hre);

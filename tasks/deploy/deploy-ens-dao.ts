@@ -3,12 +3,14 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ethers } from 'ethers';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
-import { getDeployer, logHre } from '../helpers';
+import { getDeployer, logHre } from '../utils';
 import {
   ENSDaoRegistrar,
   ENSDaoRegistrar__factory,
   ENSDaoToken,
   ENSDaoToken__factory,
+  TicketManager,
+  TicketManager__factory,
 } from '../../types';
 
 type DeployEnsDaoArgs = {
@@ -26,6 +28,8 @@ type DeployEnsDaoArgs = {
   owner?: string;
   // reservation duration of the ENS DAO Registrar
   reservationDuration?: string;
+  // maximum daily consumption of ticket
+  maxDailyTicketConsumption?: number;
   // enabling logging
   log?: boolean;
 };
@@ -33,6 +37,7 @@ type DeployEnsDaoArgs = {
 export type DeployedEnsDao = {
   ensDaoRegistrar: ENSDaoRegistrar;
   ensDaoToken: ENSDaoToken;
+  ticketManager: TicketManager;
 };
 
 async function deploiementAction(
@@ -44,6 +49,7 @@ async function deploiementAction(
     symbol = 'SDAO',
     owner: optionalOwner,
     reservationDuration = (4 * 7 * 24 * 3600).toString(),
+    maxDailyTicketConsumption = 30,
     log,
   }: DeployEnsDaoArgs,
   hre: HardhatRuntimeEnvironment
@@ -60,6 +66,10 @@ async function deploiementAction(
     from: deployer.address,
     args: [`${name}.eth DAO`, symbol, 'https://tokens.sismo.io/', owner],
   });
+  const deployedTicketManager = await hre.deployments.deploy('TicketManager', {
+    from: deployer.address,
+    args: [maxDailyTicketConsumption, owner],
+  });
   const deployedRegistrar = await hre.deployments.deploy('ENSDaoRegistrar', {
     from: deployer.address,
     args: [
@@ -67,6 +77,7 @@ async function deploiementAction(
       resolver,
       nameWrapper,
       deployedDaoToken.address,
+      deployedTicketManager.address,
       node,
       name,
       owner,
@@ -78,10 +89,17 @@ async function deploiementAction(
     deployedRegistrar.address,
     deployer
   );
+  const ticketManager = TicketManager__factory.connect(
+    deployedTicketManager.address,
+    deployer
+  );
   const ensDaoToken = ENSDaoToken__factory.connect(
     deployedDaoToken.address,
     deployer
   );
+
+  // Allow the ENS DAO Registrar as auxiliary of the Ticket Manager
+  await (await ticketManager.setAuxiliary(ensDaoRegistrar.address)).wait();
 
   // Allow the ENS DAO Token to be minted by the deployed ENS DAO Registrar
   await (await ensDaoToken.setMinter(ensDaoRegistrar.address)).wait();
@@ -89,11 +107,13 @@ async function deploiementAction(
   if (log) {
     console.log(`Deployed ENS DAO Token: ${deployedDaoToken.address}`);
     console.log(`Deployed ENS DAO Registrar: ${deployedRegistrar.address}`);
+    console.log(`Deployed Ticket Manager: ${ticketManager.address}`);
   }
 
   return {
     ensDaoRegistrar,
     ensDaoToken,
+    ticketManager,
   };
 }
 

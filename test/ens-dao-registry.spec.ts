@@ -15,6 +15,12 @@ import {
 import nameHash from 'eth-ens-namehash';
 import { increaseTime, expectEvent, evmSnapshot, evmRevert } from './helpers';
 import { DeployedEnsDao, DeployedEns } from '../tasks';
+import {
+  generateAnonymousTicket,
+  generateNamedTicket,
+  getDailyNonceGroup,
+  Ticket,
+} from '../tasks/utils';
 
 describe('ENS DAO Registrar - Without Name Wrapper', () => {
   const utils = ethers.utils;
@@ -53,6 +59,7 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
       resolver: publicResolver.address,
       nameWrapper: ethers.constants.AddressZero,
       reverseRegistrar: reverseRegistrar.address,
+      maxDailyTicketConsumption: 2,
     });
     ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
 
@@ -169,6 +176,217 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
     expect(await ensDaoToken.ownerOf(otherNode)).to.be.equal(
       ownerSigner.address
     );
+  });
+
+  describe('registration with tickets', () => {
+    describe('with named tickets', () => {
+      let namedTicket: Ticket;
+
+      beforeEach(async () => {
+        const nonceGroup = await getDailyNonceGroup(HRE);
+        namedTicket = await generateNamedTicket(
+          HRE,
+          ownerSigner,
+          signer1.address,
+          nonceGroup
+        );
+      });
+
+      it('user can register if it is the expected address', async () => {
+        const tx = await ensDaoRegistrar
+          .connect(signer1)
+          .registerWithNamedTicket(label, namedTicket.ticket);
+        expectEvent(
+          await tx.wait(),
+          'NameRegistered',
+          (args) =>
+            args.owner === signer1.address && args.id.toHexString() === node
+        );
+        expect(await ens.name(domain).getAddress()).to.be.equal(
+          signer1.address
+        );
+        expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer1.address);
+      });
+
+      it('user can register when the max number of emission limit is reached', async () => {
+        const totalSupply = await ensDaoToken.totalSupply();
+        await ensDaoRegistrar.updateMaxEmissionNumber(totalSupply.toString());
+        const tx = await ensDaoRegistrar
+          .connect(signer1)
+          .registerWithNamedTicket(label, namedTicket.ticket);
+        expectEvent(
+          await tx.wait(),
+          'NameRegistered',
+          (args) =>
+            args.owner === signer1.address && args.id.toHexString() === node
+        );
+        expect(await ens.name(domain).getAddress()).to.be.equal(
+          signer1.address
+        );
+        expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer1.address);
+
+        const updatedMaxEmissionNumber =
+          await ensDaoRegistrar._maxEmissionNumber();
+        expect(updatedMaxEmissionNumber.toString()).to.equal(
+          totalSupply.add(1).toString()
+        );
+      });
+
+      it('user can not register if it is not the expected address', async () => {
+        await expect(
+          ensDaoRegistrar
+            .connect(signer2)
+            .registerWithNamedTicket(label, namedTicket.ticket)
+        ).to.be.revertedWith('TICKET_MANAGER: INVALID_TICKET');
+      });
+
+      it('user can not use the ticket twice', async () => {
+        await ensDaoRegistrar
+          .connect(signer1)
+          .registerWithNamedTicket(label, namedTicket.ticket);
+        await expect(
+          ensDaoRegistrar
+            .connect(signer1)
+            .registerWithNamedTicket(label, namedTicket.ticket)
+        ).to.be.revertedWith('TICKET_MANAGER: TICKET_ALREADY_CONSUMED');
+      });
+
+      it('user can not use a ticket from another day', async () => {
+        await increaseTime(HRE, 3600 * 24);
+        await expect(
+          ensDaoRegistrar
+            .connect(signer1)
+            .registerWithNamedTicket(label, namedTicket.ticket)
+        ).to.be.revertedWith('TICKET_MANAGER: INVALID_TICKET');
+      });
+    });
+
+    describe('with anonymous tickets', () => {
+      let anonymousTicket: Ticket;
+
+      beforeEach(async () => {
+        const nonceGroup = await getDailyNonceGroup(HRE);
+        anonymousTicket = await generateAnonymousTicket(
+          HRE,
+          ownerSigner,
+          nonceGroup
+        );
+      });
+
+      it('user can register', async () => {
+        const tx = await ensDaoRegistrar
+          .connect(signer1)
+          .registerWithAnonymousTicket(
+            label,
+            anonymousTicket.message,
+            anonymousTicket.signature
+          );
+        expectEvent(
+          await tx.wait(),
+          'NameRegistered',
+          (args) =>
+            args.owner === signer1.address && args.id.toHexString() === node
+        );
+        expect(await ens.name(domain).getAddress()).to.be.equal(
+          signer1.address
+        );
+        expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer1.address);
+      });
+
+      it('user can register when the max number of emission limit is reached', async () => {
+        const totalSupply = await ensDaoToken.totalSupply();
+        await ensDaoRegistrar.updateMaxEmissionNumber(totalSupply.toString());
+        const tx = await ensDaoRegistrar
+          .connect(signer1)
+          .registerWithAnonymousTicket(
+            label,
+            anonymousTicket.message,
+            anonymousTicket.signature
+          );
+        expectEvent(
+          await tx.wait(),
+          'NameRegistered',
+          (args) =>
+            args.owner === signer1.address && args.id.toHexString() === node
+        );
+        expect(await ens.name(domain).getAddress()).to.be.equal(
+          signer1.address
+        );
+        expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer1.address);
+
+        const updatedMaxEmissionNumber =
+          await ensDaoRegistrar._maxEmissionNumber();
+        expect(updatedMaxEmissionNumber.toString()).to.equal(
+          totalSupply.add(1).toString()
+        );
+      });
+
+      it('user can not use the ticket twice', async () => {
+        await ensDaoRegistrar
+          .connect(signer1)
+          .registerWithAnonymousTicket(
+            label,
+            anonymousTicket.message,
+            anonymousTicket.signature
+          );
+        await expect(
+          ensDaoRegistrar
+            .connect(signer1)
+            .registerWithAnonymousTicket(
+              label,
+              anonymousTicket.message,
+              anonymousTicket.signature
+            )
+        ).to.be.revertedWith('TICKET_MANAGER: TICKET_ALREADY_CONSUMED');
+      });
+
+      it('user can not use a ticket from another day', async () => {
+        await increaseTime(HRE, 3600 * 24);
+        await expect(
+          ensDaoRegistrar
+            .connect(signer1)
+            .registerWithAnonymousTicket(
+              label,
+              anonymousTicket.message,
+              anonymousTicket.signature
+            )
+        ).to.be.revertedWith('TICKET_MANAGER: INVALID_TICKET');
+      });
+
+      it('a user can not use a ticket if limit of consumption is reached', async () => {
+        const nonceGroup = await getDailyNonceGroup(HRE);
+        const anonymousTickets = await Promise.all(
+          [null, null, null].map(() =>
+            generateAnonymousTicket(HRE, ownerSigner, nonceGroup)
+          )
+        );
+        const labels = [label, 'second', 'third'];
+        await ensDaoRegistrar
+          .connect(signer1)
+          .registerWithAnonymousTicket(
+            labels[0],
+            anonymousTickets[0].message,
+            anonymousTickets[0].signature
+          );
+        await ensDaoRegistrar
+          .connect(signer2)
+          .registerWithAnonymousTicket(
+            labels[1],
+            anonymousTickets[1].message,
+            anonymousTickets[1].signature
+          );
+
+        await expect(
+          ensDaoRegistrar
+            .connect(ownerSigner)
+            .registerWithAnonymousTicket(
+              labels[2],
+              anonymousTickets[2].message,
+              anonymousTickets[2].signature
+            )
+        ).to.be.revertedWith('TICKET_MANAGER: TICKET_GROUP_LIMIT_REACHED');
+      });
+    });
   });
 
   describe('max number of emission limitation', () => {

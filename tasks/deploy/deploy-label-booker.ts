@@ -2,7 +2,7 @@ import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
-import { getDeployer, logHre } from '../helpers';
+import { getDeployer, logHre } from '../utils';
 import { ENSLabelBooker, ENSLabelBooker__factory } from '../../types';
 
 type DeployLabelBooker = {

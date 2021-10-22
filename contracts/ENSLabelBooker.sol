@@ -5,8 +5,8 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import {IENSLabelBooker} from './interfaces/IENSLabelBooker.sol';
 
 /**
- * @title ENSLabelBooker contract
- * @dev Implementation of the {IENSLabelBooker}
+ * @title ENSLabelBooker contract.
+ * @dev Implementation of the {IENSLabelBooker}.
  */
 contract ENSLabelBooker is Ownable, IENSLabelBooker {
   ENS public immutable ENS_REGISTRY;
@@ -27,6 +27,7 @@ contract ENSLabelBooker is Ownable, IENSLabelBooker {
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
    * @param node The node that this registrar administers.
+   * @param owner The owner of the contract.
    */
   constructor(
     ENS ensAddr,
