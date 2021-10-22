@@ -7,7 +7,6 @@ import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import {ENSDaoToken} from './ENSDaoToken.sol';
-import {ENSLabelBooker} from './ENSLabelBooker.sol';
 import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
 
 /**
@@ -17,18 +16,12 @@ import {IENSDaoRegistrar} from './interfaces/IENSDaoRegistrar.sol';
  *      An arbitrary reservation period is considered.
  *      Within the registration period, only the owners of the associated .eth subdomain may register this subdomain.
  *      After the registration period, any subdomain registration is first come first served.
- *
- *      The booking mechanism is described by an implementation of IENSLabelBooker.
- *      The owner has the possibility to book any subdomain, unless it is already owned.
- *      A booked subdomain can be claimed either by the owner of the DAO Registrar, either by the address registered in the booking.
- *      See IENSLabelBooker interface for further details on the booking management.
  */
 contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   PublicResolver public immutable RESOLVER;
   NameWrapper public immutable NAME_WRAPPER;
   ENSDaoToken public immutable DAO_TOKEN;
   ENS public immutable ENS_REGISTRY;
-  ENSLabelBooker public immutable ENS_LABLEL_BOOKER;
   bytes32 public immutable ROOT_NODE;
 
   string NAME;
@@ -43,7 +36,6 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
    * @param ensAddr The address of the ENS registry.
    * @param resolver The address of the Resolver.
    * @param nameWrapper The address of the Name Wrapper. can be 0x00
-   * @param ensLabelBooker The address of the ens label booker. can be 0x00
    * @param daoToken The address of the DAO Token.
    * @param node The node that this registrar administers.
    * @param name The label string of the administered subdomain.
@@ -53,25 +45,15 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     PublicResolver resolver,
     NameWrapper nameWrapper,
     ENSDaoToken daoToken,
-    ENSLabelBooker ensLabelBooker,
     bytes32 node,
     string memory name,
     address owner,
     uint256 reservationDuration
   ) {
-    require(
-      address(ensAddr) == address(ensLabelBooker.ENS_REGISTRY()),
-      'ENS_DAO_REGISTRAR: REGISTRY_MISMATCH'
-    );
-    require(
-      node == ensLabelBooker.ROOT_NODE(),
-      'ENS_DAO_REGISTRAR: NODE_MISMATCH'
-    );
     ENS_REGISTRY = ensAddr;
     RESOLVER = resolver;
     NAME_WRAPPER = nameWrapper;
     DAO_TOKEN = daoToken;
-    ENS_LABLEL_BOOKER = ensLabelBooker;
     NAME = name;
     ROOT_NODE = node;
     DAO_BIRTH_DATE = block.timestamp;
@@ -84,7 +66,6 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   /**
    * @notice Register a name and mints a DAO token.
    * @dev Can only be called if and only if
-   *  - the subdomain is not booked,
    *  - the subdomain of the root node is free,
    *  - sender does not already have a DAO token OR sender is the owner,
    *  - still in the reservation period, the associated .eth subdomain is free OR owned by the sender,
@@ -93,12 +74,6 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
    */
   function register(string memory label) external override {
     bytes32 labelHash = keccak256(bytes(label));
-
-    require(
-      address(ENS_LABLEL_BOOKER) == address(0) ||
-        ENS_LABLEL_BOOKER.getBooking(label) == address(0),
-      'ENS_DAO_REGISTRAR: LABEL_BOOKED'
-    );
 
     if (block.timestamp - DAO_BIRTH_DATE <= RESERVATION_DURATION) {
       address dotEthSubdomainOwner = ENS_REGISTRY.owner(
@@ -112,31 +87,6 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     }
 
     _register(_msgSender(), label, labelHash);
-  }
-
-  /**
-   * @notice Claim a booked name.
-   * @dev Can only be called if and only if
-   *  - the subdomain is booked,
-   *  - the sender is either the booked address, either the owner,
-   *  - the subdomain of the root node is free,
-   *  - sender does not already have a DAO token OR sender is the owner,
-   *  - the maximum number of emissions has not been reached.
-   * @param label The label to claim.
-   * @param account The account to which the registration is done.
-   */
-  function claim(string memory label, address account) external override {
-    bytes32 labelHash = keccak256(bytes(label));
-    address bookedAddress = ENS_LABLEL_BOOKER.getBooking(label);
-    require(bookedAddress != address(0), 'ENS_DAO_REGISTRAR: LABEL_NOT_BOOKED');
-    require(
-      bookedAddress == _msgSender() || owner() == _msgSender(),
-      'ENS_DAO_REGISTRAR: SENDER_NOT_ALLOWED'
-    );
-
-    _register(account, label, labelHash);
-
-    ENS_LABLEL_BOOKER.deleteBooking(label);
   }
 
   /**

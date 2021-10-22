@@ -10,7 +10,6 @@ import {
   PublicResolver,
   ENSDaoRegistrar,
   ENSDaoToken,
-  ENSLabelBooker,
   NameWrapper,
 } from '../types';
 //@ts-ignore
@@ -35,7 +34,6 @@ describe('ENS DAO Registrar - With Name Wrapper', () => {
   let publicResolver: PublicResolver;
   let ensDaoToken: ENSDaoToken;
   let ensDaoRegistrar: ENSDaoRegistrar;
-  let ensDaoLabelBooker: ENSLabelBooker;
   let ens: ENS;
 
   let ownerSigner: SignerWithAddress;
@@ -57,7 +55,7 @@ describe('ENS DAO Registrar - With Name Wrapper', () => {
       nameWrapper: nameWrapper.address,
       reverseRegistrar: reverseRegistrar.address,
     });
-    ({ ensDaoToken, ensDaoRegistrar, ensDaoLabelBooker } = deployedEnsDao);
+    ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
 
     ens = await new ENS({
       provider: HRE.ethers.provider,
@@ -201,77 +199,6 @@ describe('ENS DAO Registrar - With Name Wrapper', () => {
     expect(await nameWrapper.ownerOf(otherNode)).to.be.equal(
       ownerSigner.address
     );
-  });
-
-  describe('booking and claim', () => {
-    beforeEach(async () => {
-      await ensDaoLabelBooker.book(label, signer1.address);
-    });
-
-    it(`user can claim the label if it is the proper booking address`, async () => {
-      const tx = await ensDaoRegistrar
-        .connect(signer1)
-        .claim(label, signer1.address);
-      expectEvent(
-        await tx.wait(),
-        'NameRegistered',
-        (args) =>
-          args.owner === signer1.address && args.id.toHexString() === node
-      );
-      expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
-      expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer1.address);
-      expect(
-        await nameWrapper.isTokenOwnerOrApproved(node, signer1.address)
-      ).to.be.equal(true);
-      expect(await nameWrapper.ownerOf(node)).to.be.equal(signer1.address);
-    });
-
-    it(`owner can claim the label and send it to an arbitrary address if it is the proper booking address`, async () => {
-      const tx = await ensDaoRegistrar.claim(label, signer2.address);
-
-      const receipt = await tx.wait();
-      expectEvent(
-        receipt,
-        'NameRegistered',
-        (args) =>
-          args.owner === signer2.address && args.id.toHexString() === node
-      );
-      expectEvent(
-        receipt,
-        'BookingDeleted',
-        (args) =>
-          args.id.toHexString() === nameHash.hash(`${label}.${sismoLabel}.eth`)
-      );
-      expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
-      expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer2.address);
-      expect(
-        await nameWrapper.isTokenOwnerOrApproved(node, signer2.address)
-      ).to.be.equal(true);
-      expect(await nameWrapper.ownerOf(node)).to.be.equal(signer2.address);
-
-      expect(await ensDaoLabelBooker.getBooking(label)).to.be.equal(
-        ethers.constants.AddressZero
-      );
-    });
-
-    it(`user can not claim the label if it is not the proper booking address`, async () => {
-      await expect(
-        ensDaoRegistrar.connect(signer2).claim(label, signer2.address)
-      ).to.be.revertedWith('ENS_DAO_REGISTRAR: SENDER_NOT_ALLOWED');
-    });
-
-    it(`user can not claim the label if it is not booked`, async () => {
-      const otherLabel = 'second';
-      await expect(
-        ensDaoRegistrar.connect(signer2).claim(otherLabel, signer2.address)
-      ).to.be.revertedWith('ENS_DAO_REGISTRAR: LABEL_NOT_BOOKED');
-    });
-
-    it(`user can not register the label if it is booked`, async () => {
-      await expect(
-        ensDaoRegistrar.connect(signer1).register(label)
-      ).to.be.revertedWith('ENS_DAO_REGISTRAR: LABEL_BOOKED');
-    });
   });
 
   describe('max number of emission limitation', () => {

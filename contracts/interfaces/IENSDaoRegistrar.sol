@@ -10,12 +10,6 @@ import '@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol';
  *         A registration allocates one ENS subdomain of the root subdomain, e.g. 'myname.example.eth' and one associated ERC721 token to an address.
  *
  *         Only one subdomain and one ERC721 token may be possessed by an address with the exception of the owner of the DAO Registrar.
- *
- *         Additionally, a mechanism of booking of subdomains may be added in order to save specific subdomains.
- *         A subdomain can not be booked if it has already been registered.
- *         A booked subdomain can not be registered directly.
- *         A booked subdomain can be claimed according to the booking rules.
- *         A claim performs a registration with an arbitrary address, chosen by the claimer.
  */
 interface IENSDaoRegistrar is IERC1155Receiver {
   /**
@@ -45,14 +39,6 @@ interface IENSDaoRegistrar is IERC1155Receiver {
    * Emits a {OwnershipConceded} event.
    */
   function giveBackDomainOwnership() external;
-
-  /**
-   * @notice Claim a name, registers it and mints a DAO token.
-   * @param label The label to register.
-   *
-   * Emits a {NameRegistered} and {BookingDeleted} events.
-   */
-  function claim(string memory label, address account) external;
 
   /**
    * @notice Update max emission number.
