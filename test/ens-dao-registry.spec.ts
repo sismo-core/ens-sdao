@@ -409,7 +409,7 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
       );
 
       await expect(ensDaoRegistrar.register(otherLabel)).to.be.revertedWith(
-        'ENS_DAO_REGISTRAR: TOO_MANY_EMISSION'
+        'ENS_DAO_REGISTRAR: TOO_MANY_EMISSIONS'
       );
     });
 
