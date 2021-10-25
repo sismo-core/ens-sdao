@@ -57,7 +57,7 @@ abstract contract ENSDaoRegistrarClaimable is
     address bookingAddress = ENS_LABEL_BOOKER.getBooking(labelHash);
     require(
       bookingAddress != address(0),
-      'ENS_DAO_REGISTRAR: LABEL_NOT_BOOKED'
+      'ENS_DAO_REGISTRAR_CLAIMABLE: LABEL_NOT_BOOKED'
     );
     require(
       bookingAddress == _msgSender() || owner() == _msgSender(),
@@ -81,7 +81,7 @@ abstract contract ENSDaoRegistrarClaimable is
     bytes32 labelHash = keccak256(bytes(label));
     require(
       ENS_LABEL_BOOKER.getBooking(labelHash) == address(0),
-      'ENS_DAO_REGISTRAR: LABEL_BOOKED'
+      'ENS_DAO_REGISTRAR_CLAIMABLE: LABEL_BOOKED'
     );
     super.register(label);
   }
