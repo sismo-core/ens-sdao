@@ -1,17 +1,14 @@
 pragma solidity >=0.8.4;
 
-import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
-import '../../name-wrapper/NameWrapper.sol';
+import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import {ENSDaoToken} from '../ENSDaoToken.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
-import {ENSDaoRegistrarLimited} from '../extensions/ENSDaoRegistrarLimited.sol';
-import {ENSDaoRegistrarReserved} from '../extensions/ENSDaoRegistrarReserved.sol';
+import {ENSDaoRegistrarClaimable} from '../extensions/ENSDaoRegistrarClaimable.sol';
+import {ENSLabelBooker} from '../../ens-label-booker/ENSLabelBooker.sol';
+import {NameWrapper} from '../../name-wrapper/NameWrapper.sol';
 
-contract ENSDaoRegistrarPresetReservedLimited is
-  ENSDaoRegistrarLimited,
-  ENSDaoRegistrarReserved
-{
+contract ENSDaoRegistrarPresetClaimable is ENSDaoRegistrarClaimable {
   /**
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
@@ -21,8 +18,7 @@ contract ENSDaoRegistrarPresetReservedLimited is
    * @param node The node that this registrar administers.
    * @param name The label string of the administered subdomain.
    * @param owner The owner of the contract.
-   * @param reservationDuration The duration of the reservation period.
-   * @param registrationLimit The limit of registration number.
+   * @param ensLabelBooker The address of the ENS Label Booker.
    */
   constructor(
     ENS ensAddr,
@@ -32,18 +28,16 @@ contract ENSDaoRegistrarPresetReservedLimited is
     bytes32 node,
     string memory name,
     address owner,
-    uint256 reservationDuration,
-    uint256 registrationLimit
+    ENSLabelBooker ensLabelBooker
   )
-    ENSDaoRegistrarLimited(registrationLimit)
-    ENSDaoRegistrarReserved(reservationDuration)
+    ENSDaoRegistrarClaimable(ensLabelBooker, address(ensAddr), node)
     ENSDaoRegistrar(ensAddr, resolver, nameWrapper, daoToken, node, name, owner)
   {}
 
   function _beforeRegistration(address account, bytes32 labelHash)
     internal
     virtual
-    override(ENSDaoRegistrarLimited, ENSDaoRegistrarReserved)
+    override(ENSDaoRegistrar)
   {
     super._beforeRegistration(account, labelHash);
   }
@@ -51,7 +45,7 @@ contract ENSDaoRegistrarPresetReservedLimited is
   function _afterRegistration(address account, bytes32 labelHash)
     internal
     virtual
-    override(ENSDaoRegistrar, ENSDaoRegistrarLimited)
+    override(ENSDaoRegistrar)
   {
     super._afterRegistration(account, labelHash);
   }

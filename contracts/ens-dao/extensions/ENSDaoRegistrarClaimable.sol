@@ -1,14 +1,8 @@
 pragma solidity >=0.8.4;
 
-import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
-import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
-import '../../name-wrapper/NameWrapper.sol';
-import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
-import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
-import {ENSDaoToken} from '../ENSDaoToken.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
+import {IENSDaoRegistrar} from '../IENSDaoRegistrar.sol';
 import {IENSDaoRegistrarClaimable} from './IENSDaoRegistrarClaimable.sol';
 import {ENSLabelBooker} from '../../ens-label-booker/ENSLabelBooker.sol';
 
@@ -58,11 +52,16 @@ abstract contract ENSDaoRegistrarClaimable is
    * @param label The label to claim.
    * @param account The account to which the registration is done.
    */
-  function claim(string memory label, address account) external override {
+  function claim(string memory label, address account) public override {
     bytes32 labelHash = keccak256(bytes(label));
+    address bookingAddress = ENS_LABEL_BOOKER.getBooking(labelHash);
     require(
-      ENS_LABEL_BOOKER.getBooking(labelHash) != address(0),
+      bookingAddress != address(0),
       'ENS_DAO_REGISTRAR: LABEL_NOT_BOOKED'
+    );
+    require(
+      bookingAddress == _msgSender() || owner() == _msgSender(),
+      'ENS_DAO_REGISTRAR_CLAIMABLE: SENDER_NOT_ALLOWED'
     );
 
     _register(account, label, labelHash);
@@ -71,27 +70,19 @@ abstract contract ENSDaoRegistrarClaimable is
   }
 
   /**
-   * @dev Hook that is called before any registration.
-   *      It will pass if and only if one of the two following conditions is met:
-   *        - the label is not booked,
-   *        - the label is booked AND (the sender is the booking address OR the owner).
-   *
-   * @param account The address for which the reservation is made.
-   * @param labelHash The hash of the label to register.
+   * @notice Register a name and mints a DAO token.
+   * @dev Can only be called with labels that are not booked.
+   *      Uses the `register` method of the EnsDaoRegistrar.
    */
-  function _beforeRegistration(address account, bytes32 labelHash)
-    internal
-    virtual
-    override
+  function register(string memory label)
+    public
+    override(ENSDaoRegistrar, IENSDaoRegistrar)
   {
-    super._beforeRegistration(account, labelHash);
-
-    address bookingAddress = ENS_LABEL_BOOKER.getBooking(labelHash);
-    if (bookingAddress != address(0)) {
-      require(
-        bookingAddress == _msgSender() || owner() == _msgSender(),
-        'ENS_DAO_REGISTRAR_CLAIMABLE: SENDER_NOT_ALLOWED'
-      );
-    }
+    bytes32 labelHash = keccak256(bytes(label));
+    require(
+      ENS_LABEL_BOOKER.getBooking(labelHash) == address(0),
+      'ENS_DAO_REGISTRAR: LABEL_BOOKED'
+    );
+    super.register(label);
   }
 }

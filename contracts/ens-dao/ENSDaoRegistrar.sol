@@ -66,7 +66,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
    *  - the maximum number of emissions has not been reached.
    * @param label The label to register.
    */
-  function register(string memory label) external override {
+  function register(string memory label) public virtual override {
     bytes32 labelHash = keccak256(bytes(label));
 
     _register(_msgSender(), label, labelHash);
@@ -76,7 +76,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
    * @notice Give back the root domain of the ENS DAO Registrar to DAO owner.
    * @dev Can be called by the owner of the registrar.
    */
-  function giveBackDomainOwnership() external override onlyOwner {
+  function giveBackDomainOwnership() public override onlyOwner {
     if (address(NAME_WRAPPER) != address(0)) {
       NAME_WRAPPER.unwrapETH2LD(keccak256(bytes(NAME)), owner(), owner());
     } else {
