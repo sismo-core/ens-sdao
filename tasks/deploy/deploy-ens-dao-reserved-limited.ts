@@ -5,13 +5,13 @@ import { ethers } from 'ethers';
 import nameHash from 'eth-ens-namehash';
 import { getDeployer, logHre } from '../helpers';
 import {
-  ENSDaoRegistrar,
-  ENSDaoRegistrar__factory,
+  ENSDaoRegistrarPresetReservedLimited,
+  ENSDaoRegistrarPresetReservedLimited__factory,
   ENSDaoToken,
   ENSDaoToken__factory,
 } from '../../types';
 
-type DeployEnsDaoArgs = {
+type DeployEnsDaoReservedLimitedArgs = {
   // ENS Registry address
   ens: string;
   // Public Resolver address
@@ -24,12 +24,16 @@ type DeployEnsDaoArgs = {
   symbol: string;
   // owner address of the contracts
   owner?: string;
+  // reservation duration of the ENS DAO Registrar
+  reservationDuration?: string;
+  // limit of registrations
+  registrationLimit?: number;
   // enabling logging
   log?: boolean;
 };
 
-export type DeployedEnsDao = {
-  ensDaoRegistrar: ENSDaoRegistrar;
+export type DeployedEnsDaoReservedLimited = {
+  ensDaoRegistrar: ENSDaoRegistrarPresetReservedLimited;
   ensDaoToken: ENSDaoToken;
 };
 
@@ -41,10 +45,12 @@ async function deploiementAction(
     name = 'sismo',
     symbol = 'SDAO',
     owner: optionalOwner,
+    reservationDuration = (4 * 7 * 24 * 3600).toString(),
+    registrationLimit = 500,
     log,
-  }: DeployEnsDaoArgs,
+  }: DeployEnsDaoReservedLimitedArgs,
   hre: HardhatRuntimeEnvironment
-): Promise<DeployedEnsDao> {
+): Promise<DeployedEnsDaoReservedLimited> {
   if (log) await logHre(hre);
 
   const deployer = await getDeployer(hre, log);
@@ -57,20 +63,25 @@ async function deploiementAction(
     from: deployer.address,
     args: [`${name}.eth DAO`, symbol, 'https://tokens.sismo.io/', owner],
   });
-  const deployedRegistrar = await hre.deployments.deploy('ENSDaoRegistrar', {
-    from: deployer.address,
-    args: [
-      ens,
-      resolver,
-      nameWrapper,
-      deployedDaoToken.address,
-      node,
-      name,
-      owner,
-    ],
-  });
+  const deployedRegistrar = await hre.deployments.deploy(
+    'ENSDaoRegistrarPresetReservedLimited',
+    {
+      from: deployer.address,
+      args: [
+        ens,
+        resolver,
+        nameWrapper,
+        deployedDaoToken.address,
+        node,
+        name,
+        owner,
+        reservationDuration,
+        registrationLimit,
+      ],
+    }
+  );
 
-  const ensDaoRegistrar = ENSDaoRegistrar__factory.connect(
+  const ensDaoRegistrar = ENSDaoRegistrarPresetReservedLimited__factory.connect(
     deployedRegistrar.address,
     deployer
   );
@@ -93,7 +104,7 @@ async function deploiementAction(
   };
 }
 
-task('deploy-ens-dao')
+task('deploy-ens-dao-reserved-limited')
   .addOptionalParam('ens', 'ens')
   .addOptionalParam('resolver', 'resolver')
   .addOptionalParam('nameWrapper', 'nameWrapper')

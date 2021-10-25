@@ -8,12 +8,12 @@ import {
   EthRegistrar,
   ReverseRegistrar,
   PublicResolver,
-  ENSDaoRegistrarPresetReservedLimited,
+  ENSDaoRegistrar,
   ENSDaoToken,
 } from '../types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
-import { increaseTime, expectEvent, evmSnapshot, evmRevert } from './helpers';
+import { expectEvent, evmSnapshot, evmRevert } from './helpers';
 import { DeployedEnsDao, DeployedEns } from '../tasks';
 
 describe('ENS DAO Registrar - Without Name Wrapper', () => {
@@ -33,7 +33,7 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
   let registry: ENSRegistry;
   let publicResolver: PublicResolver;
   let ensDaoToken: ENSDaoToken;
-  let ensDaoRegistrar: ENSDaoRegistrarPresetReservedLimited;
+  let ensDaoRegistrar: ENSDaoRegistrar;
   let ens: ENS;
 
   let ownerSigner: SignerWithAddress;
@@ -79,59 +79,17 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
     snapshotId = await evmSnapshot(HRE);
   });
 
-  describe('when the reservation period is not over', () => {
-    it(`user can register a <domain>.${sismoLabel}.eth if <domain>.eth is owned by same account`, async () => {
-      await registrar.register(getLabelhash(label), signer1.address, year);
+  it(`user can register any <domain>.${sismoLabel}.eth`, async () => {
+    await registrar.register(getLabelhash(label), signer1.address, year);
 
-      const tx = await ensDaoRegistrar.connect(signer1).register(label);
-      expectEvent(
-        await tx.wait(),
-        'NameRegistered',
-        (args) =>
-          args.owner === signer1.address && args.id.toHexString() === node
-      );
-      expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
-      expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer1.address);
-    });
-    it(`user can register a <domain>.${sismoLabel}.eth if <domain>.eth is free`, async () => {
-      const tx = await ensDaoRegistrar.connect(signer1).register(label);
-      expectEvent(
-        await tx.wait(),
-        'NameRegistered',
-        (args) =>
-          args.owner === signer1.address && args.id.toHexString() === node
-      );
-      expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
-      expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer1.address);
-    });
-
-    it(`user can not register a <domain>.${sismoLabel}.eth if <domain>.eth is owned by another address`, async () => {
-      await registrar.register(getLabelhash(label), signer1.address, year);
-      await expect(
-        ensDaoRegistrar.connect(signer2).register(label)
-      ).to.be.revertedWith('ENS_DAO_REGISTRAR_RESERVED: SUBDOMAIN_RESERVED');
-    });
-  });
-
-  describe('when the reservation is over', () => {
-    beforeEach(async () => {
-      const reservationDuration = await ensDaoRegistrar._reservationDuration();
-      await increaseTime(HRE, reservationDuration.toNumber() + 5);
-    });
-
-    it(`user can register any <domain>.${sismoLabel}.eth`, async () => {
-      await registrar.register(getLabelhash(label), signer1.address, year);
-
-      const tx = await ensDaoRegistrar.connect(signer2).register(label);
-      expectEvent(
-        await tx.wait(),
-        'NameRegistered',
-        (args) =>
-          args.owner === signer2.address && args.id.toHexString() === node
-      );
-      expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
-      expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer2.address);
-    });
+    const tx = await ensDaoRegistrar.connect(signer2).register(label);
+    expectEvent(
+      await tx.wait(),
+      'NameRegistered',
+      (args) => args.owner === signer2.address && args.id.toHexString() === node
+    );
+    expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
+    expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer2.address);
   });
 
   it(`user can not register an already registered subdomain`, async () => {
@@ -169,47 +127,6 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
     expect(await ensDaoToken.ownerOf(otherNode)).to.be.equal(
       ownerSigner.address
     );
-  });
-
-  describe('max number of emission limitation', () => {
-    it('user can not register once the max emission number is reached', async () => {
-      const otherLabel = 'second';
-      await ensDaoRegistrar.connect(signer1).register(label);
-
-      const registrationNumber = await ensDaoRegistrar._counter();
-      const tx = await ensDaoRegistrar.updateRegistrationLimit(
-        registrationNumber.toString()
-      );
-
-      const receipt = await tx.wait();
-
-      expectEvent(
-        receipt,
-        'RegistrationLimitUpdated',
-        (args) =>
-          args.registrationLimit.toString() === registrationNumber.toString()
-      );
-
-      await expect(ensDaoRegistrar.register(otherLabel)).to.be.revertedWith(
-        'ENS_DAO_REGISTRAR_LIMITED: REGISTRATION_LIMIT_REACHED'
-      );
-    });
-
-    it('user can not update the max emission number if not owner', async () => {
-      await expect(
-        ensDaoRegistrar.connect(signer1).updateRegistrationLimit('100')
-      ).to.be.revertedWith('Ownable: caller is not the owner');
-    });
-
-    it('owner can not decrease the max emission number lower than the current supply', async () => {
-      await ensDaoRegistrar.connect(signer1).register(label);
-      const totalSupply = await ensDaoToken.totalSupply();
-      await expect(
-        ensDaoRegistrar.updateRegistrationLimit(totalSupply.sub(1).toString())
-      ).to.be.revertedWith(
-        'ENS_DAO_REGISTRAR_LIMITED: NEW_REGISTRATION_LIMIT_TOO_LOW'
-      );
-    });
   });
 
   describe('root domain ownership', () => {
