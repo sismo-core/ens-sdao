@@ -8,7 +8,7 @@ import {IENSDaoRegistrar} from '../IENSDaoRegistrar.sol';
  */
 interface IENSDaoRegistrarClaimable is IENSDaoRegistrar {
   /**
-   * @notice Update registration limit.
+   * @notice Claim a booked name.
    * @param label The label to register.
    * @param account The address that will receive the subdomain and the DAO token.
    */
