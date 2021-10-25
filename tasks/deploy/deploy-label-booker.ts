@@ -17,7 +17,7 @@ type DeployLabelBooker = {
 };
 
 export type DeployedLabelBooker = {
-  ensDaoLabelBooker: ENSLabelBooker;
+  ensLabelBooker: ENSLabelBooker;
 };
 
 async function deploiementAction(
@@ -37,7 +37,7 @@ async function deploiementAction(
     args: [ens, node, owner],
   });
 
-  const ensDaoLabelBooker = ENSLabelBooker__factory.connect(
+  const ensLabelBooker = ENSLabelBooker__factory.connect(
     deployedLabelBooker.address,
     deployer
   );
@@ -47,7 +47,7 @@ async function deploiementAction(
   }
 
   return {
-    ensDaoLabelBooker,
+    ensLabelBooker,
   };
 }
 

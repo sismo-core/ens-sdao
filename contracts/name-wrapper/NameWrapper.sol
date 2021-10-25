@@ -3,8 +3,8 @@ pragma solidity ^0.8.4;
 
 import './ERC1155Fuse.sol';
 import './Controllable.sol';
-import '../interfaces/INameWrapper.sol';
-import '../interfaces/IMetadataService.sol';
+import './INameWrapper.sol';
+import './IMetadataService.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import '@ensdomains/ens-contracts/contracts/ethregistrar/BaseRegistrar.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';

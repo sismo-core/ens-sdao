@@ -20,10 +20,6 @@ interface IENSDaoRegistrar is IERC1155Receiver {
    * @dev Emitted when the root node ownership is conceded to the DAO owner.
    */
   event OwnershipConceded(address indexed owner);
-  /**
-   * @dev Emitted when the max emission number is updated.
-   */
-  event MaxEmissionNumberUpdated(uint256 maxEmissionNumber);
 
   /**
    * @notice Register a name and mints a DAO token.
@@ -39,11 +35,4 @@ interface IENSDaoRegistrar is IERC1155Receiver {
    * Emits a {OwnershipConceded} event.
    */
   function giveBackDomainOwnership() external;
-
-  /**
-   * @notice Update max emission number.
-   *
-   * Emits a {MaxEmissionNumberUpdated} event.
-   */
-  function updateMaxEmissionNumber(uint256 emissionNumber) external;
 }

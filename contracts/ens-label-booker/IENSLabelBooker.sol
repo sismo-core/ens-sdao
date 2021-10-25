@@ -31,66 +31,68 @@ interface IENSLabelBooker {
 
   /**
    * @notice Get the address of a booking.
-   * @param label The booked label.
+   * @param labelHash The hash of the label, ID of the book.
    * @return The address associated to the booking
    */
-  function getBooking(string memory label) external view returns (address);
+  function getBooking(bytes32 labelHash) external view returns (address);
 
   /**
    * @notice Book a name.
-   * @param label The label to book.
+   * @param labelHash The hash of the label to book.
    * @param bookingAddress The address associated to the booking.
    *
    * Emits a {NameBooked} event.
    */
-  function book(string memory label, address bookingAddress) external;
+  function book(bytes32 labelHash, address bookingAddress) external;
 
   /**
    * @notice Books a list of names.
-   * @param labels The list of label to book.
+   * @param labelHashes The list of the hashes of the labels to book.
    * @param bookingAddresses The list of addresses associated to the bookings.
    *
    * Emits a {NameBooked} event for each booking.
    */
-  function batchBook(string[] memory labels, address[] memory bookingAddresses)
-    external;
+  function batchBook(
+    bytes32[] memory labelHashes,
+    address[] memory bookingAddresses
+  ) external;
 
   /**
    * @notice Update a booking.
-   * @param label The booked label.
+   * @param labelHash The hash of the label, ID of the book.
    * @param bookingAddress The new address associated to the booking.
    *
    * Emits a {BookingUpdated} event.
    */
-  function updateBooking(string memory label, address bookingAddress) external;
+  function updateBooking(bytes32 labelHash, address bookingAddress) external;
 
   /**
    * @notice Update a list of bookings.
-   * @param labels The list of labels of the bookings.
+   * @param labelHashes The list of hashes of the labels of the bookings.
    * @param bookingAddresses The list of new addresses associated to the bookings.
    *
    * Emits a {BookingUpdated} event for each updated booking.
    */
   function batchUpdateBooking(
-    string[] memory labels,
+    bytes32[] memory labelHashes,
     address[] memory bookingAddresses
   ) external;
 
   /**
    * @notice Delete a booking.
-   * @param label The booked label.
+   * @param labelHash The hash of the label, ID of the book.
    *
    * Emits a {BookingDeleted} event.
    */
-  function deleteBooking(string memory label) external;
+  function deleteBooking(bytes32 labelHash) external;
 
   /**
    * @notice Delete a list of bookings.
-   * @param labels The list of labels of the bookings.
+   * @param labelHashes The list of the hashes of the labels of the bookings.
    *
    * Emits a {BookingDeleted} event for each deleted booking.
    */
-  function batchDeleteBooking(string[] memory labels) external;
+  function batchDeleteBooking(bytes32[] memory labelHashes) external;
 
   /**
    * @notice Set the registrar, that can use this lib.
