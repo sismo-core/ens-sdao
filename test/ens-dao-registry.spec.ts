@@ -53,6 +53,7 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
       resolver: publicResolver.address,
       nameWrapper: ethers.constants.AddressZero,
       reverseRegistrar: reverseRegistrar.address,
+      ticketGroupLimit: 2,
     });
     ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
 

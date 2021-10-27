@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "compile": "SKIP_LOAD=true hardhat compile",
+    "test:ens-dao-limited-ticketable": "hardhat test ./test/ens-dao-limited-ticketable.spec.ts",
     "test:ens-dao-claimable": "hardhat test ./test/ens-dao-claimable.spec.ts",
     "test:ens-dao-name-wrapper": "hardhat test ./test/ens-dao-name-wrapper.spec.ts",
     "test:ens-dao-registry": "hardhat test ./test/ens-dao-registry.spec.ts",
@@ -12,7 +13,9 @@
     "test:ens-label-booker": "hardhat test ./test/ens-label-booker.spec.ts",
     "test:ens-registry": "hardhat test ./test/ens-registry.spec.ts",
     "test:name-wrapper": "hardhat test ./test/name-wrapper.spec.ts",
-    "test": "npm run test:ens-dao-claimable && npm run test:ens-dao-name-wrapper && npm run test:ens-dao-registry && npm run test:ens-dao-reserved-limited  && npm run test:ens-label-booker && npm run test:ens-registry && npm run test:name-wrapper",
+    "test:ticket-manager": "hardhat test ./test/ticket-manager.spec.ts",
+    "test:secret": "hardhat test ./test/secret.spec.ts",
+    "test": "npm run test:ens-dao-limited-ticketable && npm run test:ens-dao-claimable && npm run test:ens-dao-name-wrapper && npm run test:ens-dao-registry && npm run test:ens-dao-reserved-limited  && npm run test:ens-label-booker && npm run test:ens-registry && npm run test:name-wrapper && npm run test:ticket-manager",
     "format": "pretty-quick --pattern 'contracts/**/*.sol' --pattern 'libs/**/*.ts'  --pattern 'test/**/*.ts' --pattern 'tasks/**/*.ts' --pattern 'server/**/*.ts'"
   },
   "keywords": [],

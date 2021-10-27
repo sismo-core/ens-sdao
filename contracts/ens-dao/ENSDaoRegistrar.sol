@@ -1,10 +1,10 @@
 pragma solidity >=0.8.4;
 
-import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
-import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
-import '../name-wrapper/NameWrapper.sol';
-import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
+import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
+import {NameWrapper} from '../name-wrapper/NameWrapper.sol';
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import {ENSDaoToken} from './ENSDaoToken.sol';
 import {IENSDaoRegistrar} from './IENSDaoRegistrar.sol';
@@ -27,6 +27,8 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   string NAME;
   bytes32 public constant ETH_NODE =
     keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
+
+  uint256 constant DAY_IN_SECONDS = 86400;
 
   /**
    * @dev Constructor.
@@ -62,8 +64,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
    * @dev Can only be called if and only if
    *  - the subdomain of the root node is free,
    *  - sender does not already have a DAO token OR sender is the owner,
-   *  - still in the reservation period, the associated .eth subdomain is free OR owned by the sender,
-   *  - the maximum number of emissions has not been reached.
+   *  - still in the reservation period, the associated .eth subdomain is free OR owned by the sender.
    * @param label The label to register.
    */
   function register(string memory label) public virtual override {
@@ -91,7 +92,8 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
    *      Can only be called if and only if
    *        - the maximum number of emissions has not been reached,
    *        - the subdomain is free to be registered,
-   *        - the destination address does not alreay own a subdomain or the sender is the owner
+   *        - the destination address does not alreay own a subdomain or the sender is the owner,
+   *        - the maximum number of emissions has not been reached.
    * @param account The address that will receive the subdomain and the DAO token.
    * @param label The label to register.
    * @param labelHash The hash of the label to register, given as input because of parent computation.

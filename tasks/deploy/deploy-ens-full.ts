@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { getDeployer, logHre } from '../helpers';
+import { getDeployer, logHre } from '../utils';
 import {
   ENSDeployer__factory,
   ENSRegistry__factory,

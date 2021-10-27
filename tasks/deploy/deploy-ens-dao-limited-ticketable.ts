@@ -5,15 +5,13 @@ import { ethers } from 'ethers';
 import nameHash from 'eth-ens-namehash';
 import { getDeployer, logHre } from '../utils';
 import {
-  ENSDaoRegistrarPresetClaimable,
-  ENSDaoRegistrarPresetClaimable__factory,
+  ENSDaoRegistrarPresetLimitedTicketable__factory,
+  ENSDaoRegistrarPresetLimitedTicketable,
   ENSDaoToken,
   ENSDaoToken__factory,
-  ENSLabelBooker,
 } from '../../types';
-import { DeployedLabelBooker } from '.';
 
-type DeployEnsDaoClaimableArgs = {
+type DeployEnsDaoLimitedTicketableArgs = {
   // ENS Registry address
   ens: string;
   // Public Resolver address
@@ -26,13 +24,14 @@ type DeployEnsDaoClaimableArgs = {
   symbol: string;
   // owner address of the contracts
   owner?: string;
+  // limit of registrations
+  registrationLimit?: number;
   // enabling logging
   log?: boolean;
 };
 
-export type DeployedEnsDaoClaimable = {
-  ensDaoRegistrar: ENSDaoRegistrarPresetClaimable;
-  ensLabelBooker: ENSLabelBooker;
+export type DeployedEnsDaoLimitedTicketable = {
+  ensDaoRegistrar: ENSDaoRegistrarPresetLimitedTicketable;
   ensDaoToken: ENSDaoToken;
 };
 
@@ -44,10 +43,11 @@ async function deploiementAction(
     name = 'sismo',
     symbol = 'SDAO',
     owner: optionalOwner,
+    registrationLimit = 500,
     log,
-  }: DeployEnsDaoClaimableArgs,
+  }: DeployEnsDaoLimitedTicketableArgs,
   hre: HardhatRuntimeEnvironment
-): Promise<DeployedEnsDaoClaimable> {
+): Promise<DeployedEnsDaoLimitedTicketable> {
   if (log) await logHre(hre);
 
   const deployer = await getDeployer(hre, log);
@@ -56,22 +56,12 @@ async function deploiementAction(
 
   const node = nameHash.hash(`${name}.eth`);
 
-  const { ensLabelBooker }: DeployedLabelBooker = await hre.run(
-    'deploy-label-booker',
-    {
-      ens,
-      name,
-      owner,
-      log,
-    }
-  );
-
   const deployedDaoToken = await hre.deployments.deploy('ENSDaoToken', {
     from: deployer.address,
     args: [`${name}.eth DAO`, symbol, 'https://tokens.sismo.io/', owner],
   });
   const deployedRegistrar = await hre.deployments.deploy(
-    'ENSDaoRegistrarPresetClaimable',
+    'ENSDaoRegistrarPresetLimitedTicketable',
     {
       from: deployer.address,
       args: [
@@ -82,15 +72,19 @@ async function deploiementAction(
         node,
         name,
         owner,
-        ensLabelBooker.address,
+        'Sismo App',
+        '1.0',
+        1,
+        registrationLimit,
       ],
     }
   );
 
-  const ensDaoRegistrar = ENSDaoRegistrarPresetClaimable__factory.connect(
-    deployedRegistrar.address,
-    deployer
-  );
+  const ensDaoRegistrar =
+    ENSDaoRegistrarPresetLimitedTicketable__factory.connect(
+      deployedRegistrar.address,
+      deployer
+    );
   const ensDaoToken = ENSDaoToken__factory.connect(
     deployedDaoToken.address,
     deployer
@@ -98,8 +92,6 @@ async function deploiementAction(
 
   // Allow the ENS DAO Token to be minted by the deployed ENS DAO Registrar
   await (await ensDaoToken.setMinter(ensDaoRegistrar.address)).wait();
-  // Set the registrar for the ENS Label Booker
-  await (await ensLabelBooker.setRegistrar(ensDaoRegistrar.address)).wait();
 
   if (log) {
     console.log(`Deployed ENS DAO Token: ${deployedDaoToken.address}`);
@@ -109,11 +101,10 @@ async function deploiementAction(
   return {
     ensDaoRegistrar,
     ensDaoToken,
-    ensLabelBooker,
   };
 }
 
-task('deploy-ens-dao-claimable')
+task('deploy-ens-dao-limited-ticketable')
   .addOptionalParam('ens', 'ens')
   .addOptionalParam('resolver', 'resolver')
   .addOptionalParam('nameWrapper', 'nameWrapper')
