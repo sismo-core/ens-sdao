@@ -13,8 +13,7 @@
     "test:ens-label-booker": "hardhat test ./test/ens-label-booker.spec.ts",
     "test:ens-registry": "hardhat test ./test/ens-registry.spec.ts",
     "test:name-wrapper": "hardhat test ./test/name-wrapper.spec.ts",
-    "test:ticket-manager": "hardhat test ./test/ticket-manager.spec.ts",
-    "test": "npm run test:ens-dao-limited-ticketable && npm run test:ens-dao-claimable && npm run test:ens-dao-name-wrapper && npm run test:ens-dao-registry && npm run test:ens-dao-reserved-limited  && npm run test:ens-label-booker && npm run test:ens-registry && npm run test:name-wrapper && npm run test:ticket-manager",
+    "test": "npm run test:ens-dao-limited-ticketable && npm run test:ens-dao-claimable && npm run test:ens-dao-name-wrapper && npm run test:ens-dao-registry && npm run test:ens-dao-reserved-limited  && npm run test:ens-label-booker && npm run test:ens-registry && npm run test:name-wrapper",
     "format": "pretty-quick --pattern 'contracts/**/*.sol' --pattern 'libs/**/*.ts'  --pattern 'test/**/*.ts' --pattern 'tasks/**/*.ts' --pattern 'server/**/*.ts'"
   },
   "keywords": [],
