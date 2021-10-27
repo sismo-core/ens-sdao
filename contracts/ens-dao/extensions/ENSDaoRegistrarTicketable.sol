@@ -38,20 +38,18 @@ abstract contract ENSDaoRegistrarTicketable is
    * @dev Constructor.
    * @param name The name field of the EIP712 Domain.
    * @param version The version field of the EIP712 Domain.
-   * @param chainId The chainId field of the EIP712 Domain.
    * @param registrationLimit The limit of registration number.
    */
   constructor(
     string memory name,
     string memory version,
-    uint256 chainId,
     uint256 registrationLimit
   ) ENSDaoRegistrarLimited(registrationLimit) {
     DOMAIN_SEPARATOR = _hash(
       EIP712Domain({
         name: name,
         version: version,
-        chainId: chainId,
+        chainId: block.chainid,
         verifyingContract: address(this)
       })
     );

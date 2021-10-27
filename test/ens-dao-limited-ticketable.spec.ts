@@ -34,6 +34,9 @@ describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
   const getLabelhash = (label: string) =>
     utils.keccak256(utils.toUtf8Bytes(label));
 
+  const domainName = 'Sismo App';
+  const domainVersion = '1.0';
+
   let registrar: EthRegistrar;
   let reverseRegistrar: ReverseRegistrar;
   let registry: ENSRegistry;
@@ -50,8 +53,12 @@ describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
 
   let ticket: SignedTicket;
   let groupId: number;
+  let chainId: number;
 
   before(async () => {
+    groupId = await getWeeklyGroupId(HRE);
+    chainId = Number(await HRE.getChainId());
+
     const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
     ({ registry, reverseRegistrar, publicResolver, registrar } = deployedENS);
 
@@ -64,6 +71,9 @@ describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
         resolver: publicResolver.address,
         nameWrapper: ethers.constants.AddressZero,
         reverseRegistrar: reverseRegistrar.address,
+        domainName,
+        domainVersion,
+        initialGroupId: groupId,
       }
     );
     ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
@@ -85,15 +95,14 @@ describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
 
     snapshotId = await evmSnapshot(HRE);
 
-    groupId = await getWeeklyGroupId(HRE);
     ticket = await generateEIP712Ticket({
       signer: ownerSigner,
       recipient: signer1.address,
       groupId,
       verifyingContract: ensDaoRegistrar.address,
-      name: 'Sismo App',
-      version: '1.0',
-      chainId: 1,
+      name: domainName,
+      version: domainVersion,
+      chainId,
     });
   });
 
@@ -155,9 +164,9 @@ describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
       recipient: signer1.address,
       groupId: groupId - 1,
       verifyingContract: ensDaoRegistrar.address,
-      name: 'Sismo App',
-      version: '1.0',
-      chainId: 1,
+      name: domainName,
+      version: domainVersion,
+      chainId,
     });
     await expect(
       ensDaoRegistrar

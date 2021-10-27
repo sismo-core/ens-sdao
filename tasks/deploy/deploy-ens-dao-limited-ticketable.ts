@@ -24,9 +24,15 @@ type DeployEnsDaoLimitedTicketableArgs = {
   symbol: string;
   // owner address of the contracts
   owner?: string;
-  // limit of registrations
+  // Limit of registrations
   registrationLimit?: number;
-  // enabling logging
+  // Name field of the EIP712 Domain
+  domainName?: string;
+  // Version field of the EIP712 Domain
+  domainVersion?: string;
+  // Initial group ID
+  initialGroupId: number;
+  // Enabling logging
   log?: boolean;
 };
 
@@ -44,6 +50,9 @@ async function deploiementAction(
     symbol = 'SDAO',
     owner: optionalOwner,
     registrationLimit = 500,
+    domainName = 'Sismo App',
+    domainVersion = '1.0',
+    initialGroupId,
     log,
   }: DeployEnsDaoLimitedTicketableArgs,
   hre: HardhatRuntimeEnvironment
@@ -72,10 +81,10 @@ async function deploiementAction(
         node,
         name,
         owner,
-        'Sismo App',
-        '1.0',
-        1,
+        domainName,
+        domainVersion,
         registrationLimit,
+        initialGroupId,
       ],
     }
   );
