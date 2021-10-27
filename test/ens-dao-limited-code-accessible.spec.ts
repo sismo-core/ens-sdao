@@ -9,20 +9,20 @@ import {
   ReverseRegistrar,
   PublicResolver,
   ENSDaoToken,
-  ENSDaoRegistrarPresetLimitedTicketable,
+  ENSDaoRegistrarPresetLimitedCodeAccessible,
 } from '../types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
 import { expectEvent, evmSnapshot, evmRevert } from './helpers';
 import {
   DeployedEns,
-  DeployedEnsDaoLimitedTicketable,
-  generateEIP712Ticket,
+  DeployedEnsDaoLimitedCodeAccessible,
+  generateEIP712AccessCode,
   getWeeklyGroupId,
-  SignedTicket,
+  WrappedAccessCode,
 } from '../tasks';
 
-describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
+describe('ENS DAO Registrar - Limited Code Accessible Preset', () => {
   const utils = ethers.utils;
   const year = 365 * 24 * 60 * 60;
   const sismoLabel = 'sismo';
@@ -42,7 +42,7 @@ describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
   let registry: ENSRegistry;
   let publicResolver: PublicResolver;
   let ensDaoToken: ENSDaoToken;
-  let ensDaoRegistrar: ENSDaoRegistrarPresetLimitedTicketable;
+  let ensDaoRegistrar: ENSDaoRegistrarPresetLimitedCodeAccessible;
   let ens: ENS;
 
   let ownerSigner: SignerWithAddress;
@@ -51,7 +51,7 @@ describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
 
   let snapshotId: string;
 
-  let ticket: SignedTicket;
+  let wrappedAccessCode: WrappedAccessCode;
   let groupId: number;
   let chainId: number;
 
@@ -62,8 +62,8 @@ describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
     const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
     ({ registry, reverseRegistrar, publicResolver, registrar } = deployedENS);
 
-    const deployedEnsDao: DeployedEnsDaoLimitedTicketable = await HRE.run(
-      'deploy-ens-dao-limited-ticketable',
+    const deployedEnsDao: DeployedEnsDaoLimitedCodeAccessible = await HRE.run(
+      'deploy-ens-dao-limited-code-accessible',
       {
         name: sismoLabel,
         symbol: 'SISMO',
@@ -95,7 +95,7 @@ describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
 
     snapshotId = await evmSnapshot(HRE);
 
-    ticket = await generateEIP712Ticket({
+    wrappedAccessCode = await generateEIP712AccessCode({
       signer: ownerSigner,
       recipient: signer1.address,
       groupId,
@@ -111,33 +111,35 @@ describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
     snapshotId = await evmSnapshot(HRE);
   });
 
-  it('user is able to register with a valid ticket', async () => {
+  it('user is able to register with a valid access code', async () => {
     const tx = await ensDaoRegistrar
       .connect(signer1)
-      .registerWithTicket(label, ticket.signature);
+      .registerWithAccessCode(label, wrappedAccessCode.accessCode);
     expectEvent(
       await tx.wait(),
-      'TicketConsumed',
+      'AccessCodeConsumed',
       (args) =>
         args.groupId.toNumber() === groupId &&
-        args.signedTicked === ticket.signature
+        args.signedTicked === wrappedAccessCode.accessCode
     );
     expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
     expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer1.address);
-    expect(await ensDaoRegistrar._consumed(ticket.digest)).to.equal(true);
+    expect(await ensDaoRegistrar._consumed(wrappedAccessCode.digest)).to.equal(
+      true
+    );
   });
 
-  it('user is able to register with a valid ticket when the registration limit is reached', async () => {
+  it('user is able to register with a valid access code when the registration limit is reached', async () => {
     await ensDaoRegistrar.updateRegistrationLimit(0);
     const tx = await ensDaoRegistrar
       .connect(signer1)
-      .registerWithTicket(label, ticket.signature);
+      .registerWithAccessCode(label, wrappedAccessCode.accessCode);
     expectEvent(
       await tx.wait(),
-      'TicketConsumed',
+      'AccessCodeConsumed',
       (args) =>
         args.groupId.toNumber() === groupId &&
-        args.signedTicked === ticket.signature
+        args.signedTicked === wrappedAccessCode.accessCode
     );
     expectEvent(
       await tx.wait(),
@@ -148,18 +150,18 @@ describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
     expect(updatedRegistrationLimit.toNumber()).to.equal(1);
   });
 
-  it('user is not able to register with a ticket signed for another address', async () => {
+  it('user is not able to register with a access code signed for another address', async () => {
     await expect(
       ensDaoRegistrar
         .connect(signer2)
-        .registerWithTicket(label, ticket.signature)
+        .registerWithAccessCode(label, wrappedAccessCode.accessCode)
     ).to.be.revertedWith(
-      'ENS_DAO_REGISTRAR_TICKETABLE: INVALID_TICKET OR INVALID_SENDER'
+      'ENS_DAO_REGISTRAR_LIMITED_CODE_ACCESSIBLE: INVALID_ACCESS_CODE OR INVALID_SENDER'
     );
   });
 
-  it('user is not able to register with an outdated ticket', async () => {
-    const ticket = await generateEIP712Ticket({
+  it('user is not able to register with an outdated access code', async () => {
+    const wrappedAccessCode = await generateEIP712AccessCode({
       signer: ownerSigner,
       recipient: signer1.address,
       groupId: groupId - 1,
@@ -171,22 +173,22 @@ describe('ENS DAO Registrar - Limited Ticketable Preset', () => {
     await expect(
       ensDaoRegistrar
         .connect(signer2)
-        .registerWithTicket(label, ticket.signature)
+        .registerWithAccessCode(label, wrappedAccessCode.accessCode)
     ).to.be.revertedWith(
-      'ENS_DAO_REGISTRAR_TICKETABLE: INVALID_TICKET OR INVALID_SENDER'
+      'ENS_DAO_REGISTRAR_LIMITED_CODE_ACCESSIBLE: INVALID_ACCESS_CODE OR INVALID_SENDER'
     );
   });
 
-  it('user is not able to register with an already consumed ticket', async () => {
+  it('user is not able to register with an already consumed access code', async () => {
     await ensDaoRegistrar
       .connect(signer1)
-      .registerWithTicket(label, ticket.signature);
+      .registerWithAccessCode(label, wrappedAccessCode.accessCode);
     await expect(
       ensDaoRegistrar
         .connect(signer1)
-        .registerWithTicket(label, ticket.signature)
+        .registerWithAccessCode(label, wrappedAccessCode.accessCode)
     ).to.be.revertedWith(
-      'ENS_DAO_REGISTRAR_TICKETABLE: TICKET_ALREADY_CONSUMED'
+      'ENS_DAO_REGISTRAR_LIMITED_CODE_ACCESSIBLE: ACCESS_CODE_ALREADY_CONSUMED'
     );
   });
 });

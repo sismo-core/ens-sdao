@@ -1,17 +1,21 @@
 import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { getWeeklyGroupId, SignedTicket, generateEIP712Ticket } from '../utils';
+import {
+  getWeeklyGroupId,
+  WrappedAccessCode,
+  generateEIP712AccessCode,
+} from '../utils';
 import { getDeployer, logHre } from '../utils/hre-utils';
 
-type GenerateTicketsArgs = {
+type GenerateAccessCodesArgs = {
   addresses?: string;
   contract?: string;
   log?: boolean;
 };
 
-type GeneratedTickets = SignedTicket[];
+type GeneratedAccessCodes = WrappedAccessCode[];
 
-// ###### To be filled by ticket signer ######
+// ###### To be filled by signer ######
 
 // To be filled with needed addresses
 const defaultAddresses: string[] = [];
@@ -32,12 +36,12 @@ async function action(
     addresses: rawAddresses = defaultRawAddresses,
     contract: verifyingContract = defaultVerifyingContract,
     log,
-  }: GenerateTicketsArgs,
+  }: GenerateAccessCodesArgs,
   hre: HardhatRuntimeEnvironment
-): Promise<GeneratedTickets> {
+): Promise<GeneratedAccessCodes> {
   if (log) await logHre(hre);
 
-  const ticketSigner = await getDeployer(hre, log);
+  const signer = await getDeployer(hre, log);
 
   let addresses: string[];
   try {
@@ -55,10 +59,10 @@ async function action(
 
   const groupId = await getWeeklyGroupId(hre);
 
-  const tickets = await Promise.all(
+  const wrappedAccessCodes = await Promise.all(
     addresses.map((address) =>
-      generateEIP712Ticket({
-        signer: ticketSigner,
+      generateEIP712AccessCode({
+        signer,
         recipient: address,
         groupId,
         verifyingContract,
@@ -70,16 +74,16 @@ async function action(
   );
 
   if (log) {
-    console.log('Tickets: ', tickets);
+    console.log('Wrapped Access Codes: ', wrappedAccessCodes);
   }
 
-  return tickets;
+  return wrappedAccessCodes;
 }
 
-task('generate-tickets')
+task('generate-access-codes')
   .addOptionalParam(
     'addresses',
-    'array of ticket addresses for generating named tickets'
+    'array of addresses for generating named access codes'
   )
   .addOptionalParam('contract', 'verifying contract address')
   .addFlag('log', 'log')

@@ -6,12 +6,12 @@ import '../../name-wrapper/NameWrapper.sol';
 import {ENSDaoToken} from '../ENSDaoToken.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
 import {ENSDaoRegistrarLimited} from '../extensions/ENSDaoRegistrarLimited.sol';
-import {ENSDaoRegistrarTicketable} from '../extensions/ENSDaoRegistrarTicketable.sol';
+import {ENSDaoRegistrarLimitedCodeAccessible} from '../extensions/ENSDaoRegistrarLimitedCodeAccessible.sol';
 
-contract ENSDaoRegistrarPresetLimitedTicketable is
+contract ENSDaoRegistrarPresetLimitedCodeAccessible is
   ENSDaoRegistrar,
   ENSDaoRegistrarLimited,
-  ENSDaoRegistrarTicketable
+  ENSDaoRegistrarLimitedCodeAccessible
 {
   uint256 public _groupId;
 
@@ -44,7 +44,7 @@ contract ENSDaoRegistrarPresetLimitedTicketable is
     uint256 registrationLimit,
     uint256 groupId
   )
-    ENSDaoRegistrarTicketable(domainName, domainVersion)
+    ENSDaoRegistrarLimitedCodeAccessible(domainName, domainVersion)
     ENSDaoRegistrarLimited(registrationLimit)
     ENSDaoRegistrar(ensAddr, resolver, nameWrapper, daoToken, node, name, owner)
   {

@@ -4,4 +4,4 @@ export * from './deploy-namewrapper-and-resolver';
 export * from './deploy-label-booker';
 export * from './deploy-ens-dao-claimable';
 export * from './deploy-ens-dao-reserved-limited';
-export * from './deploy-ens-dao-limited-ticketable';
+export * from './deploy-ens-dao-limited-code-accessible';

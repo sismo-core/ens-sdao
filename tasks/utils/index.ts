@@ -1,2 +1,2 @@
 export * from './hre-utils';
-export * from './ticket';
+export * from './access-code';

@@ -5,13 +5,13 @@ import { ethers } from 'ethers';
 import nameHash from 'eth-ens-namehash';
 import { getDeployer, logHre } from '../utils';
 import {
-  ENSDaoRegistrarPresetLimitedTicketable__factory,
-  ENSDaoRegistrarPresetLimitedTicketable,
+  ENSDaoRegistrarPresetLimitedCodeAccessible__factory,
+  ENSDaoRegistrarPresetLimitedCodeAccessible,
   ENSDaoToken,
   ENSDaoToken__factory,
 } from '../../types';
 
-type DeployEnsDaoLimitedTicketableArgs = {
+type DeployEnsDaoLimitedCodeAccessibleArgs = {
   // ENS Registry address
   ens: string;
   // Public Resolver address
@@ -36,8 +36,8 @@ type DeployEnsDaoLimitedTicketableArgs = {
   log?: boolean;
 };
 
-export type DeployedEnsDaoLimitedTicketable = {
-  ensDaoRegistrar: ENSDaoRegistrarPresetLimitedTicketable;
+export type DeployedEnsDaoLimitedCodeAccessible = {
+  ensDaoRegistrar: ENSDaoRegistrarPresetLimitedCodeAccessible;
   ensDaoToken: ENSDaoToken;
 };
 
@@ -54,9 +54,9 @@ async function deploiementAction(
     domainVersion = '1.0',
     initialGroupId,
     log,
-  }: DeployEnsDaoLimitedTicketableArgs,
+  }: DeployEnsDaoLimitedCodeAccessibleArgs,
   hre: HardhatRuntimeEnvironment
-): Promise<DeployedEnsDaoLimitedTicketable> {
+): Promise<DeployedEnsDaoLimitedCodeAccessible> {
   if (log) await logHre(hre);
 
   const deployer = await getDeployer(hre, log);
@@ -70,7 +70,7 @@ async function deploiementAction(
     args: [`${name}.eth DAO`, symbol, 'https://tokens.sismo.io/', owner],
   });
   const deployedRegistrar = await hre.deployments.deploy(
-    'ENSDaoRegistrarPresetLimitedTicketable',
+    'ENSDaoRegistrarPresetLimitedCodeAccessible',
     {
       from: deployer.address,
       args: [
@@ -90,7 +90,7 @@ async function deploiementAction(
   );
 
   const ensDaoRegistrar =
-    ENSDaoRegistrarPresetLimitedTicketable__factory.connect(
+    ENSDaoRegistrarPresetLimitedCodeAccessible__factory.connect(
       deployedRegistrar.address,
       deployer
     );
@@ -113,7 +113,7 @@ async function deploiementAction(
   };
 }
 
-task('deploy-ens-dao-limited-ticketable')
+task('deploy-ens-dao-limited-code-accessible')
   .addOptionalParam('ens', 'ens')
   .addOptionalParam('resolver', 'resolver')
   .addOptionalParam('nameWrapper', 'nameWrapper')

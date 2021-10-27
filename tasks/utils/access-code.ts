@@ -9,12 +9,12 @@ type EIP712Domain = {
   verifyingContract: string;
 };
 
-type Ticket = {
+type CodeOrigin = {
   recipient: string;
   groupId: number;
 };
 
-type GenerateEIP712Ticket = {
+type GenerateEIP712AccessCode = {
   signer: SignerWithAddress;
   recipient: string;
   groupId: number;
@@ -26,24 +26,25 @@ type GenerateEIP712Ticket = {
 
 type SolidityTypes = Record<string, { name: string; type: string }[]>;
 
-export type SignedTicket = {
+export type WrappedAccessCode = {
   domain: EIP712Domain;
-  ticket: Ticket;
+  origin: CodeOrigin;
   digest: string;
-  signature: string;
+  accessCode: string;
 };
 
-export const EIP712_TICKET_TYPES: SolidityTypes = {
-  Ticket: [
+export const EIP712_ACCESS_CODE_TYPES: SolidityTypes = {
+  CodeOrigin: [
     { name: 'recipient', type: 'address' },
     { name: 'groupId', type: 'uint256' },
   ],
 };
-export const encodedTicketType = 'Ticket(address recipient,uint256 groupId)';
+export const encodedCodeOriginType =
+  'CodeOrigin(address recipient,uint256 groupId)';
 export const encodedDomainType =
   'EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)';
 
-export async function generateEIP712Ticket({
+export async function generateEIP712AccessCode({
   signer,
   recipient,
   groupId,
@@ -51,35 +52,38 @@ export async function generateEIP712Ticket({
   name = 'Sismo App',
   version = '1.0',
   chainId = 1,
-}: GenerateEIP712Ticket): Promise<SignedTicket> {
+}: GenerateEIP712AccessCode): Promise<WrappedAccessCode> {
   const domain: EIP712Domain = {
     name,
     version,
     chainId,
     verifyingContract,
   };
-  const ticket: Ticket = {
+  const codeOrigin: CodeOrigin = {
     recipient,
     groupId,
   };
 
   const signature = await signer._signTypedData(
     domain,
-    EIP712_TICKET_TYPES,
-    ticket
+    EIP712_ACCESS_CODE_TYPES,
+    codeOrigin
   );
 
-  const digest = deriveTicketDigest(domain, ticket);
+  const digest = deriveCodeDigest(domain, codeOrigin);
 
   return {
     domain,
-    ticket,
-    signature,
+    origin: codeOrigin,
+    accessCode: signature,
     digest,
   };
 }
 
-function deriveTicketDigest(domain: EIP712Domain, ticket: Ticket): string {
+function deriveCodeDigest(
+  domain: EIP712Domain,
+  codeOrigin: CodeOrigin
+): string {
   const { solidityKeccak256, solidityPack, arrayify, defaultAbiCoder } =
     ethers.utils;
 
@@ -87,7 +91,7 @@ function deriveTicketDigest(domain: EIP712Domain, ticket: Ticket): string {
     return solidityKeccak256(['string'], [str]);
   };
 
-  const hashedTicketType = hashStr(encodedTicketType);
+  const hashedCodeOriginType = hashStr(encodedCodeOriginType);
   const hashedDomainType = hashStr(encodedDomainType);
 
   const hashedDomain = solidityKeccak256(
@@ -108,13 +112,13 @@ function deriveTicketDigest(domain: EIP712Domain, ticket: Ticket): string {
     ]
   );
 
-  const hashedTicket = solidityKeccak256(
+  const hashedCodeOrigin = solidityKeccak256(
     ['bytes'],
     [
       arrayify(
         defaultAbiCoder.encode(
           ['bytes32', 'address', 'uint256'],
-          [hashedTicketType, ticket.recipient, ticket.groupId]
+          [hashedCodeOriginType, codeOrigin.recipient, codeOrigin.groupId]
         )
       ),
     ]
@@ -122,7 +126,7 @@ function deriveTicketDigest(domain: EIP712Domain, ticket: Ticket): string {
 
   const packedDigest = solidityPack(
     ['string', 'bytes32', 'bytes32'],
-    ['\x19\x01', hashedDomain, hashedTicket]
+    ['\x19\x01', hashedDomain, hashedCodeOrigin]
   );
 
   const digest = solidityKeccak256(['bytes'], [arrayify(packedDigest)]);
