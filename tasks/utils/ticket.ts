@@ -48,8 +48,8 @@ export async function generateEIP712Ticket({
   recipient,
   groupId,
   verifyingContract,
-  name = 'Sismo',
-  version = '1',
+  name = 'Sismo App',
+  version = '1.0',
   chainId = 1,
 }: GenerateEIP712Ticket): Promise<SignedTicket> {
   const domain: EIP712Domain = {

@@ -12,10 +12,16 @@ type GenerateTicketsArgs = {
 type GeneratedTickets = SignedTicket[];
 
 // ###### To be filled by ticket signer ######
+
 // To be filled with needed addresses
 const defaultAddresses: string[] = [];
 
+// Address of the ENS DAO Registrar
 const defaultVerifyingContract = '';
+
+const defaultDomainName = 'Sismo App';
+const defaultDomainVersion = '1.0';
+const defaultChainId = 1;
 
 // ###### ###### ###### ###### ###### ###### ######
 
@@ -56,6 +62,9 @@ async function action(
         recipient: address,
         groupId,
         verifyingContract,
+        name: defaultDomainName,
+        version: defaultDomainVersion,
+        chainId: defaultChainId,
       })
     )
   );
