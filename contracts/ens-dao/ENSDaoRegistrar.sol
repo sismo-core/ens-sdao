@@ -28,8 +28,6 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   bytes32 public constant ETH_NODE =
     keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
 
-  uint256 constant DAY_IN_SECONDS = 86400;
-
   /**
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
