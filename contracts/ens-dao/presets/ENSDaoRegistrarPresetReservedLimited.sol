@@ -9,6 +9,7 @@ import {ENSDaoRegistrarLimited} from '../extensions/ENSDaoRegistrarLimited.sol';
 import {ENSDaoRegistrarReserved} from '../extensions/ENSDaoRegistrarReserved.sol';
 
 contract ENSDaoRegistrarPresetReservedLimited is
+  ENSDaoRegistrar,
   ENSDaoRegistrarLimited,
   ENSDaoRegistrarReserved
 {
@@ -43,7 +44,7 @@ contract ENSDaoRegistrarPresetReservedLimited is
   function _beforeRegistration(address account, bytes32 labelHash)
     internal
     virtual
-    override(ENSDaoRegistrarLimited, ENSDaoRegistrarReserved)
+    override(ENSDaoRegistrar, ENSDaoRegistrarLimited, ENSDaoRegistrarReserved)
   {
     super._beforeRegistration(account, labelHash);
   }

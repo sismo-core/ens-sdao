@@ -8,7 +8,11 @@ import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
 import {ENSDaoRegistrarLimited} from '../extensions/ENSDaoRegistrarLimited.sol';
 import {ENSDaoRegistrarTicketable} from '../extensions/ENSDaoRegistrarTicketable.sol';
 
-contract ENSDaoRegistrarPresetLimitedTicketable is ENSDaoRegistrarTicketable {
+contract ENSDaoRegistrarPresetLimitedTicketable is
+  ENSDaoRegistrar,
+  ENSDaoRegistrarLimited,
+  ENSDaoRegistrarTicketable
+{
   uint256 public _groupId;
 
   event GroupIdUpdated(uint256 groupId);
@@ -40,7 +44,8 @@ contract ENSDaoRegistrarPresetLimitedTicketable is ENSDaoRegistrarTicketable {
     uint256 registrationLimit,
     uint256 groupId
   )
-    ENSDaoRegistrarTicketable(domainName, domainVersion, registrationLimit)
+    ENSDaoRegistrarTicketable(domainName, domainVersion)
+    ENSDaoRegistrarLimited(registrationLimit)
     ENSDaoRegistrar(ensAddr, resolver, nameWrapper, daoToken, node, name, owner)
   {
     _groupId = groupId;
@@ -58,7 +63,7 @@ contract ENSDaoRegistrarPresetLimitedTicketable is ENSDaoRegistrarTicketable {
   function _beforeRegistration(address account, bytes32 labelHash)
     internal
     virtual
-    override(ENSDaoRegistrarLimited)
+    override(ENSDaoRegistrar, ENSDaoRegistrarLimited)
   {
     super._beforeRegistration(account, labelHash);
   }
@@ -66,7 +71,7 @@ contract ENSDaoRegistrarPresetLimitedTicketable is ENSDaoRegistrarTicketable {
   function _afterRegistration(address account, bytes32 labelHash)
     internal
     virtual
-    override(ENSDaoRegistrarLimited)
+    override(ENSDaoRegistrar, ENSDaoRegistrarLimited)
   {
     super._afterRegistration(account, labelHash);
   }

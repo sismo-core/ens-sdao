@@ -4,7 +4,7 @@ import {IENSDaoRegistrar} from '../IENSDaoRegistrar.sol';
 
 /**
  * @title IENSDaoRegistrarClaimable interface.
- * @notice An optional extension allowing to interact with an ENSLabelBooker and claim.
+ * @notice An optional extension allowing to interact with an ENSLabelBooker and claim booked subdomains.
  */
 interface IENSDaoRegistrarClaimable is IENSDaoRegistrar {
   /**
