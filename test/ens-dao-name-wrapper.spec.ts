@@ -54,7 +54,6 @@ describe('ENS DAO Registrar - With Name Wrapper', () => {
       resolver: publicResolver.address,
       nameWrapper: nameWrapper.address,
       reverseRegistrar: reverseRegistrar.address,
-      ticketGroupLimit: 2,
     });
     ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
 
