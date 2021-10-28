@@ -9,7 +9,7 @@ import {
   ReverseRegistrar,
   PublicResolver,
   ENSDaoRegistrar,
-  ENSDaoToken,
+  GenToken,
 } from '../types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
@@ -32,7 +32,7 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
   let reverseRegistrar: ReverseRegistrar;
   let registry: ENSRegistry;
   let publicResolver: PublicResolver;
-  let ensDaoToken: ENSDaoToken;
+  let genToken: GenToken;
   let ensDaoRegistrar: ENSDaoRegistrar;
   let ens: ENS;
 
@@ -54,7 +54,7 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
       nameWrapper: ethers.constants.AddressZero,
       reverseRegistrar: reverseRegistrar.address,
     });
-    ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
+    ({ genToken, ensDaoRegistrar } = deployedEnsDao);
 
     ens = await new ENS({
       provider: HRE.ethers.provider,
@@ -80,8 +80,6 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
   });
 
   it(`user can register any <domain>.${sismoLabel}.eth`, async () => {
-    await registrar.register(getLabelhash(label), signer1.address, year);
-
     const tx = await ensDaoRegistrar.connect(signer2).register(label);
     expectEvent(
       await tx.wait(),
@@ -89,7 +87,7 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
       (args) => args.owner === signer2.address && args.id.toHexString() === node
     );
     expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
-    expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer2.address);
+    expect(await genToken.balanceOf(signer2.address, 0)).to.be.equal(1);
   });
 
   it(`user can not register an already registered subdomain`, async () => {
@@ -105,13 +103,12 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
     await ensDaoRegistrar.connect(signer1).register(label);
     await expect(
       ensDaoRegistrar.connect(signer1).register(otherLabel)
-    ).to.be.revertedWith('ENS_DAO_REGISTRAR: TOO_MANY_SUBDOMAINS');
+    ).to.be.revertedWith('ENS_DAO_REGISTRAR: ALREADY_GEN_MEMBER');
   });
 
   it(`owner of the contract may register multiple subdomains`, async () => {
     const otherLabel = 'second';
     const otherDomain = `${otherLabel}.${sismoLabel}.eth`;
-    const otherNode = nameHash.hash(otherDomain);
 
     await ensDaoRegistrar.register(label);
     await ensDaoRegistrar.register(otherLabel);
@@ -119,14 +116,12 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
     expect(await ens.name(domain).getAddress()).to.be.equal(
       ownerSigner.address
     );
-    expect(await ensDaoToken.ownerOf(node)).to.be.equal(ownerSigner.address);
 
     expect(await ens.name(otherDomain).getAddress()).to.be.equal(
       ownerSigner.address
     );
-    expect(await ensDaoToken.ownerOf(otherNode)).to.be.equal(
-      ownerSigner.address
-    );
+
+    expect(await genToken.balanceOf(ownerSigner.address, 0)).to.be.equal(2);
   });
 
   describe('root domain ownership', () => {

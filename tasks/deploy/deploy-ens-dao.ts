@@ -7,8 +7,8 @@ import { getDeployer, logHre } from '../helpers';
 import {
   ENSDaoRegistrar,
   ENSDaoRegistrar__factory,
-  ENSDaoToken,
-  ENSDaoToken__factory,
+  GenToken,
+  GenToken__factory,
 } from '../../types';
 
 type DeployEnsDaoArgs = {
@@ -22,6 +22,8 @@ type DeployEnsDaoArgs = {
   name: string;
   // symbol of the DAO Token
   symbol: string;
+  // generation IDs
+  gens?: number[];
   // owner address of the contracts
   owner?: string;
   // enabling logging
@@ -30,7 +32,7 @@ type DeployEnsDaoArgs = {
 
 export type DeployedEnsDao = {
   ensDaoRegistrar: ENSDaoRegistrar;
-  ensDaoToken: ENSDaoToken;
+  genToken: GenToken;
 };
 
 async function deploiementAction(
@@ -39,7 +41,7 @@ async function deploiementAction(
     resolver,
     nameWrapper = ethers.constants.AddressZero,
     name = 'sismo',
-    symbol = 'SDAO',
+    gens = [0],
     owner: optionalOwner,
     log,
   }: DeployEnsDaoArgs,
@@ -53,9 +55,9 @@ async function deploiementAction(
 
   const node = nameHash.hash(`${name}.eth`);
 
-  const deployedDaoToken = await hre.deployments.deploy('ENSDaoToken', {
+  const deployedGenToken = await hre.deployments.deploy('GenToken', {
     from: deployer.address,
-    args: [`${name}.eth DAO`, symbol, 'https://tokens.sismo.io/', owner],
+    args: ['https://tokens.sismo.io/', gens, owner],
   });
   const deployedRegistrar = await hre.deployments.deploy('ENSDaoRegistrar', {
     from: deployer.address,
@@ -63,7 +65,7 @@ async function deploiementAction(
       ens,
       resolver,
       nameWrapper,
-      deployedDaoToken.address,
+      deployedGenToken.address,
       node,
       name,
       owner,
@@ -74,22 +76,22 @@ async function deploiementAction(
     deployedRegistrar.address,
     deployer
   );
-  const ensDaoToken = ENSDaoToken__factory.connect(
-    deployedDaoToken.address,
+  const genToken = GenToken__factory.connect(
+    deployedGenToken.address,
     deployer
   );
 
   // Allow the ENS DAO Token to be minted by the deployed ENS DAO Registrar
-  await (await ensDaoToken.setMinter(ensDaoRegistrar.address)).wait();
+  await (await genToken.setMinter(ensDaoRegistrar.address)).wait();
 
   if (log) {
-    console.log(`Deployed ENS DAO Token: ${deployedDaoToken.address}`);
+    console.log(`Deployed Gen Token: ${deployedGenToken.address}`);
     console.log(`Deployed ENS DAO Registrar: ${deployedRegistrar.address}`);
   }
 
   return {
     ensDaoRegistrar,
-    ensDaoToken,
+    genToken,
   };
 }
 

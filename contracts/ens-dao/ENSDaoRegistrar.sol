@@ -6,21 +6,17 @@ import '../name-wrapper/NameWrapper.sol';
 import '@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
-import {ENSDaoToken} from './ENSDaoToken.sol';
+import {GenToken} from './GenToken.sol';
 import {IENSDaoRegistrar} from './IENSDaoRegistrar.sol';
 
 /**
  * @title EnsDaoRegistrar contract.
  * @dev Implementation of the {IENSDaoRegistrar}.
- *
- *      An arbitrary reservation period is considered.
- *      Within the registration period, only the owners of the associated .eth subdomain may register this subdomain.
- *      After the registration period, any subdomain registration is first come first served.
  */
 contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
   PublicResolver public immutable RESOLVER;
   NameWrapper public immutable NAME_WRAPPER;
-  ENSDaoToken public immutable DAO_TOKEN;
+  GenToken public immutable GEN_TOKEN;
   ENS public immutable ENS_REGISTRY;
   bytes32 public immutable ROOT_NODE;
 
@@ -33,7 +29,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
    * @param ensAddr The address of the ENS registry.
    * @param resolver The address of the Resolver.
    * @param nameWrapper The address of the Name Wrapper. can be 0x00
-   * @param daoToken The address of the DAO Token.
+   * @param genToken The address of the GEN Token.
    * @param node The node that this registrar administers.
    * @param name The label string of the administered subdomain.
    * @param owner The owner of the contract.
@@ -42,7 +38,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     ENS ensAddr,
     PublicResolver resolver,
     NameWrapper nameWrapper,
-    ENSDaoToken daoToken,
+    GenToken genToken,
     bytes32 node,
     string memory name,
     address owner
@@ -50,7 +46,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     ENS_REGISTRY = ensAddr;
     RESOLVER = resolver;
     NAME_WRAPPER = nameWrapper;
-    DAO_TOKEN = daoToken;
+    GEN_TOKEN = genToken;
     NAME = name;
     ROOT_NODE = node;
 
@@ -113,8 +109,8 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     );
 
     require(
-      DAO_TOKEN.balanceOf(account) == 0 || _msgSender() == owner(),
-      'ENS_DAO_REGISTRAR: TOO_MANY_SUBDOMAINS'
+      GEN_TOKEN.accumulatedBalanceOf(account) == 0 || _msgSender() == owner(),
+      'ENS_DAO_REGISTRAR: ALREADY_GEN_MEMBER'
     );
 
     if (address(NAME_WRAPPER) != address(0)) {
@@ -124,7 +120,7 @@ contract ENSDaoRegistrar is ERC1155Holder, Ownable, IENSDaoRegistrar {
     }
 
     // Minting the DAO Token
-    DAO_TOKEN.mintTo(account, uint256(childNode));
+    GEN_TOKEN.mintTo(account);
 
     _afterRegistration(account, labelHash);
 

@@ -9,7 +9,7 @@ import {
   ReverseRegistrar,
   PublicResolver,
   ENSDaoRegistrarPresetReservedLimited,
-  ENSDaoToken,
+  GenToken,
 } from '../types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
@@ -32,7 +32,7 @@ describe('ENS DAO Registrar - Reserved Limited Preset', () => {
   let reverseRegistrar: ReverseRegistrar;
   let registry: ENSRegistry;
   let publicResolver: PublicResolver;
-  let ensDaoToken: ENSDaoToken;
+  let genToken: GenToken;
   let ensDaoRegistrar: ENSDaoRegistrarPresetReservedLimited;
   let ens: ENS;
 
@@ -57,7 +57,7 @@ describe('ENS DAO Registrar - Reserved Limited Preset', () => {
         reverseRegistrar: reverseRegistrar.address,
       }
     );
-    ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
+    ({ genToken, ensDaoRegistrar } = deployedEnsDao);
 
     ens = await new ENS({
       provider: HRE.ethers.provider,
@@ -94,7 +94,7 @@ describe('ENS DAO Registrar - Reserved Limited Preset', () => {
           args.owner === signer1.address && args.id.toHexString() === node
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
-      expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer1.address);
+      expect(await genToken.balanceOf(signer1.address, 0)).to.be.equal(1);
     });
     it(`user can register a <domain>.${sismoLabel}.eth if <domain>.eth is free`, async () => {
       const tx = await ensDaoRegistrar.connect(signer1).register(label);
@@ -105,7 +105,7 @@ describe('ENS DAO Registrar - Reserved Limited Preset', () => {
           args.owner === signer1.address && args.id.toHexString() === node
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
-      expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer1.address);
+      expect(await genToken.balanceOf(signer1.address, 0)).to.be.equal(1);
     });
 
     it(`user can not register a <domain>.${sismoLabel}.eth if <domain>.eth is owned by another address`, async () => {
@@ -133,7 +133,7 @@ describe('ENS DAO Registrar - Reserved Limited Preset', () => {
           args.owner === signer2.address && args.id.toHexString() === node
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
-      expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer2.address);
+      expect(await genToken.balanceOf(signer2.address, 0)).to.be.equal(1);
     });
   });
 
@@ -150,7 +150,7 @@ describe('ENS DAO Registrar - Reserved Limited Preset', () => {
     await ensDaoRegistrar.connect(signer1).register(label);
     await expect(
       ensDaoRegistrar.connect(signer1).register(otherLabel)
-    ).to.be.revertedWith('ENS_DAO_REGISTRAR: TOO_MANY_SUBDOMAINS');
+    ).to.be.revertedWith('ENS_DAO_REGISTRAR: ALREADY_GEN_MEMBER');
   });
 
   it(`owner of the contract may register multiple subdomains`, async () => {
@@ -164,14 +164,11 @@ describe('ENS DAO Registrar - Reserved Limited Preset', () => {
     expect(await ens.name(domain).getAddress()).to.be.equal(
       ownerSigner.address
     );
-    expect(await ensDaoToken.ownerOf(node)).to.be.equal(ownerSigner.address);
 
     expect(await ens.name(otherDomain).getAddress()).to.be.equal(
       ownerSigner.address
     );
-    expect(await ensDaoToken.ownerOf(otherNode)).to.be.equal(
-      ownerSigner.address
-    );
+    expect(await genToken.balanceOf(ownerSigner.address, 0)).to.be.equal(2);
   });
 
   describe('max number of emission limitation', () => {
@@ -206,9 +203,9 @@ describe('ENS DAO Registrar - Reserved Limited Preset', () => {
 
     it('owner can not decrease the max emission number lower than the current supply', async () => {
       await ensDaoRegistrar.connect(signer1).register(label);
-      const totalSupply = await ensDaoToken.totalSupply();
+      // const totalSupply = await genToken.totalSupply();
       await expect(
-        ensDaoRegistrar.updateRegistrationLimit(totalSupply.sub(1).toString())
+        ensDaoRegistrar.updateRegistrationLimit(0)
       ).to.be.revertedWith(
         'ENS_DAO_REGISTRAR_LIMITED: NEW_REGISTRATION_LIMIT_TOO_LOW'
       );

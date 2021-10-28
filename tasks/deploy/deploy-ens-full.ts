@@ -94,7 +94,7 @@ async function deploiementAction(
       nameWrapper,
     };
 
-  const { ensDaoRegistrar, ensDaoToken }: DeployedEnsDao = await hre.run(
+  const { ensDaoRegistrar, genToken }: DeployedEnsDao = await hre.run(
     'deploy-ens-dao',
     {
       name: 'sismo',
@@ -114,7 +114,7 @@ async function deploiementAction(
     publicResolver,
     nameWrapper,
     ensDaoRegistrar,
-    ensDaoToken,
+    genToken,
   };
 }
 
