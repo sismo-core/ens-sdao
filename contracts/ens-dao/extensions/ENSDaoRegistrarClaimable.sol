@@ -64,7 +64,7 @@ abstract contract ENSDaoRegistrarClaimable is
       'ENS_DAO_REGISTRAR_CLAIMABLE: SENDER_NOT_ALLOWED'
     );
 
-    _register(account, label, labelHash);
+    _register(account, labelHash);
 
     ENS_LABEL_BOOKER.deleteBooking(labelHash);
   }

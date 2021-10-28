@@ -16,8 +16,6 @@ type DeployEnsDaoLimitedCodeAccessibleArgs = {
   ens: string;
   // Public Resolver address
   resolver: string;
-  // Name Wrapper address, default to zero address
-  nameWrapper?: string;
   // name of the .eth domain, the NFT name will be `${name}.eth DAO`
   name: string;
   // symbol of the DAO Token
@@ -45,7 +43,6 @@ async function deploiementAction(
   {
     ens,
     resolver,
-    nameWrapper = ethers.constants.AddressZero,
     name = 'sismo',
     symbol = 'SDAO',
     owner: optionalOwner,
@@ -76,7 +73,6 @@ async function deploiementAction(
       args: [
         ens,
         resolver,
-        nameWrapper,
         deployedDaoToken.address,
         node,
         name,
@@ -116,7 +112,6 @@ async function deploiementAction(
 task('deploy-ens-dao-limited-code-accessible')
   .addOptionalParam('ens', 'ens')
   .addOptionalParam('resolver', 'resolver')
-  .addOptionalParam('nameWrapper', 'nameWrapper')
   .addOptionalParam('baseURI', 'baseURI')
   .addOptionalParam('name', 'name')
   .addOptionalParam('symbol', 'symbol')

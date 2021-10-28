@@ -2,7 +2,6 @@ pragma solidity >=0.8.4;
 
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
-import '../../name-wrapper/NameWrapper.sol';
 import {ENSDaoToken} from '../ENSDaoToken.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
 import {ENSDaoRegistrarLimited} from '../extensions/ENSDaoRegistrarLimited.sol';
@@ -21,7 +20,6 @@ contract ENSDaoRegistrarPresetLimitedCodeAccessible is
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
    * @param resolver The address of the Resolver.
-   * @param nameWrapper The address of the Name Wrapper. can be 0x00
    * @param daoToken The address of the DAO Token.
    * @param node The node that this registrar administers.
    * @param name The label string of the administered subdomain.
@@ -34,7 +32,6 @@ contract ENSDaoRegistrarPresetLimitedCodeAccessible is
   constructor(
     ENS ensAddr,
     PublicResolver resolver,
-    NameWrapper nameWrapper,
     ENSDaoToken daoToken,
     bytes32 node,
     string memory name,
@@ -46,7 +43,7 @@ contract ENSDaoRegistrarPresetLimitedCodeAccessible is
   )
     ENSDaoRegistrarLimitedCodeAccessible(domainName, domainVersion)
     ENSDaoRegistrarLimited(registrationLimit)
-    ENSDaoRegistrar(ensAddr, resolver, nameWrapper, daoToken, node, name, owner)
+    ENSDaoRegistrar(ensAddr, resolver, daoToken, node, name, owner)
   {
     _groupId = groupId;
   }

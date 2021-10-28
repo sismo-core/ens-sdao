@@ -3,7 +3,6 @@ import {INameWrapper, PublicResolver} from '@ensdomains/ens-contracts/contracts/
 import '@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol';
 import {EthRegistrar} from './EthRegistrar.sol';
 import {NameResolver, ReverseRegistrar} from '@ensdomains/ens-contracts/contracts/registry/ReverseRegistrar.sol';
-import {NameWrapper, IMetadataService, BaseRegistrar} from '../name-wrapper/NameWrapper.sol';
 
 // Construct a set of test ENS contracts.
 contract ENSDeployer {
@@ -16,7 +15,6 @@ contract ENSDeployer {
   EthRegistrar public ethRegistrar;
   ReverseRegistrar public reverseRegistrar;
   PublicResolver public publicResolver;
-  NameWrapper public nameWrapper;
 
   function namehash(bytes32 node, bytes32 label) public pure returns (bytes32) {
     return keccak256(abi.encodePacked(node, label));
@@ -30,16 +28,7 @@ contract ENSDeployer {
 
     ens.setSubnodeOwner(bytes32(0), TLD_LABEL, address(ethRegistrar));
 
-    nameWrapper = new NameWrapper(
-      ens,
-      BaseRegistrar(address(ethRegistrar)),
-      IMetadataService(address(0))
-    );
-
-    publicResolver = new PublicResolver(
-      ens,
-      INameWrapper(address(nameWrapper))
-    );
+    publicResolver = new PublicResolver(ens, INameWrapper(address(ens)));
 
     // Set up the resolver
     bytes32 resolverNode = namehash(bytes32(0), RESOLVER_LABEL);

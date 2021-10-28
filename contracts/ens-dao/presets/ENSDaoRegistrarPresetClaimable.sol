@@ -6,7 +6,6 @@ import {ENSDaoToken} from '../ENSDaoToken.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
 import {ENSDaoRegistrarClaimable} from '../extensions/ENSDaoRegistrarClaimable.sol';
 import {ENSLabelBooker} from '../../ens-label-booker/ENSLabelBooker.sol';
-import {NameWrapper} from '../../name-wrapper/NameWrapper.sol';
 
 contract ENSDaoRegistrarPresetClaimable is
   ENSDaoRegistrar,
@@ -16,7 +15,6 @@ contract ENSDaoRegistrarPresetClaimable is
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
    * @param resolver The address of the Resolver.
-   * @param nameWrapper The address of the Name Wrapper. can be 0x00
    * @param daoToken The address of the DAO Token.
    * @param node The node that this registrar administers.
    * @param name The label string of the administered subdomain.
@@ -26,7 +24,6 @@ contract ENSDaoRegistrarPresetClaimable is
   constructor(
     ENS ensAddr,
     PublicResolver resolver,
-    NameWrapper nameWrapper,
     ENSDaoToken daoToken,
     bytes32 node,
     string memory name,
@@ -34,7 +31,7 @@ contract ENSDaoRegistrarPresetClaimable is
     ENSLabelBooker ensLabelBooker
   )
     ENSDaoRegistrarClaimable(ensLabelBooker, address(ensAddr), node)
-    ENSDaoRegistrar(ensAddr, resolver, nameWrapper, daoToken, node, name, owner)
+    ENSDaoRegistrar(ensAddr, resolver, daoToken, node, name, owner)
   {}
 
   function register(string memory label)

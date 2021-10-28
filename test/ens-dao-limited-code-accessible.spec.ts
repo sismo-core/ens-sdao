@@ -69,7 +69,6 @@ describe('ENS DAO Registrar - Limited Code Accessible Preset', () => {
         symbol: 'SISMO',
         ens: registry.address,
         resolver: publicResolver.address,
-        nameWrapper: ethers.constants.AddressZero,
         reverseRegistrar: reverseRegistrar.address,
         domainName,
         domainVersion,

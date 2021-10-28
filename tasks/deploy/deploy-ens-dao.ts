@@ -16,8 +16,6 @@ type DeployEnsDaoArgs = {
   ens: string;
   // Public Resolver address
   resolver: string;
-  // Name Wrapper address, default to zero address
-  nameWrapper?: string;
   // name of the .eth domain, the NFT name will be `${name}.eth DAO`
   name: string;
   // symbol of the DAO Token
@@ -37,7 +35,6 @@ async function deploiementAction(
   {
     ens,
     resolver,
-    nameWrapper = ethers.constants.AddressZero,
     name = 'sismo',
     symbol = 'SDAO',
     owner: optionalOwner,
@@ -59,15 +56,7 @@ async function deploiementAction(
   });
   const deployedRegistrar = await hre.deployments.deploy('ENSDaoRegistrar', {
     from: deployer.address,
-    args: [
-      ens,
-      resolver,
-      nameWrapper,
-      deployedDaoToken.address,
-      node,
-      name,
-      owner,
-    ],
+    args: [ens, resolver, deployedDaoToken.address, node, name, owner],
   });
 
   const ensDaoRegistrar = ENSDaoRegistrar__factory.connect(
@@ -96,7 +85,6 @@ async function deploiementAction(
 task('deploy-ens-dao')
   .addOptionalParam('ens', 'ens')
   .addOptionalParam('resolver', 'resolver')
-  .addOptionalParam('nameWrapper', 'nameWrapper')
   .addOptionalParam('baseURI', 'baseURI')
   .addOptionalParam('name', 'name')
   .addOptionalParam('symbol', 'symbol')

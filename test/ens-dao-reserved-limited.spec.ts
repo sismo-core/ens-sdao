@@ -53,7 +53,6 @@ describe('ENS DAO Registrar - Reserved Limited Preset', () => {
         symbol: 'SISMO',
         ens: registry.address,
         resolver: publicResolver.address,
-        nameWrapper: ethers.constants.AddressZero,
         reverseRegistrar: reverseRegistrar.address,
       }
     );
