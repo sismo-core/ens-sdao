@@ -2,7 +2,6 @@ pragma solidity >=0.8.4;
 
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
-import {ENSDaoToken} from '../ENSDaoToken.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
 import {ENSDaoRegistrarLimited} from '../extensions/ENSDaoRegistrarLimited.sol';
 import {ENSDaoRegistrarReserved} from '../extensions/ENSDaoRegistrarReserved.sol';
@@ -16,7 +15,6 @@ contract ENSDaoRegistrarPresetReservedLimited is
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
    * @param resolver The address of the Resolver.
-   * @param daoToken The address of the DAO Token.
    * @param node The node that this registrar administers.
    * @param name The label string of the administered subdomain.
    * @param owner The owner of the contract.
@@ -26,7 +24,6 @@ contract ENSDaoRegistrarPresetReservedLimited is
   constructor(
     ENS ensAddr,
     PublicResolver resolver,
-    ENSDaoToken daoToken,
     bytes32 node,
     string memory name,
     address owner,
@@ -35,7 +32,7 @@ contract ENSDaoRegistrarPresetReservedLimited is
   )
     ENSDaoRegistrarLimited(registrationLimit)
     ENSDaoRegistrarReserved(reservationDuration)
-    ENSDaoRegistrar(ensAddr, resolver, daoToken, node, name, owner)
+    ENSDaoRegistrar(ensAddr, resolver, node, name, owner)
   {}
 
   function _beforeRegistration(address account, bytes32 labelHash)

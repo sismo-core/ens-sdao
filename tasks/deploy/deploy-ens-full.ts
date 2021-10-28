@@ -85,16 +85,12 @@ async function deploiementAction(
       publicResolver,
     };
 
-  const { ensDaoRegistrar, ensDaoToken }: DeployedEnsDao = await hre.run(
-    'deploy-ens-dao',
-    {
-      name: 'sismo',
-      symbol: 'SISMO',
-      ens: registry.address,
-      resolver: publicResolver.address,
-      log,
-    }
-  );
+  const { ensDaoRegistrar }: DeployedEnsDao = await hre.run('deploy-ens-dao', {
+    name: 'sismo',
+    ens: registry.address,
+    resolver: publicResolver.address,
+    log,
+  });
 
   return {
     ensDeployer,
@@ -103,7 +99,6 @@ async function deploiementAction(
     reverseRegistrar,
     publicResolver,
     ensDaoRegistrar,
-    ensDaoToken,
   };
 }
 
