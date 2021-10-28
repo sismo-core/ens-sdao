@@ -16,7 +16,7 @@ import nameHash from 'eth-ens-namehash';
 import { expectEvent, evmSnapshot, evmRevert } from './helpers';
 import { DeployedEnsDao, DeployedEns } from '../tasks';
 
-describe('ENS DAO Registrar - Without Name Wrapper', () => {
+describe('ENS DAO Registrar', () => {
   const utils = ethers.utils;
   const year = 365 * 24 * 60 * 60;
   const sismoLabel = 'sismo';
@@ -51,7 +51,6 @@ describe('ENS DAO Registrar - Without Name Wrapper', () => {
       symbol: 'SISMO',
       ens: registry.address,
       resolver: publicResolver.address,
-      nameWrapper: ethers.constants.AddressZero,
       reverseRegistrar: reverseRegistrar.address,
     });
     ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);

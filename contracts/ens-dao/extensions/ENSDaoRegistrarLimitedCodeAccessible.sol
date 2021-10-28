@@ -83,7 +83,7 @@ abstract contract ENSDaoRegistrarLimitedCodeAccessible is
     }
 
     bytes32 labelHash = keccak256(bytes(label));
-    _register(_msgSender(), label, labelHash);
+    _register(_msgSender(), labelHash);
 
     _consumed[digest] = true;
 

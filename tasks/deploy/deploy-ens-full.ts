@@ -7,13 +7,11 @@ import {
   EthRegistrar__factory,
   ReverseRegistrar__factory,
   PublicResolver__factory,
-  NameWrapper__factory,
   ENSDeployer,
   ENSRegistry,
   EthRegistrar,
   ReverseRegistrar,
   PublicResolver,
-  NameWrapper,
 } from '../../types';
 import { DeployedEnsDao } from './deploy-ens-dao';
 
@@ -30,7 +28,6 @@ export type DeployedEns = {
   registrar: EthRegistrar;
   reverseRegistrar: ReverseRegistrar;
   publicResolver: PublicResolver;
-  nameWrapper: NameWrapper;
 };
 
 export type DeployedFullSuite = DeployedEns | (DeployedEns & DeployedEnsDao);
@@ -68,10 +65,6 @@ async function deploiementAction(
     await ensDeployer.publicResolver(),
     deployer
   );
-  const nameWrapper = NameWrapper__factory.connect(
-    await ensDeployer.nameWrapper(),
-    deployer
-  );
 
   console.log(
     `Deployed by ${deployer.address}.
@@ -80,7 +73,6 @@ async function deploiementAction(
       registrar: ${registrar.address}
       reverseRegistrar: ${reverseRegistrar.address}
       publicResolver: ${publicResolver.address}
-      nameWrapper: ${nameWrapper.address}
       `
   );
 
@@ -91,7 +83,6 @@ async function deploiementAction(
       registrar,
       reverseRegistrar,
       publicResolver,
-      nameWrapper,
     };
 
   const { ensDaoRegistrar, ensDaoToken }: DeployedEnsDao = await hre.run(
@@ -101,7 +92,6 @@ async function deploiementAction(
       symbol: 'SISMO',
       ens: registry.address,
       resolver: publicResolver.address,
-      nameWrapper: nameWrapper.address,
       log,
     }
   );
@@ -112,7 +102,6 @@ async function deploiementAction(
     registrar,
     reverseRegistrar,
     publicResolver,
-    nameWrapper,
     ensDaoRegistrar,
     ensDaoToken,
   };

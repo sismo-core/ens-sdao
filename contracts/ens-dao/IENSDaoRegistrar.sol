@@ -1,7 +1,5 @@
 pragma solidity >=0.8.4;
 
-import '@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol';
-
 /**
  * @title IEnsDaoRegistrar interface
  * @notice A registrar that allows registrations in the DAO.
@@ -11,7 +9,7 @@ import '@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol';
  *
  *         Only one subdomain and one ERC721 token may be possessed by an address with the exception of the owner of the DAO Registrar.
  */
-interface IENSDaoRegistrar is IERC1155Receiver {
+interface IENSDaoRegistrar {
   /**
    * @dev Emitted when a new name is registered through standard registration or claiming.
    */
