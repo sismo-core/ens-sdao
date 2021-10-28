@@ -88,6 +88,7 @@ abstract contract ENSDaoRegistrarERC1155Generator is
    */
   function _getToken(address account, bytes32 labelHash)
     internal
+    view
     virtual
     returns (uint256, bytes memory);
 
