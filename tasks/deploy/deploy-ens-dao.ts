@@ -3,7 +3,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { ethers } from 'ethers';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
-import { getDeployer, logHre } from '../helpers';
+import { getDeployer, logHre } from '../utils';
 import {
   ENSDaoRegistrar,
   ENSDaoRegistrar__factory,

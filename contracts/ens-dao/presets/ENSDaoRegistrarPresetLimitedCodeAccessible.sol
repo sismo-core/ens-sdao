@@ -6,13 +6,17 @@ import '../../name-wrapper/NameWrapper.sol';
 import {ENSDaoToken} from '../ENSDaoToken.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
 import {ENSDaoRegistrarLimited} from '../extensions/ENSDaoRegistrarLimited.sol';
-import {ENSDaoRegistrarReserved} from '../extensions/ENSDaoRegistrarReserved.sol';
+import {ENSDaoRegistrarLimitedCodeAccessible} from '../extensions/ENSDaoRegistrarLimitedCodeAccessible.sol';
 
-contract ENSDaoRegistrarPresetReservedLimited is
+contract ENSDaoRegistrarPresetLimitedCodeAccessible is
   ENSDaoRegistrar,
   ENSDaoRegistrarLimited,
-  ENSDaoRegistrarReserved
+  ENSDaoRegistrarLimitedCodeAccessible
 {
+  uint256 public _groupId;
+
+  event GroupIdUpdated(uint256 groupId);
+
   /**
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
@@ -22,8 +26,10 @@ contract ENSDaoRegistrarPresetReservedLimited is
    * @param node The node that this registrar administers.
    * @param name The label string of the administered subdomain.
    * @param owner The owner of the contract.
-   * @param reservationDuration The duration of the reservation period.
+   * @param domainName The name field of the EIP712 Domain.
+   * @param domainVersion The version field of the EIP712 Domain.
    * @param registrationLimit The limit of registration number.
+   * @param groupId The initial group ID.
    */
   constructor(
     ENS ensAddr,
@@ -33,18 +39,31 @@ contract ENSDaoRegistrarPresetReservedLimited is
     bytes32 node,
     string memory name,
     address owner,
-    uint256 reservationDuration,
-    uint256 registrationLimit
+    string memory domainName,
+    string memory domainVersion,
+    uint256 registrationLimit,
+    uint256 groupId
   )
+    ENSDaoRegistrarLimitedCodeAccessible(domainName, domainVersion)
     ENSDaoRegistrarLimited(registrationLimit)
-    ENSDaoRegistrarReserved(reservationDuration)
     ENSDaoRegistrar(ensAddr, resolver, nameWrapper, daoToken, node, name, owner)
-  {}
+  {
+    _groupId = groupId;
+  }
+
+  function updateGroupId(uint256 groupId) external onlyOwner {
+    _groupId = groupId;
+    emit GroupIdUpdated(groupId);
+  }
+
+  function _getCurrentGroupId() internal view override returns (uint256) {
+    return _groupId;
+  }
 
   function _beforeRegistration(address account, bytes32 labelHash)
     internal
     virtual
-    override(ENSDaoRegistrar, ENSDaoRegistrarLimited, ENSDaoRegistrarReserved)
+    override(ENSDaoRegistrar, ENSDaoRegistrarLimited)
   {
     super._beforeRegistration(account, labelHash);
   }

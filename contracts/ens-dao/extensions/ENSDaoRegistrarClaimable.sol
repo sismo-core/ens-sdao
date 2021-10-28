@@ -76,6 +76,7 @@ abstract contract ENSDaoRegistrarClaimable is
    */
   function register(string memory label)
     public
+    virtual
     override(ENSDaoRegistrar, IENSDaoRegistrar)
   {
     bytes32 labelHash = keccak256(bytes(label));

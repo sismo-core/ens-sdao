@@ -8,7 +8,10 @@ import {ENSDaoRegistrarClaimable} from '../extensions/ENSDaoRegistrarClaimable.s
 import {ENSLabelBooker} from '../../ens-label-booker/ENSLabelBooker.sol';
 import {NameWrapper} from '../../name-wrapper/NameWrapper.sol';
 
-contract ENSDaoRegistrarPresetClaimable is ENSDaoRegistrarClaimable {
+contract ENSDaoRegistrarPresetClaimable is
+  ENSDaoRegistrar,
+  ENSDaoRegistrarClaimable
+{
   /**
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
@@ -33,6 +36,13 @@ contract ENSDaoRegistrarPresetClaimable is ENSDaoRegistrarClaimable {
     ENSDaoRegistrarClaimable(ensLabelBooker, address(ensAddr), node)
     ENSDaoRegistrar(ensAddr, resolver, nameWrapper, daoToken, node, name, owner)
   {}
+
+  function register(string memory label)
+    public
+    override(ENSDaoRegistrar, ENSDaoRegistrarClaimable)
+  {
+    ENSDaoRegistrarClaimable.register(label);
+  }
 
   function _beforeRegistration(address account, bytes32 labelHash)
     internal

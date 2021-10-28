@@ -35,6 +35,14 @@ abstract contract ENSDaoRegistrarLimited is
     override
     onlyOwner
   {
+    _updateRegistrationLimit(registrationLimit);
+  }
+
+  /**
+   * @dev Update limit registration number.
+   * @param registrationLimit The limit of registration number.
+   */
+  function _updateRegistrationLimit(uint256 registrationLimit) internal {
     require(
       registrationLimit >= _counter,
       'ENS_DAO_REGISTRAR_LIMITED: NEW_REGISTRATION_LIMIT_TOO_LOW'
