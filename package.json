@@ -5,13 +5,14 @@
   "main": "index.js",
   "scripts": {
     "compile": "SKIP_LOAD=true hardhat compile",
+    "test:ens-dao-erc721-generator": "hardhat test ./test/ens-dao-erc721-generator.spec.ts",
     "test:ens-dao-limited-code-accessible": "hardhat test ./test/ens-dao-limited-code-accessible.spec.ts",
     "test:ens-dao-claimable": "hardhat test ./test/ens-dao-claimable.spec.ts",
     "test:ens-dao-registry": "hardhat test ./test/ens-dao-registry.spec.ts",
     "test:ens-dao-reserved-limited": "hardhat test ./test/ens-dao-reserved-limited.spec.ts",
     "test:ens-label-booker": "hardhat test ./test/ens-label-booker.spec.ts",
     "test:ens-registry": "hardhat test ./test/ens-registry.spec.ts",
-    "test": "npm run test:ens-dao-limited-code-accessible && npm run test:ens-dao-claimable && npm run test:ens-dao-registry && npm run test:ens-dao-reserved-limited  && npm run test:ens-label-booker && npm run test:ens-registry",
+    "test": "npm run test:ens-dao-erc721-generator && npm run test:ens-dao-limited-code-accessible && npm run test:ens-dao-claimable && npm run test:ens-dao-registry && npm run test:ens-dao-reserved-limited  && npm run test:ens-label-booker && npm run test:ens-registry",
     "format": "pretty-quick --pattern 'contracts/**/*.sol' --pattern 'libs/**/*.ts'  --pattern 'test/**/*.ts' --pattern 'tasks/**/*.ts' --pattern 'server/**/*.ts'"
   },
   "keywords": [],

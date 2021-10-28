@@ -4,29 +4,30 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import nameHash from 'eth-ens-namehash';
 import { getDeployer, logHre } from '../utils';
 import {
-  ENSDaoRegistrarPresetReservedLimited,
-  ENSDaoRegistrarPresetReservedLimited__factory,
+  ENSDaoRegistrarPresetERC721Generator,
+  ENSDaoRegistrarPresetERC721Generator__factory,
+  ERC721Minter,
+  ERC721Minter__factory,
 } from '../../types';
 
-type DeployEnsDaoReservedLimitedArgs = {
+type DeployEnsDaoERC721GeneratorArgs = {
   // ENS Registry address
   ens: string;
   // Public Resolver address
   resolver: string;
   // name of the .eth domain, the NFT name will be `${name}.eth DAO`
   name: string;
+  // symbol of the DAO Token
+  symbol: string;
   // owner address of the contracts
   owner?: string;
-  // reservation duration of the ENS DAO Registrar
-  reservationDuration?: string;
-  // limit of registrations
-  registrationLimit?: number;
   // enabling logging
   log?: boolean;
 };
 
-export type DeployedEnsDaoReservedLimited = {
-  ensDaoRegistrar: ENSDaoRegistrarPresetReservedLimited;
+export type DeployedEnsDaoERC721Generator = {
+  ensDaoRegistrar: ENSDaoRegistrarPresetERC721Generator;
+  erc721Token: ERC721Minter;
 };
 
 async function deploiementAction(
@@ -34,13 +35,12 @@ async function deploiementAction(
     ens,
     resolver,
     name = 'sismo',
+    symbol = 'SDAO',
     owner: optionalOwner,
-    reservationDuration = (4 * 7 * 24 * 3600).toString(),
-    registrationLimit = 500,
     log,
-  }: DeployEnsDaoReservedLimitedArgs,
+  }: DeployEnsDaoERC721GeneratorArgs,
   hre: HardhatRuntimeEnvironment
-): Promise<DeployedEnsDaoReservedLimited> {
+): Promise<DeployedEnsDaoERC721Generator> {
   if (log) await logHre(hre);
 
   const deployer = await getDeployer(hre, log);
@@ -49,43 +49,54 @@ async function deploiementAction(
 
   const node = nameHash.hash(`${name}.eth`);
 
+  const deployedToken = await hre.deployments.deploy('ERC721Minter', {
+    from: deployer.address,
+    args: [`${name}.eth DAO`, symbol, 'https://tokens.sismo.io/', owner],
+  });
   const deployedRegistrar = await hre.deployments.deploy(
-    'ENSDaoRegistrarPresetReservedLimited',
+    'ENSDaoRegistrarPresetERC721Generator',
     {
       from: deployer.address,
-      args: [
-        ens,
-        resolver,
-        node,
-        name,
-        owner,
-        reservationDuration,
-        registrationLimit,
-      ],
+      args: [ens, resolver, deployedToken.address, node, name, owner],
     }
   );
 
-  const ensDaoRegistrar = ENSDaoRegistrarPresetReservedLimited__factory.connect(
+  const ensDaoRegistrar = ENSDaoRegistrarPresetERC721Generator__factory.connect(
     deployedRegistrar.address,
     deployer
   );
+  const erc721Token = ERC721Minter__factory.connect(
+    deployedToken.address,
+    deployer
+  );
+
+  // Allow the ERC721 Token to be minted by the deployed ENS DAO Registrar
+  const MINTER_ROLE = hre.ethers.utils.solidityKeccak256(
+    ['string'],
+    ['MINTER_ROLE']
+  );
+  await (
+    await erc721Token.grantRole(MINTER_ROLE, ensDaoRegistrar.address)
+  ).wait();
 
   if (log) {
+    console.log(`Deployed ERC721 Token: ${erc721Token.address}`);
     console.log(`Deployed ENS DAO Registrar: ${deployedRegistrar.address}`);
   }
 
   return {
     ensDaoRegistrar,
+    erc721Token,
   };
 }
 
-task('deploy-ens-dao-reserved-limited')
+task('deploy-ens-dao-erc721-generator')
   .addOptionalParam('ens', 'ens')
   .addOptionalParam('resolver', 'resolver')
   .addOptionalParam('baseURI', 'baseURI')
   .addOptionalParam('name', 'name')
+  .addOptionalParam('symbol', 'symbol')
   .addOptionalParam('owner', 'owner')
-  .addOptionalParam('reservationDuration', 'reservationDuration')
   .addFlag('log', 'log')
   .addFlag('verify', 'Verify Etherscan Contract')
   .setAction(deploiementAction);

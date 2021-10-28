@@ -4,7 +4,6 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
-import {ENSDaoToken} from './ENSDaoToken.sol';
 import {IENSDaoRegistrar} from './IENSDaoRegistrar.sol';
 
 /**
@@ -17,7 +16,6 @@ import {IENSDaoRegistrar} from './IENSDaoRegistrar.sol';
  */
 contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
   PublicResolver public immutable RESOLVER;
-  ENSDaoToken public immutable DAO_TOKEN;
   ENS public immutable ENS_REGISTRY;
   bytes32 public immutable ROOT_NODE;
 
@@ -29,7 +27,6 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
    * @param resolver The address of the Resolver.
-   * @param daoToken The address of the DAO Token.
    * @param node The node that this registrar administers.
    * @param name The label string of the administered subdomain.
    * @param owner The owner of the contract.
@@ -37,14 +34,12 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
   constructor(
     ENS ensAddr,
     PublicResolver resolver,
-    ENSDaoToken daoToken,
     bytes32 node,
     string memory name,
     address owner
   ) {
     ENS_REGISTRY = ensAddr;
     RESOLVER = resolver;
-    DAO_TOKEN = daoToken;
     NAME = name;
     ROOT_NODE = node;
 
@@ -97,11 +92,6 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
       'ENS_DAO_REGISTRAR: SUBDOMAIN_ALREADY_REGISTERED'
     );
 
-    require(
-      DAO_TOKEN.balanceOf(account) == 0 || _msgSender() == owner(),
-      'ENS_DAO_REGISTRAR: TOO_MANY_SUBDOMAINS'
-    );
-
     // Set ownership to ENS DAO, so that the contract can set resolver
     ENS_REGISTRY.setSubnodeRecord(
       ROOT_NODE,
@@ -116,9 +106,6 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
 
     // Giving back the ownership to the user
     ENS_REGISTRY.setSubnodeOwner(ROOT_NODE, labelHash, account);
-
-    // Minting the DAO Token
-    DAO_TOKEN.mintTo(account, uint256(childNode));
 
     _afterRegistration(account, labelHash);
 

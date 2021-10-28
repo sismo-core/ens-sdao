@@ -8,14 +8,15 @@ import {
   EthRegistrar,
   ReverseRegistrar,
   PublicResolver,
-  ENSDaoRegistrar,
+  ERC721Minter,
+  ENSDaoRegistrarPresetERC721Generator,
 } from '../types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
 import { expectEvent, evmSnapshot, evmRevert } from './helpers';
-import { DeployedEnsDao, DeployedEns } from '../tasks';
+import { DeployedEns, DeployedEnsDaoERC721Generator } from '../tasks';
 
-describe('ENS DAO Registrar', () => {
+describe('ENS DAO Registrar ERC721 Generator', () => {
   const utils = ethers.utils;
   const year = 365 * 24 * 60 * 60;
   const sismoLabel = 'sismo';
@@ -31,7 +32,8 @@ describe('ENS DAO Registrar', () => {
   let reverseRegistrar: ReverseRegistrar;
   let registry: ENSRegistry;
   let publicResolver: PublicResolver;
-  let ensDaoRegistrar: ENSDaoRegistrar;
+  let erc721Token: ERC721Minter;
+  let ensDaoRegistrar: ENSDaoRegistrarPresetERC721Generator;
   let ens: ENS;
 
   let ownerSigner: SignerWithAddress;
@@ -44,14 +46,17 @@ describe('ENS DAO Registrar', () => {
     const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
     ({ registry, reverseRegistrar, publicResolver, registrar } = deployedENS);
 
-    const deployedEnsDao: DeployedEnsDao = await HRE.run('deploy-ens-dao', {
-      name: sismoLabel,
-      symbol: 'SISMO',
-      ens: registry.address,
-      resolver: publicResolver.address,
-      reverseRegistrar: reverseRegistrar.address,
-    });
-    ({ ensDaoRegistrar } = deployedEnsDao);
+    const deployedEnsDao: DeployedEnsDaoERC721Generator = await HRE.run(
+      'deploy-ens-dao-erc721-generator',
+      {
+        name: sismoLabel,
+        symbol: 'SISMO',
+        ens: registry.address,
+        resolver: publicResolver.address,
+        reverseRegistrar: reverseRegistrar.address,
+      }
+    );
+    ({ erc721Token, ensDaoRegistrar } = deployedEnsDao);
 
     ens = await new ENS({
       provider: HRE.ethers.provider,
@@ -76,7 +81,7 @@ describe('ENS DAO Registrar', () => {
     snapshotId = await evmSnapshot(HRE);
   });
 
-  it(`user can register any <domain>.${sismoLabel}.eth`, async () => {
+  it(`user receives an ERC721 token when registering`, async () => {
     const tx = await ensDaoRegistrar.connect(signer2).register(label);
     expectEvent(
       await tx.wait(),
@@ -84,19 +89,23 @@ describe('ENS DAO Registrar', () => {
       (args) => args.owner === signer2.address && args.id.toHexString() === node
     );
     expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
+    expect(await erc721Token.ownerOf(node)).to.be.equal(signer2.address);
   });
 
-  it(`user can not register an already registered subdomain`, async () => {
+  it(`user can not register if owner of a DAO token`, async () => {
+    const otherLabel = 'second';
     await ensDaoRegistrar.connect(signer1).register(label);
-
     await expect(
-      ensDaoRegistrar.connect(signer2).register(label)
-    ).to.be.revertedWith('ENS_DAO_REGISTRAR: SUBDOMAIN_ALREADY_REGISTERED');
+      ensDaoRegistrar.connect(signer1).register(otherLabel)
+    ).to.be.revertedWith(
+      'ENS_DAO_REGISTRAR_ERC721_GENERATOR: ALREADY_TOKEN_OWNER'
+    );
   });
 
   it(`owner of the contract may register multiple subdomains`, async () => {
     const otherLabel = 'second';
     const otherDomain = `${otherLabel}.${sismoLabel}.eth`;
+    const otherNode = nameHash.hash(otherDomain);
 
     await ensDaoRegistrar.register(label);
     await ensDaoRegistrar.register(otherLabel);
@@ -104,30 +113,13 @@ describe('ENS DAO Registrar', () => {
     expect(await ens.name(domain).getAddress()).to.be.equal(
       ownerSigner.address
     );
+    expect(await erc721Token.ownerOf(node)).to.be.equal(ownerSigner.address);
 
     expect(await ens.name(otherDomain).getAddress()).to.be.equal(
       ownerSigner.address
     );
-  });
-
-  describe('root domain ownership', () => {
-    it('user can not take back the root domain ownership if not owner', async () => {
-      await expect(
-        ensDaoRegistrar.connect(signer1).giveBackDomainOwnership()
-      ).to.be.revertedWith('Ownable: caller is not the owner');
-    });
-
-    it('owner can take back the root domain ownership', async () => {
-      const tx = await ensDaoRegistrar.giveBackDomainOwnership();
-      expectEvent(
-        await tx.wait(),
-        'OwnershipConceded',
-        (args) => args.owner === ownerSigner.address
-      );
-
-      expect(await ens.name(`${sismoLabel}.eth`).getOwner()).to.be.equal(
-        ownerSigner.address
-      );
-    });
+    expect(await erc721Token.ownerOf(otherNode)).to.be.equal(
+      ownerSigner.address
+    );
   });
 });

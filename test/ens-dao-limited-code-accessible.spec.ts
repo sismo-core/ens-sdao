@@ -8,11 +8,9 @@ import {
   EthRegistrar,
   ReverseRegistrar,
   PublicResolver,
-  ENSDaoToken,
   ENSDaoRegistrarPresetLimitedCodeAccessible,
 } from '../types';
 //@ts-ignore
-import nameHash from 'eth-ens-namehash';
 import { expectEvent, evmSnapshot, evmRevert } from './helpers';
 import {
   DeployedEns,
@@ -29,7 +27,6 @@ describe('ENS DAO Registrar - Limited Code Accessible Preset', () => {
 
   const label = 'first';
   const domain = `${label}.${sismoLabel}.eth`;
-  const node = nameHash.hash(domain);
 
   const getLabelhash = (label: string) =>
     utils.keccak256(utils.toUtf8Bytes(label));
@@ -41,7 +38,6 @@ describe('ENS DAO Registrar - Limited Code Accessible Preset', () => {
   let reverseRegistrar: ReverseRegistrar;
   let registry: ENSRegistry;
   let publicResolver: PublicResolver;
-  let ensDaoToken: ENSDaoToken;
   let ensDaoRegistrar: ENSDaoRegistrarPresetLimitedCodeAccessible;
   let ens: ENS;
 
@@ -66,7 +62,6 @@ describe('ENS DAO Registrar - Limited Code Accessible Preset', () => {
       'deploy-ens-dao-limited-code-accessible',
       {
         name: sismoLabel,
-        symbol: 'SISMO',
         ens: registry.address,
         resolver: publicResolver.address,
         reverseRegistrar: reverseRegistrar.address,
@@ -75,7 +70,7 @@ describe('ENS DAO Registrar - Limited Code Accessible Preset', () => {
         initialGroupId: groupId,
       }
     );
-    ({ ensDaoToken, ensDaoRegistrar } = deployedEnsDao);
+    ({ ensDaoRegistrar } = deployedEnsDao);
 
     ens = await new ENS({
       provider: HRE.ethers.provider,
@@ -122,7 +117,6 @@ describe('ENS DAO Registrar - Limited Code Accessible Preset', () => {
         args.signedTicked === wrappedAccessCode.accessCode
     );
     expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
-    expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer1.address);
     expect(await ensDaoRegistrar._consumed(wrappedAccessCode.digest)).to.equal(
       true
     );

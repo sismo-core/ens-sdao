@@ -8,7 +8,6 @@ import {
   EthRegistrar,
   ReverseRegistrar,
   PublicResolver,
-  ENSDaoToken,
   ENSDaoRegistrarPresetClaimable,
   ENSLabelBooker,
 } from '../types';
@@ -31,7 +30,6 @@ describe('ENS DAO Registrar - Claimbale Preset', () => {
   let reverseRegistrar: ReverseRegistrar;
   let registry: ENSRegistry;
   let publicResolver: PublicResolver;
-  let ensDaoToken: ENSDaoToken;
   let ensDaoRegistrar: ENSDaoRegistrarPresetClaimable;
   let ens: ENS;
   let ensLabelBooker: ENSLabelBooker;
@@ -50,13 +48,12 @@ describe('ENS DAO Registrar - Claimbale Preset', () => {
       'deploy-ens-dao-claimable',
       {
         name: sismoLabel,
-        symbol: 'SISMO',
         ens: registry.address,
         resolver: publicResolver.address,
         reverseRegistrar: reverseRegistrar.address,
       }
     );
-    ({ ensDaoToken, ensDaoRegistrar, ensLabelBooker } = deployedEnsDao);
+    ({ ensDaoRegistrar, ensLabelBooker } = deployedEnsDao);
 
     ens = await new ENS({
       provider: HRE.ethers.provider,
@@ -97,7 +94,6 @@ describe('ENS DAO Registrar - Claimbale Preset', () => {
           args.owner === signer1.address && args.id.toHexString() === node
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
-      expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer1.address);
     });
 
     it(`owner can claim the label and send it to an arbitrary address if it is the proper booking address`, async () => {
@@ -117,7 +113,6 @@ describe('ENS DAO Registrar - Claimbale Preset', () => {
           args.id.toHexString() === nameHash.hash(`${label}.${sismoLabel}.eth`)
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
-      expect(await ensDaoToken.ownerOf(node)).to.be.equal(signer2.address);
 
       expect(await ensLabelBooker.getBooking(getLabelhash(label))).to.be.equal(
         ethers.constants.AddressZero
