@@ -9,10 +9,6 @@ import {IENSDaoRegistrar} from './IENSDaoRegistrar.sol';
 /**
  * @title EnsDaoRegistrar contract.
  * @dev Implementation of the {IENSDaoRegistrar}.
- *
- *      An arbitrary reservation period is considered.
- *      Within the registration period, only the owners of the associated .eth subdomain may register this subdomain.
- *      After the registration period, any subdomain registration is first come first served.
  */
 contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
   PublicResolver public immutable RESOLVER;
@@ -115,7 +111,7 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
   /**
    * @dev Hook that is called before any registration.
    *
-   * @param account The address for which the reservation is made.
+   * @param account The address for which the registration is made.
    * @param labelHash The hash of the label to register.
    */
   function _beforeRegistration(address account, bytes32 labelHash)
@@ -126,7 +122,7 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
   /**
    * @dev Hook that is called after any registration.
    *
-   * @param account The address for which the reservation is made.
+   * @param account The address for which the registration is made.
    * @param labelHash The hash of the label to register.
    */
   function _afterRegistration(address account, bytes32 labelHash)
