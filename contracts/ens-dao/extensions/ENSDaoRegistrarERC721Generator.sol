@@ -5,7 +5,7 @@ import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
 import {IENSDaoRegistrar} from '../IENSDaoRegistrar.sol';
 
 interface IERC721Minter is IERC721 {
-  function mint(address to, uint256 tokenId) external;
+  function mintTo(address to, uint256 tokenId) external;
 }
 
 /**
@@ -66,6 +66,6 @@ abstract contract ENSDaoRegistrarERC721Generator is ENSDaoRegistrar {
     super._afterRegistration(account, labelHash);
 
     bytes32 childNode = keccak256(abi.encodePacked(ROOT_NODE, labelHash));
-    ERC721_TOKEN.mint(account, uint256(childNode));
+    ERC721_TOKEN.mintTo(account, uint256(childNode));
   }
 }
