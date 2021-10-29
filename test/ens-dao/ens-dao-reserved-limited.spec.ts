@@ -137,8 +137,8 @@ describe('ENS DAO Registrar - Reserved Limited', () => {
     });
   });
 
-  describe('max number of emission limitation', () => {
-    it('user can not register once the max emission number is reached', async () => {
+  describe('registration limit', () => {
+    it('user can not register once the registration limit is reached', async () => {
       const otherLabel = 'second';
       await ensDaoRegistrar.connect(signer1).register(label);
 
