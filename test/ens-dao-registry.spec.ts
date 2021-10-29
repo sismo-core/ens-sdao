@@ -113,6 +113,39 @@ describe('ENS DAO Registrar', () => {
     );
   });
 
+  describe('restricted access', () => {
+    it('owner can restrict access to registration', async () => {
+      const tx = await ensDaoRegistrar.restrictRegistration();
+
+      expect(await ensDaoRegistrar._restricted()).to.equal(true);
+
+      expectEvent(await tx.wait(), 'Restricted', () => true);
+
+      await expect(
+        ensDaoRegistrar.connect(signer2).register(label)
+      ).to.be.revertedWith('ENS_DAO_REGISTRAR: RESTRICTED_REGISTRATION');
+    });
+
+    it('owner can open access to registration', async () => {
+      await ensDaoRegistrar.restrictRegistration();
+      const tx = await ensDaoRegistrar.openRegistration();
+
+      expect(await ensDaoRegistrar._restricted()).to.equal(false);
+
+      expectEvent(await tx.wait(), 'Unrestricted', () => true);
+
+      await ensDaoRegistrar.connect(signer2).register(label);
+
+      expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
+    });
+
+    it('user can not restrict access', async () => {
+      await expect(
+        ensDaoRegistrar.connect(signer2).restrictRegistration()
+      ).to.be.revertedWith('Ownable: caller is not the owner');
+    });
+  });
+
   describe('root domain ownership', () => {
     it('user can not take back the root domain ownership if not owner', async () => {
       await expect(

@@ -6,6 +6,8 @@ pragma solidity >=0.8.4;
  *         The registrar holds an ENS subdomain of the .eth domain, e.g. 'example.eth'.
  *
  *         A registration allocates one ENS subdomain of the root subdomain, e.g. 'myname.example.eth' to an address.
+ *
+ *         The registrations from the public `register` method can be restricted by the owner of the contract.
  */
 interface IENSDaoRegistrar {
   /**

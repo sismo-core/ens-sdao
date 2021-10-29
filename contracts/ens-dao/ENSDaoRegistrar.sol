@@ -19,7 +19,7 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
   bytes32 public constant ETH_NODE =
     keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
 
-  bool _restricted;
+  bool public _restricted;
 
   /**
    * @dev Constructor.
