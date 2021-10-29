@@ -119,7 +119,7 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
       labelHash,
       address(this),
       address(RESOLVER),
-      60
+      0
     );
 
     // Setting the resolver for the user
