@@ -13,6 +13,9 @@ abstract contract ENSDaoRegistrarReserved is
   ENSDaoRegistrar,
   IENSDaoRegistrarReserved
 {
+  bytes32 public constant ETH_NODE =
+    keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
+
   uint256 public immutable DAO_BIRTH_DATE;
   uint256 public _reservationDuration;
 
