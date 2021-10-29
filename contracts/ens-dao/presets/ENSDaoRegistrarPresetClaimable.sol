@@ -12,6 +12,8 @@ import {ENSLabelBooker} from '../../ens-label-booker/ENSLabelBooker.sol';
  *
  *      This preset interacts with an ENS Label Booker contract.
  *      It allows an owner to book various labels on the ENS Label Booker.
+ *      The address associated to a booking is then able to claim the label.
+ *      The booked label can not be registered using the public `register` method.
  *
  */
 contract ENSDaoRegistrarPresetClaimable is
