@@ -46,9 +46,7 @@ abstract contract ENSDaoRegistrarClaimable is
    * @notice Claim a booked name.
    * @dev Can only be called if and only if
    *  - the subdomain is booked,
-   *  - the sender is either the booked address, either the owner,
-   *  - the subdomain of the root node is free,
-   *  - sender does not already have a DAO token OR sender is the owner.
+   *  - the sender is either the booked address, either the owner.
    * @param label The label to claim.
    * @param account The account to which the registration is done.
    */
@@ -70,9 +68,8 @@ abstract contract ENSDaoRegistrarClaimable is
   }
 
   /**
-   * @notice Register a name and mints a DAO token.
-   * @dev Can only be called with labels that are not booked.
-   *      Uses the `register` method of the EnsDaoRegistrar.
+   * @notice Register a name.
+   * @dev Can only be called if label is not booked.
    */
   function register(string memory label)
     public
