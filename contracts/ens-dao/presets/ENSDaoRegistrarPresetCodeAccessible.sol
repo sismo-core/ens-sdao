@@ -3,9 +3,19 @@ pragma solidity >=0.8.4;
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
-import {ENSDaoRegistrarLimited} from '../extensions/ENSDaoRegistrarLimited.sol';
 import {ENSDaoRegistrarCodeAccessible} from '../extensions/ENSDaoRegistrarCodeAccessible.sol';
 
+/**
+ * @title ENSDaoRegistrarPresetCodeAccessible.
+ * @dev ENS DAO Registrar Preset using the ENSDaoRegistrarCodeAccessible extension.
+ *
+ *      This preset allows to register using access code.
+ *      An access code is created for one specific address. Only this specific address can use it.
+ *      An access code can only be used once.
+ *      An access code is linked to a group ID.
+ *      The current group ID is controlled by the owner of the contract.
+ *
+ */
 contract ENSDaoRegistrarPresetCodeAccessible is
   ENSDaoRegistrar,
   ENSDaoRegistrarCodeAccessible

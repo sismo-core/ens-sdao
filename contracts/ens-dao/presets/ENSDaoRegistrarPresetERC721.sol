@@ -7,6 +7,20 @@ import {ENSDaoRegistrarLimited} from '../extensions/ENSDaoRegistrarLimited.sol';
 import {ENSDaoRegistrarReserved} from '../extensions/ENSDaoRegistrarReserved.sol';
 import {ENSDaoRegistrarERC721Generator, IERC721Minter} from '../extensions/ENSDaoRegistrarERC721Generator.sol';
 
+/**
+ * @title ENSDaoRegistrarPresetERC721.
+ * @dev ENS DAO Registrar Preset using the ENSDaoRegistrarLimited, ENSDaoRegistrarReserved and ENSDaoRegistrarERC721Generator extensions.
+ *
+ *      This preset allows to register and mint for each registration an associated ERC721 token.
+ *      Only one ERC721 token is allowed by address.
+ *
+ *      Additionally, this preset allows to limit the number of possible registrations.
+ *      This limit is controlled by the owner of the contract.
+ *
+ *      Finally, this preset allows to reserve <subdomain>.<domain>.eth for owner of <subdomain>.eth during a specific duration.
+ *      This duration is controlled by the owner.
+ *
+ */
 contract ENSDaoRegistrarPresetERC721 is
   ENSDaoRegistrar,
   ENSDaoRegistrarLimited,
