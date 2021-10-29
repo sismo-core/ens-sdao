@@ -1,11 +1,9 @@
 import { expect } from 'chai';
-//@ts-ignore
-import ENS from '@ensdomains/ensjs';
 import HRE, { ethers } from 'hardhat';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
-import { ENSRegistry, ENSLabelBooker } from '../types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
+import { ENSRegistry, ENSLabelBooker } from '../types';
 import { expectEvent, evmSnapshot, evmRevert } from './helpers';
 import { DeployedEns, DeployedLabelBooker } from '../tasks';
 

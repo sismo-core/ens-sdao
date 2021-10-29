@@ -2,6 +2,8 @@ import { expect } from 'chai';
 //@ts-ignore
 import ENS from '@ensdomains/ensjs';
 import HRE, { ethers } from 'hardhat';
+//@ts-ignore
+import nameHash from 'eth-ens-namehash';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 import {
   ENSRegistry,
@@ -9,8 +11,6 @@ import {
   ReverseRegistrar,
   PublicResolver,
 } from '../types';
-//@ts-ignore
-import nameHash from 'eth-ens-namehash';
 import { DeployedEns } from '../tasks';
 
 describe('ENS: Register domain, set owners, set lookup and reverse lookup, create subdomain', () => {

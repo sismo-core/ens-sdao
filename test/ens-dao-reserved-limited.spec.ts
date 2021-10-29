@@ -2,6 +2,8 @@ import { expect } from 'chai';
 //@ts-ignore
 import ENS from '@ensdomains/ensjs';
 import HRE, { ethers } from 'hardhat';
+//@ts-ignore
+import nameHash from 'eth-ens-namehash';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 import {
   ENSRegistry,
@@ -10,8 +12,6 @@ import {
   PublicResolver,
   ENSDaoRegistrarPresetReservedLimited,
 } from '../types';
-//@ts-ignore
-import nameHash from 'eth-ens-namehash';
 import { increaseTime, expectEvent, evmSnapshot, evmRevert } from './helpers';
 import { DeployedEns, DeployedEnsDaoReservedLimited } from '../tasks';
 

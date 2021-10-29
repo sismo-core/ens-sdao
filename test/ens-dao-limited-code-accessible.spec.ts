@@ -10,7 +10,6 @@ import {
   PublicResolver,
   ENSDaoRegistrarPresetLimitedCodeAccessible,
 } from '../types';
-//@ts-ignore
 import { expectEvent, evmSnapshot, evmRevert } from './helpers';
 import {
   DeployedEns,
