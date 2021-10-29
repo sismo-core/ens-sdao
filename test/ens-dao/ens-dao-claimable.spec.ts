@@ -2,6 +2,8 @@ import { expect } from 'chai';
 //@ts-ignore
 import ENS from '@ensdomains/ensjs';
 import HRE, { ethers } from 'hardhat';
+//@ts-ignore
+import nameHash from 'eth-ens-namehash';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 import {
   ENSRegistry,
@@ -10,13 +12,11 @@ import {
   PublicResolver,
   ENSDaoRegistrarPresetClaimable,
   ENSLabelBooker,
-} from '../types';
-//@ts-ignore
-import nameHash from 'eth-ens-namehash';
-import { expectEvent, evmSnapshot, evmRevert } from './helpers';
-import { DeployedEns, DeployedEnsDaoClaimable } from '../tasks';
+} from '../../types';
+import { expectEvent, evmSnapshot, evmRevert } from '../helpers';
+import { DeployedEns, DeployedEnsDaoClaimable } from '../../tasks';
 
-describe('ENS DAO Registrar - Claimbale Preset', () => {
+describe('ENS DAO Registrar - Claimbale', () => {
   const getLabelhash = (label: string) =>
     ethers.utils.keccak256(ethers.utils.toUtf8Bytes(label));
   const year = 365 * 24 * 60 * 60;
@@ -91,7 +91,9 @@ describe('ENS DAO Registrar - Claimbale Preset', () => {
         await tx.wait(),
         'NameRegistered',
         (args) =>
-          args.owner === signer1.address && args.id.toHexString() === node
+          args.owner === signer1.address &&
+          args.id.toHexString() === node &&
+          args.registrant === signer1.address
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
     });
@@ -104,13 +106,9 @@ describe('ENS DAO Registrar - Claimbale Preset', () => {
         receipt,
         'NameRegistered',
         (args) =>
-          args.owner === signer2.address && args.id.toHexString() === node
-      );
-      expectEvent(
-        receipt,
-        'BookingDeleted',
-        (args) =>
-          args.id.toHexString() === nameHash.hash(`${label}.${sismoLabel}.eth`)
+          args.owner === signer2.address &&
+          args.id.toHexString() === node &&
+          args.registrant === ownerSigner.address
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
 

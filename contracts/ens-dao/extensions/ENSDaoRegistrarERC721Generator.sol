@@ -1,13 +1,11 @@
 pragma solidity >=0.8.4;
 
+import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
 import {IENSDaoRegistrar} from '../IENSDaoRegistrar.sol';
-import {IENSDaoRegistrarERC721Generator} from './IENSDaoRegistrarERC721Generator.sol';
 
-interface IERC721Minter {
-  function mintTo(address to, uint256 tokenId) external;
-
-  function balanceOf(address account) external view returns (uint256);
+interface IERC721Minter is IERC721 {
+  function mint(address to, uint256 tokenId) external;
 }
 
 /**
@@ -16,10 +14,7 @@ interface IERC721Minter {
  *      A token is minted for each registration.
  *      Only one token is allowed by account.
  */
-abstract contract ENSDaoRegistrarERC721Generator is
-  ENSDaoRegistrar,
-  IENSDaoRegistrarERC721Generator
-{
+abstract contract ENSDaoRegistrarERC721Generator is ENSDaoRegistrar {
   IERC721Minter public immutable ERC721_TOKEN;
 
   /**
@@ -39,7 +34,7 @@ abstract contract ENSDaoRegistrarERC721Generator is
    *
    *      It will pass if and only if the balance of the account is zero or the account is the owner.
    *
-   * @param account The address for which the reservation is made.
+   * @param account The address for which the registration is made.
    * @param labelHash The hash of the label to register.
    */
   function _beforeRegistration(address account, bytes32 labelHash)
@@ -60,7 +55,7 @@ abstract contract ENSDaoRegistrarERC721Generator is
    *
    *      The associated ERC721 is minted and given to the account.
    *
-   * @param account The address for which the reservation is made.
+   * @param account The address for which the registration is made.
    * @param labelHash The hash of the label to register.
    */
   function _afterRegistration(address account, bytes32 labelHash)
@@ -71,6 +66,6 @@ abstract contract ENSDaoRegistrarERC721Generator is
     super._afterRegistration(account, labelHash);
 
     bytes32 childNode = keccak256(abi.encodePacked(ROOT_NODE, labelHash));
-    ERC721_TOKEN.mintTo(account, uint256(childNode));
+    ERC721_TOKEN.mint(account, uint256(childNode));
   }
 }

@@ -8,19 +8,18 @@ import {
   EthRegistrar,
   ReverseRegistrar,
   PublicResolver,
-  ENSDaoRegistrarPresetLimitedCodeAccessible,
-} from '../types';
-//@ts-ignore
-import { expectEvent, evmSnapshot, evmRevert } from './helpers';
+  ENSDaoRegistrarPresetCodeAccessible,
+} from '../../types';
+import { expectEvent, evmSnapshot, evmRevert } from '../helpers';
 import {
   DeployedEns,
-  DeployedEnsDaoLimitedCodeAccessible,
+  DeployedEnsDaoCodeAccessible,
   generateEIP712AccessCode,
   getWeeklyGroupId,
   WrappedAccessCode,
-} from '../tasks';
+} from '../../tasks';
 
-describe('ENS DAO Registrar - Limited Code Accessible Preset', () => {
+describe('ENS DAO Registrar - Limited Code Accessible', () => {
   const utils = ethers.utils;
   const year = 365 * 24 * 60 * 60;
   const sismoLabel = 'sismo';
@@ -38,7 +37,7 @@ describe('ENS DAO Registrar - Limited Code Accessible Preset', () => {
   let reverseRegistrar: ReverseRegistrar;
   let registry: ENSRegistry;
   let publicResolver: PublicResolver;
-  let ensDaoRegistrar: ENSDaoRegistrarPresetLimitedCodeAccessible;
+  let ensDaoRegistrar: ENSDaoRegistrarPresetCodeAccessible;
   let ens: ENS;
 
   let ownerSigner: SignerWithAddress;
@@ -58,8 +57,8 @@ describe('ENS DAO Registrar - Limited Code Accessible Preset', () => {
     const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
     ({ registry, reverseRegistrar, publicResolver, registrar } = deployedENS);
 
-    const deployedEnsDao: DeployedEnsDaoLimitedCodeAccessible = await HRE.run(
-      'deploy-ens-dao-limited-code-accessible',
+    const deployedEnsDao: DeployedEnsDaoCodeAccessible = await HRE.run(
+      'deploy-ens-dao-preset-code-accessible',
       {
         name: sismoLabel,
         ens: registry.address,
@@ -109,38 +108,18 @@ describe('ENS DAO Registrar - Limited Code Accessible Preset', () => {
     const tx = await ensDaoRegistrar
       .connect(signer1)
       .registerWithAccessCode(label, wrappedAccessCode.accessCode);
+
     expectEvent(
       await tx.wait(),
       'AccessCodeConsumed',
       (args) =>
         args.groupId.toNumber() === groupId &&
-        args.signedTicked === wrappedAccessCode.accessCode
+        args.accessCode === wrappedAccessCode.accessCode
     );
     expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
     expect(await ensDaoRegistrar._consumed(wrappedAccessCode.digest)).to.equal(
       true
     );
-  });
-
-  it('user is able to register with a valid access code when the registration limit is reached', async () => {
-    await ensDaoRegistrar.updateRegistrationLimit(0);
-    const tx = await ensDaoRegistrar
-      .connect(signer1)
-      .registerWithAccessCode(label, wrappedAccessCode.accessCode);
-    expectEvent(
-      await tx.wait(),
-      'AccessCodeConsumed',
-      (args) =>
-        args.groupId.toNumber() === groupId &&
-        args.signedTicked === wrappedAccessCode.accessCode
-    );
-    expectEvent(
-      await tx.wait(),
-      'RegistrationLimitUpdated',
-      (args) => args.registrationLimit.toNumber() === 1
-    );
-    const updatedRegistrationLimit = await ensDaoRegistrar._registrationLimit();
-    expect(updatedRegistrationLimit.toNumber()).to.equal(1);
   });
 
   it('user is not able to register with a access code signed for another address', async () => {

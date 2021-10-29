@@ -3,7 +3,7 @@ pragma solidity >=0.8.4;
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
-import {IENSDaoRegistrarReserved} from './IENSDaoRegistrarReserved.sol';
+import {IENSDaoRegistrarReserved} from './interfaces/IENSDaoRegistrarReserved.sol';
 
 /**
  * @title ENSDaoRegistrarReserved contract.
@@ -13,6 +13,9 @@ abstract contract ENSDaoRegistrarReserved is
   ENSDaoRegistrar,
   IENSDaoRegistrarReserved
 {
+  bytes32 public constant ETH_NODE =
+    keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
+
   uint256 public immutable DAO_BIRTH_DATE;
   uint256 public _reservationDuration;
 

@@ -1,13 +1,17 @@
 pragma solidity >=0.8.4;
 
-import {ENSDaoRegistrarLimited} from './ENSDaoRegistrarLimited.sol';
-import {IENSDaoRegistrarLimitedCodeAccessible} from './IENSDaoRegistrarLimitedCodeAccessible.sol';
+import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
+import {IENSDaoRegistrarCodeAccessible} from './interfaces/IENSDaoRegistrarCodeAccessible.sol';
 
 import '@openzeppelin/contracts/utils/cryptography/ECDSA.sol';
 
-abstract contract ENSDaoRegistrarLimitedCodeAccessible is
-  ENSDaoRegistrarLimited,
-  IENSDaoRegistrarLimitedCodeAccessible
+/**
+ * @title ENSDaoRegistrarCodeAccessible contract.
+ * @dev Implementation of the {IENSDaoRegistrarCodeAccessible}.
+ */
+abstract contract ENSDaoRegistrarCodeAccessible is
+  ENSDaoRegistrar,
+  IENSDaoRegistrarCodeAccessible
 {
   using ECDSA for bytes32;
 
@@ -48,6 +52,7 @@ abstract contract ENSDaoRegistrarLimitedCodeAccessible is
         verifyingContract: address(this)
       })
     );
+    _restricted = true;
   }
 
   /**
@@ -77,10 +82,6 @@ abstract contract ENSDaoRegistrarLimitedCodeAccessible is
       digest.recover(accessCode) == owner(),
       'ENS_DAO_REGISTRAR_LIMITED_CODE_ACCESSIBLE: INVALID_ACCESS_CODE OR INVALID_SENDER'
     );
-
-    if (_registrationLimit == _counter) {
-      _updateRegistrationLimit(_registrationLimit + 1);
-    }
 
     bytes32 labelHash = keccak256(bytes(label));
     _register(_msgSender(), labelHash);

@@ -9,75 +9,91 @@ import {IENSDaoRegistrar} from './IENSDaoRegistrar.sol';
 /**
  * @title EnsDaoRegistrar contract.
  * @dev Implementation of the {IENSDaoRegistrar}.
- *
- *      An arbitrary reservation period is considered.
- *      Within the registration period, only the owners of the associated .eth subdomain may register this subdomain.
- *      After the registration period, any subdomain registration is first come first served.
  */
 contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
   PublicResolver public immutable RESOLVER;
   ENS public immutable ENS_REGISTRY;
   bytes32 public immutable ROOT_NODE;
 
-  string NAME;
-  bytes32 public constant ETH_NODE =
-    keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
+  bool public _restricted = false;
 
   /**
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
    * @param resolver The address of the Resolver.
    * @param node The node that this registrar administers.
-   * @param name The label string of the administered subdomain.
    * @param owner The owner of the contract.
    */
   constructor(
     ENS ensAddr,
     PublicResolver resolver,
     bytes32 node,
-    string memory name,
     address owner
   ) {
     ENS_REGISTRY = ensAddr;
     RESOLVER = resolver;
-    NAME = name;
     ROOT_NODE = node;
 
     transferOwnership(owner);
   }
 
+  modifier onlyUnrestricted() {
+    require(!_restricted, 'ENS_DAO_REGISTRAR: RESTRICTED_REGISTRATION');
+    _;
+  }
+
   /**
-   * @notice Register a name and mints a DAO token.
-   * @dev Can only be called if and only if
-   *  - the subdomain of the root node is free,
-   *  - sender does not already have a DAO token OR sender is the owner,
-   *  - still in the reservation period, the associated .eth subdomain is free OR owned by the sender.
+   * @notice Register a name.
+   * @dev Can only be called if and only if the subdomain of the root node is free
    * @param label The label to register.
    */
-  function register(string memory label) public virtual override {
+  function register(string memory label)
+    public
+    virtual
+    override
+    onlyUnrestricted
+  {
     bytes32 labelHash = keccak256(bytes(label));
 
     _register(_msgSender(), labelHash);
   }
 
   /**
-   * @notice Give back the root domain of the ENS DAO Registrar to DAO owner.
+   * @notice Transfer the root domain ownership of the ENS DAO Registrar to a new owner.
    * @dev Can be called by the owner of the registrar.
    */
-  function giveBackDomainOwnership() public override onlyOwner {
-    ENS_REGISTRY.setOwner(ROOT_NODE, owner());
+  function transferDomainOwnership(address newDomainOwner)
+    public
+    override
+    onlyOwner
+  {
+    ENS_REGISTRY.setOwner(ROOT_NODE, newDomainOwner);
 
-    emit OwnershipConceded(_msgSender());
+    emit DomainOwnershipTransferred(newDomainOwner);
+  }
+
+  /**
+   * @notice Restrict registration.
+   * @dev Can only be called by the owner.
+   */
+  function restrictRegistration() public override onlyOwner {
+    _restricted = true;
+    emit Restricted();
+  }
+
+  /**
+   * @notice Open registration.
+   * @dev Can only be called by the owner.
+   */
+  function openRegistration() public override onlyOwner {
+    _restricted = false;
+    emit Unrestricted();
   }
 
   /**
    * @dev Register a name and mint a DAO token.
-   *      Can only be called if and only if
-   *        - the maximum number of emissions has not been reached,
-   *        - the subdomain is free to be registered,
-   *        - the destination address does not alreay own a subdomain or the sender is the owner,
-   *        - the maximum number of emissions has not been reached.
-   * @param account The address that will receive the subdomain and the DAO token.
+   *      Can only be called if and only if the subdomain is free to be registered.
+   * @param account The address that will receive the subdomain.
    * @param labelHash The hash of the label to register, given as input because of parent computation.
    */
   function _register(address account, bytes32 labelHash) internal {
@@ -98,7 +114,7 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
       labelHash,
       address(this),
       address(RESOLVER),
-      60
+      0
     );
 
     // Setting the resolver for the user
@@ -109,13 +125,13 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
 
     _afterRegistration(account, labelHash);
 
-    emit NameRegistered(uint256(childNode), _msgSender());
+    emit NameRegistered(uint256(childNode), account, _msgSender());
   }
 
   /**
    * @dev Hook that is called before any registration.
    *
-   * @param account The address for which the reservation is made.
+   * @param account The address for which the registration is made.
    * @param labelHash The hash of the label to register.
    */
   function _beforeRegistration(address account, bytes32 labelHash)
@@ -126,7 +142,7 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
   /**
    * @dev Hook that is called after any registration.
    *
-   * @param account The address for which the reservation is made.
+   * @param account The address for which the registration is made.
    * @param labelHash The hash of the label to register.
    */
   function _afterRegistration(address account, bytes32 labelHash)

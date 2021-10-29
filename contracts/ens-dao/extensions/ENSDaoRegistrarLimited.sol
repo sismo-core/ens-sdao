@@ -3,7 +3,7 @@ pragma solidity >=0.8.4;
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
-import {IENSDaoRegistrarLimited} from './IENSDaoRegistrarLimited.sol';
+import {IENSDaoRegistrarLimited} from './interfaces/IENSDaoRegistrarLimited.sol';
 
 /**
  * @title ENSDaoRegistrarLimited contract.
@@ -55,7 +55,7 @@ abstract contract ENSDaoRegistrarLimited is
    *
    *      It will pass if and only if the number of registration is lower than the limit.
    *
-   * @param account The address for which the reservation is made.
+   * @param account The address for which the registration is made.
    * @param labelHash The hash of the label to register.
    */
   function _beforeRegistration(address account, bytes32 labelHash)
@@ -76,7 +76,7 @@ abstract contract ENSDaoRegistrarLimited is
    *
    *      Counter of registration is increased by 1.
    *
-   * @param account The address for which the reservation is made.
+   * @param account The address for which the registration is made.
    * @param labelHash The hash of the label to register.
    */
   function _afterRegistration(address account, bytes32 labelHash)

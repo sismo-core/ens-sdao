@@ -1,6 +1,6 @@
 pragma solidity >=0.8.4;
 
-import {IENSDaoRegistrar} from '../IENSDaoRegistrar.sol';
+import {IENSDaoRegistrar} from '../../IENSDaoRegistrar.sol';
 
 /**
  * @title IENSDaoRegistrarReserved interface.

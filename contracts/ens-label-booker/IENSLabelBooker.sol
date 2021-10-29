@@ -27,6 +27,9 @@ interface IENSLabelBooker {
    * @dev Emitted when a booking is deleted.
    */
   event BookingDeleted(uint256 indexed id);
+  /**
+   * @dev Emitted when a registrar is set.
+   */
   event NewRegistrar(address indexed registrar);
 
   /**

@@ -1,11 +1,9 @@
 import { expect } from 'chai';
-//@ts-ignore
-import ENS from '@ensdomains/ensjs';
 import HRE, { ethers } from 'hardhat';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
-import { ENSRegistry, ENSLabelBooker } from '../types';
 //@ts-ignore
 import nameHash from 'eth-ens-namehash';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
+import { ENSRegistry, ENSLabelBooker } from '../types';
 import { expectEvent, evmSnapshot, evmRevert } from './helpers';
 import { DeployedEns, DeployedLabelBooker } from '../tasks';
 
@@ -45,12 +43,10 @@ describe('ENS Label Booker', () => {
     snapshotId = await evmSnapshot(HRE);
   });
 
-  const label0 = getLabelhash('testlabel');
-  const label1 = getLabelhash('anotherlabel');
-  const label2 = getLabelhash('yetanotherlabel');
-  const labels = [label0, label1, label2];
+  const labels = ['testlabel', 'anotherlabel', 'yetanotherlabel'];
+  const labelHashes = labels.map(getLabelhash);
 
-  const domain0 = `${label0}.${sismoLabel}.eth`;
+  const domain0 = `${labels[0]}.${sismoLabel}.eth`;
   const userNode0 = nameHash.hash(domain0);
 
   const nodes = labels.map((label) =>
@@ -58,7 +54,7 @@ describe('ENS Label Booker', () => {
   );
 
   it(`Owner can book a label`, async () => {
-    const tx = await ensLabelBooker.book(label0, unknownSigner.address);
+    const tx = await ensLabelBooker.book(labelHashes[0], unknownSigner.address);
     const receipt = await tx.wait();
 
     expectEvent(
@@ -69,26 +65,26 @@ describe('ENS Label Booker', () => {
         args.bookingAddress === unknownSigner.address
     );
 
-    expect(await ensLabelBooker.getBooking(label0)).to.equal(
+    expect(await ensLabelBooker.getBooking(labelHashes[0])).to.equal(
       unknownSigner.address
     );
   });
 
   it(`Owner can not book an already booked label`, async () => {
-    await ensLabelBooker.book(label0, unknownSigner.address);
+    await ensLabelBooker.book(labelHashes[0], unknownSigner.address);
     await expect(
-      ensLabelBooker.book(label0, unknownSigner.address)
+      ensLabelBooker.book(labelHashes[0], unknownSigner.address)
     ).to.be.revertedWith('ENS_LABEL_BOOKER: LABEL_ALREADY_BOOKED');
   });
 
   it(`Owner can not book with a zero address`, async () => {
     await expect(
-      ensLabelBooker.book(label0, ethers.constants.AddressZero)
+      ensLabelBooker.book(labelHashes[0], ethers.constants.AddressZero)
     ).to.be.revertedWith('ENS_LABEL_BOOKER: INVALID_BOOKING_ADDRESS');
   });
 
   it(`Owner can book multiple labels by batch`, async () => {
-    const tx = await ensLabelBooker.batchBook(labels, [
+    const tx = await ensLabelBooker.batchBook(labelHashes, [
       unknownSigner.address,
       unknownSigner.address,
       unknownSigner.address,
@@ -117,20 +113,23 @@ describe('ENS Label Booker', () => {
         args.id.toHexString() === nodes[2]
     );
 
-    expect(await ensLabelBooker.getBooking(labels[0])).to.equal(
+    expect(await ensLabelBooker.getBooking(labelHashes[0])).to.equal(
       unknownSigner.address
     );
-    expect(await ensLabelBooker.getBooking(labels[1])).to.equal(
+    expect(await ensLabelBooker.getBooking(labelHashes[1])).to.equal(
       unknownSigner.address
     );
-    expect(await ensLabelBooker.getBooking(labels[2])).to.equal(
+    expect(await ensLabelBooker.getBooking(labelHashes[2])).to.equal(
       unknownSigner.address
     );
   });
 
   it(`Owner can update a booking`, async () => {
-    await ensLabelBooker.book(label0, unknownSigner.address);
-    const tx = await ensLabelBooker.updateBooking(label0, otherSigner.address);
+    await ensLabelBooker.book(labelHashes[0], unknownSigner.address);
+    const tx = await ensLabelBooker.updateBooking(
+      labelHashes[0],
+      otherSigner.address
+    );
     expectEvent(
       await tx.wait(),
       'BookingUpdated',
@@ -138,18 +137,18 @@ describe('ENS Label Booker', () => {
         args.bookingAddress === otherSigner.address &&
         args.id.toHexString() === userNode0
     );
-    expect(await ensLabelBooker.getBooking(label0)).to.equal(
+    expect(await ensLabelBooker.getBooking(labelHashes[0])).to.equal(
       otherSigner.address
     );
   });
 
   it(`Owner can update bookings by batch`, async () => {
-    await ensLabelBooker.batchBook(labels, [
+    await ensLabelBooker.batchBook(labelHashes, [
       unknownSigner.address,
       unknownSigner.address,
       unknownSigner.address,
     ]);
-    const tx = await ensLabelBooker.batchUpdateBooking(labels, [
+    const tx = await ensLabelBooker.batchUpdateBooking(labelHashes, [
       otherSigner.address,
       otherSigner.address,
       otherSigner.address,
@@ -177,50 +176,50 @@ describe('ENS Label Booker', () => {
         args.id.toHexString() === nodes[2]
     );
 
-    expect(await ensLabelBooker.getBooking(labels[0])).to.equal(
+    expect(await ensLabelBooker.getBooking(labelHashes[0])).to.equal(
       otherSigner.address
     );
-    expect(await ensLabelBooker.getBooking(labels[1])).to.equal(
+    expect(await ensLabelBooker.getBooking(labelHashes[1])).to.equal(
       otherSigner.address
     );
-    expect(await ensLabelBooker.getBooking(labels[2])).to.equal(
+    expect(await ensLabelBooker.getBooking(labelHashes[2])).to.equal(
       otherSigner.address
     );
   });
 
   it(`Owner can delete a booking`, async () => {
-    await ensLabelBooker.book(label0, unknownSigner.address);
-    const tx = await ensLabelBooker.deleteBooking(label0);
+    await ensLabelBooker.book(labelHashes[0], unknownSigner.address);
+    const tx = await ensLabelBooker.deleteBooking(labelHashes[0]);
     expectEvent(
       await tx.wait(),
       'BookingDeleted',
       (args) => args.id.toHexString() === userNode0
     );
-    expect(await ensLabelBooker.getBooking(label0)).to.equal(
+    expect(await ensLabelBooker.getBooking(labelHashes[0])).to.equal(
       ethers.constants.AddressZero
     );
   });
   it(`Owner can delete bookings by batch`, async () => {
-    await ensLabelBooker.batchBook(labels, [
+    await ensLabelBooker.batchBook(labelHashes, [
       unknownSigner.address,
       unknownSigner.address,
       unknownSigner.address,
     ]);
-    const tx = await ensLabelBooker.batchDeleteBooking(labels);
+    const tx = await ensLabelBooker.batchDeleteBooking(labelHashes);
     const receipt = await tx.wait();
     expectEvent(
       receipt,
-      'BookingUpdated',
+      'BookingDeleted',
       (args) => args.id.toHexString() === nodes[0]
     );
     expectEvent(
       receipt,
-      'BookingUpdated',
+      'BookingDeleted',
       (args) => args.id.toHexString() === nodes[1]
     );
     expectEvent(
       receipt,
-      'BookingUpdated',
+      'BookingDeleted',
       (args) => args.id.toHexString() === nodes[2]
     );
   });
