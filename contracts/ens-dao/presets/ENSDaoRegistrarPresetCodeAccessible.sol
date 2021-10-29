@@ -32,6 +32,7 @@ contract ENSDaoRegistrarPresetCodeAccessible is
    * @param owner The owner of the contract.
    * @param domainName The name field of the EIP712 Domain.
    * @param domainVersion The version field of the EIP712 Domain.
+   * @param codeSigner The address of the code signer.
    * @param groupId The initial group ID.
    */
   constructor(
@@ -41,9 +42,10 @@ contract ENSDaoRegistrarPresetCodeAccessible is
     address owner,
     string memory domainName,
     string memory domainVersion,
+    address codeSigner,
     uint256 groupId
   )
-    ENSDaoRegistrarCodeAccessible(domainName, domainVersion)
+    ENSDaoRegistrarCodeAccessible(domainName, domainVersion, codeSigner)
     ENSDaoRegistrar(ensAddr, resolver, node, owner)
   {
     _groupId = groupId;

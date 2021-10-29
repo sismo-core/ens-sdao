@@ -11,7 +11,7 @@ contract ERC721Minter is ERC721PresetMinterPauserAutoId {
     _setupRole(DEFAULT_ADMIN_ROLE, owner);
   }
 
-  function mint(address to, uint256 tokenId) public {
+  function mintTo(address to, uint256 tokenId) public {
     require(
       hasRole(MINTER_ROLE, _msgSender()),
       'ERC721PresetMinterPauserAutoId: must have minter role to mint'
