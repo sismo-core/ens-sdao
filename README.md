@@ -19,15 +19,15 @@ We, of course, are not asking for free audit. We are mainly asking wether we cor
 
 A DAO is mainly two contracts: the ENSRegistrar (which gives subdomains) and an optional NFT given to subdomain owners (when ENS's official nameWrapper will be deployed, we will update)
 
-- `ens-dao/ENSDaoRegistrar.sol`: core contract. This is the contract that owns `domain.eth` and distribute `username.domain.eth`. It can be paused.
+- `ens-dao/ENSDaoRegistrar.sol`: core contract. This is the contract that owns `domain.eth` and distribute `username.domain.eth`. The registration through the public `register` can be paused.
 - `ens-dao/extensions` extensions on the ENSDaoRegistrar
   - `ENSDaoRegistrarClaimable.sol`: the owner can prebook some subdomains (via an external LabelBooker Contract) that can be claimed.
   - `ENSDaoRegistrarCodeAccessible.sol`: registrants must have a accessCode to register. This access code has been signed and given offchain by the        `codeSigner` address
   - `ENSDaoRegistrarLimited.sol`: Only a max number of subdomains are distributed
   - `ENSDaoRegistrarReserved.sol`: For a duration, only the owner of `user.eth` can register `user.domain.eth`
-  - `ENSDaoRegistrarLimitedERC721Generator.sol`: Each subdomain owner gets a ERC721. (Note they are not tied to ownership, ERC721 is independent)
-  - `ENSDaoRegistrarLimitedERC1155Generator.sol`: Each subdomain owner gets a ERC115. (Note they are not tied to ownership, ERC1155 is independent))
+  - `ENSDaoRegistrarLimitedERC721Generator.sol`: Each subdomain owner gets a ERC721. One token allowed per address. (Note they are not tied to ownership, ERC721 is independent)
+  - `ENSDaoRegistrarLimitedERC1155Generator.sol`: Each subdomain owner gets a ERC1155. One token allowed per address. (Note they are not tied to ownership, ERC1155 is independent))
 - `ens-dao/presets`  some presets easy to read.
 
 
-Thanks a lot
+Thanks a lot!
