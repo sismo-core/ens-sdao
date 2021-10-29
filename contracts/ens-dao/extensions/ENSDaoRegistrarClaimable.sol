@@ -3,7 +3,7 @@ pragma solidity >=0.8.4;
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
 import {IENSDaoRegistrar} from '../IENSDaoRegistrar.sol';
-import {IENSDaoRegistrarClaimable} from './IENSDaoRegistrarClaimable.sol';
+import {IENSDaoRegistrarClaimable} from './interfaces/IENSDaoRegistrarClaimable.sol';
 import {ENSLabelBooker} from '../../ens-label-booker/ENSLabelBooker.sol';
 
 /**

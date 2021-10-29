@@ -1,7 +1,7 @@
 pragma solidity >=0.8.4;
 
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
-import {IENSDaoRegistrarCodeAccessible} from './IENSDaoRegistrarCodeAccessible.sol';
+import {IENSDaoRegistrarCodeAccessible} from './interfaces/IENSDaoRegistrarCodeAccessible.sol';
 
 import '@openzeppelin/contracts/utils/cryptography/ECDSA.sol';
 
