@@ -8,9 +8,10 @@ import {ENSDaoRegistrarLimited} from '../extensions/ENSDaoRegistrarLimited.sol';
 import {ENSDaoRegistrarReserved} from '../extensions/ENSDaoRegistrarReserved.sol';
 import {ENSDaoRegistrarERC1155Generator, IERC1155Minter} from '../extensions/ENSDaoRegistrarERC1155Generator.sol';
 
-contract ENSDaoRegistrarPresetERC1155Generator is
-  Ownable,
+contract ENSDaoRegistrarPresetERC1155 is
   ENSDaoRegistrar,
+  ENSDaoRegistrarLimited,
+  ENSDaoRegistrarReserved,
   ENSDaoRegistrarERC1155Generator
 {
   /**
@@ -21,6 +22,8 @@ contract ENSDaoRegistrarPresetERC1155Generator is
    * @param node The node that this registrar administers.
    * @param name The label string of the administered subdomain.
    * @param owner The owner of the contract.
+   * @param reservationDuration The duration of the reservation period.
+   * @param registrationLimit The limit of registration number.
    */
   constructor(
     ENS ensAddr,
@@ -28,9 +31,13 @@ contract ENSDaoRegistrarPresetERC1155Generator is
     IERC1155Minter erc1155Token,
     bytes32 node,
     string memory name,
-    address owner
+    address owner,
+    uint256 reservationDuration,
+    uint256 registrationLimit
   )
     ENSDaoRegistrarERC1155Generator(erc1155Token)
+    ENSDaoRegistrarLimited(registrationLimit)
+    ENSDaoRegistrarReserved(reservationDuration)
     ENSDaoRegistrar(ensAddr, resolver, node, name, owner)
   {}
 
@@ -56,7 +63,12 @@ contract ENSDaoRegistrarPresetERC1155Generator is
   function _beforeRegistration(address account, bytes32 labelHash)
     internal
     virtual
-    override(ENSDaoRegistrar, ENSDaoRegistrarERC1155Generator)
+    override(
+      ENSDaoRegistrar,
+      ENSDaoRegistrarReserved,
+      ENSDaoRegistrarLimited,
+      ENSDaoRegistrarERC1155Generator
+    )
   {
     super._beforeRegistration(account, labelHash);
   }
@@ -64,7 +76,11 @@ contract ENSDaoRegistrarPresetERC1155Generator is
   function _afterRegistration(address account, bytes32 labelHash)
     internal
     virtual
-    override(ENSDaoRegistrar, ENSDaoRegistrarERC1155Generator)
+    override(
+      ENSDaoRegistrar,
+      ENSDaoRegistrarLimited,
+      ENSDaoRegistrarERC1155Generator
+    )
   {
     super._afterRegistration(account, labelHash);
   }

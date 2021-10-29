@@ -11,12 +11,12 @@ import {
   ReverseRegistrar,
   PublicResolver,
   ERC1155Minter,
-  ENSDaoRegistrarPresetERC1155Generator,
+  ENSDaoRegistrarPresetERC1155,
 } from '../types';
 import { expectEvent, evmSnapshot, evmRevert } from './helpers';
-import { DeployedEns, DeployedEnsDaoERC1155Generator } from '../tasks';
+import { DeployedEns, DeployedEnsDaoPresetERC1155 } from '../tasks';
 
-describe('ENS DAO Registrar ERC1155 Generator', () => {
+describe('ENS DAO Registrar - ERC1155 Generator', () => {
   const utils = ethers.utils;
   const year = 365 * 24 * 60 * 60;
   const sismoLabel = 'sismo';
@@ -33,7 +33,7 @@ describe('ENS DAO Registrar ERC1155 Generator', () => {
   let registry: ENSRegistry;
   let publicResolver: PublicResolver;
   let erc1155Token: ERC1155Minter;
-  let ensDaoRegistrar: ENSDaoRegistrarPresetERC1155Generator;
+  let ensDaoRegistrar: ENSDaoRegistrarPresetERC1155;
   let ens: ENS;
 
   let ownerSigner: SignerWithAddress;
@@ -46,8 +46,8 @@ describe('ENS DAO Registrar ERC1155 Generator', () => {
     const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
     ({ registry, reverseRegistrar, publicResolver, registrar } = deployedENS);
 
-    const deployedEnsDao: DeployedEnsDaoERC1155Generator = await HRE.run(
-      'deploy-ens-dao-erc1155-generator',
+    const deployedEnsDao: DeployedEnsDaoPresetERC1155 = await HRE.run(
+      'deploy-ens-dao-preset-erc1155',
       {
         name: sismoLabel,
         symbol: 'SISMO',

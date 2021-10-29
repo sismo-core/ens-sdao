@@ -16,7 +16,7 @@ import {
 import { expectEvent, evmSnapshot, evmRevert } from './helpers';
 import { DeployedEns, DeployedEnsDaoClaimable } from '../tasks';
 
-describe('ENS DAO Registrar - Claimbale Preset', () => {
+describe('ENS DAO Registrar - Claimbale', () => {
   const getLabelhash = (label: string) =>
     ethers.utils.keccak256(ethers.utils.toUtf8Bytes(label));
   const year = 365 * 24 * 60 * 60;

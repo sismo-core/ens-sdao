@@ -10,12 +10,12 @@ import {
   EthRegistrar,
   ReverseRegistrar,
   PublicResolver,
-  ENSDaoRegistrarPresetReservedLimited,
+  ENSDaoRegistrarPresetERC1155,
 } from '../types';
 import { increaseTime, expectEvent, evmSnapshot, evmRevert } from './helpers';
-import { DeployedEns, DeployedEnsDaoReservedLimited } from '../tasks';
+import { DeployedEns, DeployedEnsDaoPresetERC1155 } from '../tasks';
 
-describe('ENS DAO Registrar - Reserved Limited Preset', () => {
+describe('ENS DAO Registrar - Reserved Limited', () => {
   const utils = ethers.utils;
   const year = 365 * 24 * 60 * 60;
   const sismoLabel = 'sismo';
@@ -31,7 +31,7 @@ describe('ENS DAO Registrar - Reserved Limited Preset', () => {
   let reverseRegistrar: ReverseRegistrar;
   let registry: ENSRegistry;
   let publicResolver: PublicResolver;
-  let ensDaoRegistrar: ENSDaoRegistrarPresetReservedLimited;
+  let ensDaoRegistrar: ENSDaoRegistrarPresetERC1155;
   let ens: ENS;
 
   let ownerSigner: SignerWithAddress;
@@ -44,8 +44,8 @@ describe('ENS DAO Registrar - Reserved Limited Preset', () => {
     const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
     ({ registry, reverseRegistrar, publicResolver, registrar } = deployedENS);
 
-    const deployedEnsDao: DeployedEnsDaoReservedLimited = await HRE.run(
-      'deploy-ens-dao-reserved-limited',
+    const deployedEnsDao: DeployedEnsDaoPresetERC1155 = await HRE.run(
+      'deploy-ens-dao-preset-erc721',
       {
         name: sismoLabel,
         symbol: 'SISMO',

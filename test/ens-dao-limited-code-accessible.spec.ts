@@ -19,7 +19,7 @@ import {
   WrappedAccessCode,
 } from '../tasks';
 
-describe('ENS DAO Registrar - Limited Code Accessible Preset', () => {
+describe('ENS DAO Registrar - Limited Code Accessible', () => {
   const utils = ethers.utils;
   const year = 365 * 24 * 60 * 60;
   const sismoLabel = 'sismo';
