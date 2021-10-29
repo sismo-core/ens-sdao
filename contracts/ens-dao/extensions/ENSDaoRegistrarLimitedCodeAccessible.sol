@@ -5,6 +5,10 @@ import {IENSDaoRegistrarLimitedCodeAccessible} from './IENSDaoRegistrarLimitedCo
 
 import '@openzeppelin/contracts/utils/cryptography/ECDSA.sol';
 
+/**
+ * @title ENSDaoRegistrarLimitedCodeAccessible contract.
+ * @dev Implementation of the {IENSDaoRegistrarLimitedCodeAccessible}.
+ */
 abstract contract ENSDaoRegistrarLimitedCodeAccessible is
   ENSDaoRegistrarLimited,
   IENSDaoRegistrarLimitedCodeAccessible

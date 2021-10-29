@@ -5,9 +5,7 @@ pragma solidity >=0.8.4;
  * @notice A registrar that allows registrations in the DAO.
  *         The registrar holds an ENS subdomain of the .eth domain, e.g. 'example.eth'.
  *
- *         A registration allocates one ENS subdomain of the root subdomain, e.g. 'myname.example.eth' and one associated ERC721 token to an address.
- *
- *         Only one subdomain and one ERC721 token may be possessed by an address with the exception of the owner of the DAO Registrar.
+ *         A registration allocates one ENS subdomain of the root subdomain, e.g. 'myname.example.eth' to an address.
  */
 interface IENSDaoRegistrar {
   /**
@@ -20,7 +18,7 @@ interface IENSDaoRegistrar {
   event OwnershipConceded(address indexed owner);
 
   /**
-   * @notice Register a name and mints a DAO token.
+   * @notice Register a name.
    * @param label The label to register.
    *
    * Emits a {NameRegistered} event.

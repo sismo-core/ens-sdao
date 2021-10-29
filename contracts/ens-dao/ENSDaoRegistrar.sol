@@ -43,11 +43,8 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
   }
 
   /**
-   * @notice Register a name and mints a DAO token.
-   * @dev Can only be called if and only if
-   *  - the subdomain of the root node is free,
-   *  - sender does not already have a DAO token OR sender is the owner,
-   *  - still in the reservation period, the associated .eth subdomain is free OR owned by the sender.
+   * @notice Register a name.
+   * @dev Can only be called if and only if the subdomain of the root node is free
    * @param label The label to register.
    */
   function register(string memory label) public virtual override {
@@ -68,12 +65,8 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
 
   /**
    * @dev Register a name and mint a DAO token.
-   *      Can only be called if and only if
-   *        - the maximum number of emissions has not been reached,
-   *        - the subdomain is free to be registered,
-   *        - the destination address does not alreay own a subdomain or the sender is the owner,
-   *        - the maximum number of emissions has not been reached.
-   * @param account The address that will receive the subdomain and the DAO token.
+   *      Can only be called if and only if the subdomain is free to be registered.
+   * @param account The address that will receive the subdomain.
    * @param labelHash The hash of the label to register, given as input because of parent computation.
    */
   function _register(address account, bytes32 labelHash) internal {
