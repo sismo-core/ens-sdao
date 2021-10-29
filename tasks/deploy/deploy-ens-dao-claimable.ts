@@ -59,7 +59,7 @@ async function deploiementAction(
     'ENSDaoRegistrarPresetClaimable',
     {
       from: deployer.address,
-      args: [ens, resolver, node, name, owner, ensLabelBooker.address],
+      args: [ens, resolver, node, owner, ensLabelBooker.address],
     }
   );
 

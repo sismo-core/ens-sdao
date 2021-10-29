@@ -6,6 +6,14 @@ import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
 import {ENSDaoRegistrarClaimable} from '../extensions/ENSDaoRegistrarClaimable.sol';
 import {ENSLabelBooker} from '../../ens-label-booker/ENSLabelBooker.sol';
 
+/**
+ * @title ENSDaoRegistrarPresetClaimable.
+ * @dev ENS DAO Registrar Preset using the ENSDaoRegistrarClaimable extension.
+ *
+ *      This preset interacts with an ENS Label Booker contract.
+ *      It allows an owner to book various labels on the ENS Label Booker.
+ *
+ */
 contract ENSDaoRegistrarPresetClaimable is
   ENSDaoRegistrar,
   ENSDaoRegistrarClaimable
@@ -15,7 +23,6 @@ contract ENSDaoRegistrarPresetClaimable is
    * @param ensAddr The address of the ENS registry.
    * @param resolver The address of the Resolver.
    * @param node The node that this registrar administers.
-   * @param name The label string of the administered subdomain.
    * @param owner The owner of the contract.
    * @param ensLabelBooker The address of the ENS Label Booker.
    */
@@ -23,12 +30,11 @@ contract ENSDaoRegistrarPresetClaimable is
     ENS ensAddr,
     PublicResolver resolver,
     bytes32 node,
-    string memory name,
     address owner,
     ENSLabelBooker ensLabelBooker
   )
     ENSDaoRegistrarClaimable(ensLabelBooker, address(ensAddr), node)
-    ENSDaoRegistrar(ensAddr, resolver, node, name, owner)
+    ENSDaoRegistrar(ensAddr, resolver, node, owner)
   {}
 
   function register(string memory label)

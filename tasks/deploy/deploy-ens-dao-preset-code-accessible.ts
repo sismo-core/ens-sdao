@@ -60,7 +60,6 @@ async function deploiementAction(
         ens,
         resolver,
         node,
-        name,
         owner,
         domainName,
         domainVersion,

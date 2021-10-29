@@ -65,7 +65,6 @@ async function deploiementAction(
         resolver,
         deployedToken.address,
         node,
-        name,
         owner,
         reservationDuration,
         registrationLimit,

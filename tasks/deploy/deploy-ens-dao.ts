@@ -42,7 +42,7 @@ async function deploiementAction(
 
   const deployedRegistrar = await hre.deployments.deploy('ENSDaoRegistrar', {
     from: deployer.address,
-    args: [ens, resolver, node, name, owner],
+    args: [ens, resolver, node, owner],
   });
 
   const ensDaoRegistrar = ENSDaoRegistrar__factory.connect(

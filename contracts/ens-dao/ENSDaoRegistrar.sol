@@ -15,8 +15,6 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
   ENS public immutable ENS_REGISTRY;
   bytes32 public immutable ROOT_NODE;
 
-  string NAME;
-
   bool public _restricted = false;
 
   /**
@@ -24,19 +22,16 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
    * @param ensAddr The address of the ENS registry.
    * @param resolver The address of the Resolver.
    * @param node The node that this registrar administers.
-   * @param name The label string of the administered subdomain.
    * @param owner The owner of the contract.
    */
   constructor(
     ENS ensAddr,
     PublicResolver resolver,
     bytes32 node,
-    string memory name,
     address owner
   ) {
     ENS_REGISTRY = ensAddr;
     RESOLVER = resolver;
-    NAME = name;
     ROOT_NODE = node;
 
     transferOwnership(owner);

@@ -19,7 +19,6 @@ contract ENSDaoRegistrarPresetERC721 is
    * @param resolver The address of the Resolver.
    * @param erc721Token The address of the ERC721 Token.
    * @param node The node that this registrar administers.
-   * @param name The label string of the administered subdomain.
    * @param owner The owner of the contract.
    * @param reservationDuration The duration of the reservation period.
    * @param registrationLimit The limit of registration number.
@@ -29,7 +28,6 @@ contract ENSDaoRegistrarPresetERC721 is
     PublicResolver resolver,
     IERC721Minter erc721Token,
     bytes32 node,
-    string memory name,
     address owner,
     uint256 reservationDuration,
     uint256 registrationLimit
@@ -37,7 +35,7 @@ contract ENSDaoRegistrarPresetERC721 is
     ENSDaoRegistrarERC721Generator(erc721Token)
     ENSDaoRegistrarLimited(registrationLimit)
     ENSDaoRegistrarReserved(reservationDuration)
-    ENSDaoRegistrar(ensAddr, resolver, node, name, owner)
+    ENSDaoRegistrar(ensAddr, resolver, node, owner)
   {}
 
   function _beforeRegistration(address account, bytes32 labelHash)

@@ -20,7 +20,6 @@ contract ENSDaoRegistrarPresetERC1155 is
    * @param resolver The address of the Resolver.
    * @param erc1155Token The address of the ERC1155 Token.
    * @param node The node that this registrar administers.
-   * @param name The label string of the administered subdomain.
    * @param owner The owner of the contract.
    * @param reservationDuration The duration of the reservation period.
    * @param registrationLimit The limit of registration number.
@@ -30,7 +29,6 @@ contract ENSDaoRegistrarPresetERC1155 is
     PublicResolver resolver,
     IERC1155Minter erc1155Token,
     bytes32 node,
-    string memory name,
     address owner,
     uint256 reservationDuration,
     uint256 registrationLimit
@@ -38,7 +36,7 @@ contract ENSDaoRegistrarPresetERC1155 is
     ENSDaoRegistrarERC1155Generator(erc1155Token)
     ENSDaoRegistrarLimited(registrationLimit)
     ENSDaoRegistrarReserved(reservationDuration)
-    ENSDaoRegistrar(ensAddr, resolver, node, name, owner)
+    ENSDaoRegistrar(ensAddr, resolver, node, owner)
   {}
 
   function _balanceOf(address account)
