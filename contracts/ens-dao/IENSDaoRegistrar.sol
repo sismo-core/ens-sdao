@@ -20,6 +20,14 @@ interface IENSDaoRegistrar {
    * @dev Emitted when the root domain ownership is transferred to a new address.
    */
   event DomainOwnershipTransferred(address indexed owner);
+  /**
+   * @dev Emitted when the public registration is restricted.
+   */
+  event Restricted();
+  /**
+   * @dev Emitted when the public registration is open.
+   */
+  event Unrestricted();
 
   /**
    * @notice Register a name.
@@ -35,4 +43,18 @@ interface IENSDaoRegistrar {
    * Emits a {DomainOwnershipTransfered} event.
    */
   function transferDomainOwnership(address newDomainOwner) external;
+
+  /**
+   * @notice Restrict registration.
+   *
+   * Emits a {Restricted} event.
+   */
+  function restrictRegistration() external;
+
+  /**
+   * @notice Open registration.
+   *
+   * Emits a {Unrestricted} event.
+   */
+  function openRegistration() external;
 }

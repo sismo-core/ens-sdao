@@ -19,6 +19,8 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
   bytes32 public constant ETH_NODE =
     keccak256(abi.encodePacked(bytes32(0), keccak256('eth')));
 
+  bool _restricted;
+
   /**
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
@@ -42,12 +44,22 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
     transferOwnership(owner);
   }
 
+  modifier onlyUnrestricted() {
+    require(!_restricted, 'ENS_DAO_REGISTRAR: RESTRICTED_REGISTRATION');
+    _;
+  }
+
   /**
    * @notice Register a name.
    * @dev Can only be called if and only if the subdomain of the root node is free
    * @param label The label to register.
    */
-  function register(string memory label) public virtual override {
+  function register(string memory label)
+    public
+    virtual
+    override
+    onlyUnrestricted
+  {
     bytes32 labelHash = keccak256(bytes(label));
 
     _register(_msgSender(), labelHash);
@@ -65,6 +77,24 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
     ENS_REGISTRY.setOwner(ROOT_NODE, newDomainOwner);
 
     emit DomainOwnershipTransferred(newDomainOwner);
+  }
+
+  /**
+   * @notice Restrict registration.
+   * @dev Can only be called by the owner.
+   */
+  function restrictRegistration() public override onlyOwner {
+    _restricted = true;
+    emit Restricted();
+  }
+
+  /**
+   * @notice Open registration.
+   * @dev Can only be called by the owner.
+   */
+  function openRegistration() public override onlyOwner {
+    _restricted = false;
+    emit Unrestricted();
   }
 
   /**

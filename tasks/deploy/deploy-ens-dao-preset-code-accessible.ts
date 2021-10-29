@@ -4,11 +4,11 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import nameHash from 'eth-ens-namehash';
 import { getDeployer, logHre } from '../utils';
 import {
-  ENSDaoRegistrarPresetLimitedCodeAccessible__factory,
-  ENSDaoRegistrarPresetLimitedCodeAccessible,
+  ENSDaoRegistrarPresetCodeAccessible__factory,
+  ENSDaoRegistrarPresetCodeAccessible,
 } from '../../types';
 
-type DeployEnsDaoLimitedCodeAccessibleArgs = {
+type DeployEnsDaoCodeAccessibleArgs = {
   // ENS Registry address
   ens: string;
   // Public Resolver address
@@ -17,8 +17,6 @@ type DeployEnsDaoLimitedCodeAccessibleArgs = {
   name: string;
   // owner address of the contracts
   owner?: string;
-  // Limit of registrations
-  registrationLimit?: number;
   // Name field of the EIP712 Domain
   domainName?: string;
   // Version field of the EIP712 Domain
@@ -29,8 +27,8 @@ type DeployEnsDaoLimitedCodeAccessibleArgs = {
   log?: boolean;
 };
 
-export type DeployedEnsDaoLimitedCodeAccessible = {
-  ensDaoRegistrar: ENSDaoRegistrarPresetLimitedCodeAccessible;
+export type DeployedEnsDaoCodeAccessible = {
+  ensDaoRegistrar: ENSDaoRegistrarPresetCodeAccessible;
 };
 
 async function deploiementAction(
@@ -39,14 +37,13 @@ async function deploiementAction(
     resolver,
     name = 'sismo',
     owner: optionalOwner,
-    registrationLimit = 500,
     domainName = 'Sismo App',
     domainVersion = '1.0',
     initialGroupId,
     log,
-  }: DeployEnsDaoLimitedCodeAccessibleArgs,
+  }: DeployEnsDaoCodeAccessibleArgs,
   hre: HardhatRuntimeEnvironment
-): Promise<DeployedEnsDaoLimitedCodeAccessible> {
+): Promise<DeployedEnsDaoCodeAccessible> {
   if (log) await logHre(hre);
 
   const deployer = await getDeployer(hre, log);
@@ -56,7 +53,7 @@ async function deploiementAction(
   const node = nameHash.hash(`${name}.eth`);
 
   const deployedRegistrar = await hre.deployments.deploy(
-    'ENSDaoRegistrarPresetLimitedCodeAccessible',
+    'ENSDaoRegistrarPresetCodeAccessible',
     {
       from: deployer.address,
       args: [
@@ -67,17 +64,15 @@ async function deploiementAction(
         owner,
         domainName,
         domainVersion,
-        registrationLimit,
         initialGroupId,
       ],
     }
   );
 
-  const ensDaoRegistrar =
-    ENSDaoRegistrarPresetLimitedCodeAccessible__factory.connect(
-      deployedRegistrar.address,
-      deployer
-    );
+  const ensDaoRegistrar = ENSDaoRegistrarPresetCodeAccessible__factory.connect(
+    deployedRegistrar.address,
+    deployer
+  );
 
   if (log) {
     console.log(`Deployed ENS DAO Registrar: ${deployedRegistrar.address}`);
@@ -88,7 +83,7 @@ async function deploiementAction(
   };
 }
 
-task('deploy-ens-dao-limited-code-accessible')
+task('deploy-ens-dao-preset-code-accessible')
   .addOptionalParam('ens', 'ens')
   .addOptionalParam('resolver', 'resolver')
   .addOptionalParam('baseURI', 'baseURI')

@@ -8,12 +8,12 @@ import {
   EthRegistrar,
   ReverseRegistrar,
   PublicResolver,
-  ENSDaoRegistrarPresetLimitedCodeAccessible,
+  ENSDaoRegistrarPresetCodeAccessible,
 } from '../types';
 import { expectEvent, evmSnapshot, evmRevert } from './helpers';
 import {
   DeployedEns,
-  DeployedEnsDaoLimitedCodeAccessible,
+  DeployedEnsDaoCodeAccessible,
   generateEIP712AccessCode,
   getWeeklyGroupId,
   WrappedAccessCode,
@@ -37,7 +37,7 @@ describe('ENS DAO Registrar - Limited Code Accessible', () => {
   let reverseRegistrar: ReverseRegistrar;
   let registry: ENSRegistry;
   let publicResolver: PublicResolver;
-  let ensDaoRegistrar: ENSDaoRegistrarPresetLimitedCodeAccessible;
+  let ensDaoRegistrar: ENSDaoRegistrarPresetCodeAccessible;
   let ens: ENS;
 
   let ownerSigner: SignerWithAddress;
@@ -57,8 +57,8 @@ describe('ENS DAO Registrar - Limited Code Accessible', () => {
     const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
     ({ registry, reverseRegistrar, publicResolver, registrar } = deployedENS);
 
-    const deployedEnsDao: DeployedEnsDaoLimitedCodeAccessible = await HRE.run(
-      'deploy-ens-dao-limited-code-accessible',
+    const deployedEnsDao: DeployedEnsDaoCodeAccessible = await HRE.run(
+      'deploy-ens-dao-preset-code-accessible',
       {
         name: sismoLabel,
         ens: registry.address,
@@ -112,20 +112,6 @@ describe('ENS DAO Registrar - Limited Code Accessible', () => {
     expect(await ensDaoRegistrar._consumed(wrappedAccessCode.digest)).to.equal(
       true
     );
-  });
-
-  it('user is able to register with a valid access code when the registration limit is reached', async () => {
-    await ensDaoRegistrar.updateRegistrationLimit(0);
-    const tx = await ensDaoRegistrar
-      .connect(signer1)
-      .registerWithAccessCode(label, wrappedAccessCode.accessCode);
-    expectEvent(
-      await tx.wait(),
-      'RegistrationLimitUpdated',
-      (args) => args.registrationLimit.toNumber() === 1
-    );
-    const updatedRegistrationLimit = await ensDaoRegistrar._registrationLimit();
-    expect(updatedRegistrationLimit.toNumber()).to.equal(1);
   });
 
   it('user is not able to register with a access code signed for another address', async () => {

@@ -4,12 +4,11 @@ import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/Publ
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
 import {ENSDaoRegistrarLimited} from '../extensions/ENSDaoRegistrarLimited.sol';
-import {ENSDaoRegistrarLimitedCodeAccessible} from '../extensions/ENSDaoRegistrarLimitedCodeAccessible.sol';
+import {ENSDaoRegistrarCodeAccessible} from '../extensions/ENSDaoRegistrarCodeAccessible.sol';
 
-contract ENSDaoRegistrarPresetLimitedCodeAccessible is
+contract ENSDaoRegistrarPresetCodeAccessible is
   ENSDaoRegistrar,
-  ENSDaoRegistrarLimited,
-  ENSDaoRegistrarLimitedCodeAccessible
+  ENSDaoRegistrarCodeAccessible
 {
   uint256 public _groupId;
 
@@ -24,7 +23,6 @@ contract ENSDaoRegistrarPresetLimitedCodeAccessible is
    * @param owner The owner of the contract.
    * @param domainName The name field of the EIP712 Domain.
    * @param domainVersion The version field of the EIP712 Domain.
-   * @param registrationLimit The limit of registration number.
    * @param groupId The initial group ID.
    */
   constructor(
@@ -35,11 +33,9 @@ contract ENSDaoRegistrarPresetLimitedCodeAccessible is
     address owner,
     string memory domainName,
     string memory domainVersion,
-    uint256 registrationLimit,
     uint256 groupId
   )
-    ENSDaoRegistrarLimitedCodeAccessible(domainName, domainVersion)
-    ENSDaoRegistrarLimited(registrationLimit)
+    ENSDaoRegistrarCodeAccessible(domainName, domainVersion)
     ENSDaoRegistrar(ensAddr, resolver, node, name, owner)
   {
     _groupId = groupId;
@@ -57,7 +53,7 @@ contract ENSDaoRegistrarPresetLimitedCodeAccessible is
   function _beforeRegistration(address account, bytes32 labelHash)
     internal
     virtual
-    override(ENSDaoRegistrar, ENSDaoRegistrarLimited)
+    override(ENSDaoRegistrar)
   {
     super._beforeRegistration(account, labelHash);
   }
@@ -65,7 +61,7 @@ contract ENSDaoRegistrarPresetLimitedCodeAccessible is
   function _afterRegistration(address account, bytes32 labelHash)
     internal
     virtual
-    override(ENSDaoRegistrar, ENSDaoRegistrarLimited)
+    override(ENSDaoRegistrar)
   {
     super._afterRegistration(account, labelHash);
   }

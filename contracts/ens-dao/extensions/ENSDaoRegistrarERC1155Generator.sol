@@ -3,7 +3,6 @@ pragma solidity >=0.8.4;
 import '@openzeppelin/contracts/token/ERC1155/IERC1155.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
 import {IENSDaoRegistrar} from '../IENSDaoRegistrar.sol';
-import {IENSDaoRegistrarERC1155Generator} from './IENSDaoRegistrarERC1155Generator.sol';
 
 interface IERC1155Minter is IERC1155 {
   function mint(
@@ -20,10 +19,7 @@ interface IERC1155Minter is IERC1155 {
  *      A token is minted for each registration.
  *      Only one token is allowed by account.
  */
-abstract contract ENSDaoRegistrarERC1155Generator is
-  ENSDaoRegistrar,
-  IENSDaoRegistrarERC1155Generator
-{
+abstract contract ENSDaoRegistrarERC1155Generator is ENSDaoRegistrar {
   IERC1155Minter public immutable ERC1155_MINTER;
 
   /**
