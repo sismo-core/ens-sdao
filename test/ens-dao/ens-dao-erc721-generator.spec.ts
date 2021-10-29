@@ -10,13 +10,13 @@ import {
   EthRegistrar,
   ReverseRegistrar,
   PublicResolver,
-  ERC1155Minter,
-  ENSDaoRegistrarPresetERC1155,
-} from '../types';
-import { expectEvent, evmSnapshot, evmRevert } from './helpers';
-import { DeployedEns, DeployedEnsDaoPresetERC1155 } from '../tasks';
+  ERC721Minter,
+  ENSDaoRegistrarPresetERC721,
+} from '../../types';
+import { expectEvent, evmSnapshot, evmRevert } from '../helpers';
+import { DeployedEns, DeployedEnsDaoPresetERC721 } from '../../tasks';
 
-describe('ENS DAO Registrar - ERC1155 Generator', () => {
+describe('ENS DAO Registrar - ERC721 Generator', () => {
   const utils = ethers.utils;
   const year = 365 * 24 * 60 * 60;
   const sismoLabel = 'sismo';
@@ -32,8 +32,8 @@ describe('ENS DAO Registrar - ERC1155 Generator', () => {
   let reverseRegistrar: ReverseRegistrar;
   let registry: ENSRegistry;
   let publicResolver: PublicResolver;
-  let erc1155Token: ERC1155Minter;
-  let ensDaoRegistrar: ENSDaoRegistrarPresetERC1155;
+  let erc721Token: ERC721Minter;
+  let ensDaoRegistrar: ENSDaoRegistrarPresetERC721;
   let ens: ENS;
 
   let ownerSigner: SignerWithAddress;
@@ -46,8 +46,8 @@ describe('ENS DAO Registrar - ERC1155 Generator', () => {
     const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
     ({ registry, reverseRegistrar, publicResolver, registrar } = deployedENS);
 
-    const deployedEnsDao: DeployedEnsDaoPresetERC1155 = await HRE.run(
-      'deploy-ens-dao-preset-erc1155',
+    const deployedEnsDao: DeployedEnsDaoPresetERC721 = await HRE.run(
+      'deploy-ens-dao-preset-erc721',
       {
         name: sismoLabel,
         symbol: 'SISMO',
@@ -56,7 +56,7 @@ describe('ENS DAO Registrar - ERC1155 Generator', () => {
         reverseRegistrar: reverseRegistrar.address,
       }
     );
-    ({ erc1155Token, ensDaoRegistrar } = deployedEnsDao);
+    ({ erc721Token, ensDaoRegistrar } = deployedEnsDao);
 
     ens = await new ENS({
       provider: HRE.ethers.provider,
@@ -81,7 +81,7 @@ describe('ENS DAO Registrar - ERC1155 Generator', () => {
     snapshotId = await evmSnapshot(HRE);
   });
 
-  it(`user receives an ERC1155 token when registering`, async () => {
+  it(`user receives an ERC721 token when registering`, async () => {
     const tx = await ensDaoRegistrar.connect(signer2).register(label);
     expectEvent(
       await tx.wait(),
@@ -92,22 +92,23 @@ describe('ENS DAO Registrar - ERC1155 Generator', () => {
         args.registrant === signer2.address
     );
     expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
-    expect(await erc1155Token.balanceOf(signer2.address, 0)).to.be.equal(1);
+    expect(await erc721Token.ownerOf(node)).to.be.equal(signer2.address);
   });
 
-  it(`user can not register if owner of an ERC1155 token`, async () => {
+  it(`user can not register if owner of a DAO token`, async () => {
     const otherLabel = 'second';
     await ensDaoRegistrar.connect(signer1).register(label);
     await expect(
       ensDaoRegistrar.connect(signer1).register(otherLabel)
     ).to.be.revertedWith(
-      'ENS_DAO_REGISTRAR_ERC1155_GENERATOR: ALREADY_TOKEN_OWNER'
+      'ENS_DAO_REGISTRAR_ERC721_GENERATOR: ALREADY_TOKEN_OWNER'
     );
   });
 
   it(`owner of the contract may register multiple subdomains`, async () => {
     const otherLabel = 'second';
     const otherDomain = `${otherLabel}.${sismoLabel}.eth`;
+    const otherNode = nameHash.hash(otherDomain);
 
     await ensDaoRegistrar.register(label);
     await ensDaoRegistrar.register(otherLabel);
@@ -115,10 +116,13 @@ describe('ENS DAO Registrar - ERC1155 Generator', () => {
     expect(await ens.name(domain).getAddress()).to.be.equal(
       ownerSigner.address
     );
+    expect(await erc721Token.ownerOf(node)).to.be.equal(ownerSigner.address);
 
     expect(await ens.name(otherDomain).getAddress()).to.be.equal(
       ownerSigner.address
     );
-    expect(await erc1155Token.balanceOf(ownerSigner.address, 0)).to.be.equal(2);
+    expect(await erc721Token.ownerOf(otherNode)).to.be.equal(
+      ownerSigner.address
+    );
   });
 });

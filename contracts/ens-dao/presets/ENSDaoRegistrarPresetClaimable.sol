@@ -37,20 +37,4 @@ contract ENSDaoRegistrarPresetClaimable is
   {
     ENSDaoRegistrarClaimable.register(label);
   }
-
-  function _beforeRegistration(address account, bytes32 labelHash)
-    internal
-    virtual
-    override(ENSDaoRegistrar)
-  {
-    super._beforeRegistration(account, labelHash);
-  }
-
-  function _afterRegistration(address account, bytes32 labelHash)
-    internal
-    virtual
-    override(ENSDaoRegistrar)
-  {
-    super._afterRegistration(account, labelHash);
-  }
 }

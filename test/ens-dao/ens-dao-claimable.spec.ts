@@ -12,9 +12,9 @@ import {
   PublicResolver,
   ENSDaoRegistrarPresetClaimable,
   ENSLabelBooker,
-} from '../types';
-import { expectEvent, evmSnapshot, evmRevert } from './helpers';
-import { DeployedEns, DeployedEnsDaoClaimable } from '../tasks';
+} from '../../types';
+import { expectEvent, evmSnapshot, evmRevert } from '../helpers';
+import { DeployedEns, DeployedEnsDaoClaimable } from '../../tasks';
 
 describe('ENS DAO Registrar - Claimbale', () => {
   const getLabelhash = (label: string) =>

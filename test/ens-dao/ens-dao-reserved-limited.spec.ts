@@ -11,9 +11,9 @@ import {
   ReverseRegistrar,
   PublicResolver,
   ENSDaoRegistrarPresetERC1155,
-} from '../types';
-import { increaseTime, expectEvent, evmSnapshot, evmRevert } from './helpers';
-import { DeployedEns, DeployedEnsDaoPresetERC1155 } from '../tasks';
+} from '../../types';
+import { increaseTime, expectEvent, evmSnapshot, evmRevert } from '../helpers';
+import { DeployedEns, DeployedEnsDaoPresetERC1155 } from '../../tasks';
 
 describe('ENS DAO Registrar - Reserved Limited', () => {
   const utils = ethers.utils;

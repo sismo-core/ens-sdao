@@ -9,15 +9,15 @@ import {
   ReverseRegistrar,
   PublicResolver,
   ENSDaoRegistrarPresetCodeAccessible,
-} from '../types';
-import { expectEvent, evmSnapshot, evmRevert } from './helpers';
+} from '../../types';
+import { expectEvent, evmSnapshot, evmRevert } from '../helpers';
 import {
   DeployedEns,
   DeployedEnsDaoCodeAccessible,
   generateEIP712AccessCode,
   getWeeklyGroupId,
   WrappedAccessCode,
-} from '../tasks';
+} from '../../tasks';
 
 describe('ENS DAO Registrar - Limited Code Accessible', () => {
   const utils = ethers.utils;
@@ -105,9 +105,17 @@ describe('ENS DAO Registrar - Limited Code Accessible', () => {
   });
 
   it('user is able to register with a valid access code', async () => {
-    await ensDaoRegistrar
+    const tx = await ensDaoRegistrar
       .connect(signer1)
       .registerWithAccessCode(label, wrappedAccessCode.accessCode);
+
+    expectEvent(
+      await tx.wait(),
+      'AccessCodeConsumed',
+      (args) =>
+        args.groupId.toNumber() === groupId &&
+        args.accessCode === wrappedAccessCode.accessCode
+    );
     expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
     expect(await ensDaoRegistrar._consumed(wrappedAccessCode.digest)).to.equal(
       true

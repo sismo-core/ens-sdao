@@ -11,9 +11,9 @@ import {
   ReverseRegistrar,
   PublicResolver,
   ENSDaoRegistrar,
-} from '../types';
-import { expectEvent, evmSnapshot, evmRevert } from './helpers';
-import { DeployedEnsDao, DeployedEns } from '../tasks';
+} from '../../types';
+import { expectEvent, evmSnapshot, evmRevert } from '../helpers';
+import { DeployedEnsDao, DeployedEns } from '../../tasks';
 
 describe('ENS DAO Registrar', () => {
   const utils = ethers.utils;
