@@ -81,7 +81,10 @@ describe('ENS DAO Registrar', () => {
     expectEvent(
       await tx.wait(),
       'NameRegistered',
-      (args) => args.owner === signer2.address && args.id.toHexString() === node
+      (args) =>
+        args.owner === signer2.address &&
+        args.id.toHexString() === node &&
+        args.registrant === signer2.address
     );
     expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
   });

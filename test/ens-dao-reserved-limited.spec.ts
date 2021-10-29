@@ -88,7 +88,9 @@ describe('ENS DAO Registrar - Reserved Limited', () => {
         await tx.wait(),
         'NameRegistered',
         (args) =>
-          args.owner === signer1.address && args.id.toHexString() === node
+          args.owner === signer1.address &&
+          args.id.toHexString() === node &&
+          args.registrant === signer1.address
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
     });
@@ -98,7 +100,9 @@ describe('ENS DAO Registrar - Reserved Limited', () => {
         await tx.wait(),
         'NameRegistered',
         (args) =>
-          args.owner === signer1.address && args.id.toHexString() === node
+          args.owner === signer1.address &&
+          args.id.toHexString() === node &&
+          args.registrant === signer1.address
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
     });
@@ -125,7 +129,9 @@ describe('ENS DAO Registrar - Reserved Limited', () => {
         await tx.wait(),
         'NameRegistered',
         (args) =>
-          args.owner === signer2.address && args.id.toHexString() === node
+          args.owner === signer2.address &&
+          args.id.toHexString() === node &&
+          args.registrant === signer2.address
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
     });

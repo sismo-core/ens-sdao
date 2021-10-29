@@ -9,5 +9,5 @@ export function expectEvent(
   const index = receipt.events?.findIndex((e) => {
     return e.event === name && argsCondition(e?.args);
   });
-  expect(Number(index) >= 0);
+  expect(Number(index) >= 0).to.equal(true);
 }

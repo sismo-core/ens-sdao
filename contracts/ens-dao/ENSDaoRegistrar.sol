@@ -98,7 +98,7 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
 
     _afterRegistration(account, labelHash);
 
-    emit NameRegistered(uint256(childNode), _msgSender());
+    emit NameRegistered(uint256(childNode), account, _msgSender());
   }
 
   /**

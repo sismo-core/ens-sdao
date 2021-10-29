@@ -105,16 +105,9 @@ describe('ENS DAO Registrar - Limited Code Accessible', () => {
   });
 
   it('user is able to register with a valid access code', async () => {
-    const tx = await ensDaoRegistrar
+    await ensDaoRegistrar
       .connect(signer1)
       .registerWithAccessCode(label, wrappedAccessCode.accessCode);
-    expectEvent(
-      await tx.wait(),
-      'AccessCodeConsumed',
-      (args) =>
-        args.groupId.toNumber() === groupId &&
-        args.signedTicked === wrappedAccessCode.accessCode
-    );
     expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
     expect(await ensDaoRegistrar._consumed(wrappedAccessCode.digest)).to.equal(
       true
@@ -126,13 +119,6 @@ describe('ENS DAO Registrar - Limited Code Accessible', () => {
     const tx = await ensDaoRegistrar
       .connect(signer1)
       .registerWithAccessCode(label, wrappedAccessCode.accessCode);
-    expectEvent(
-      await tx.wait(),
-      'AccessCodeConsumed',
-      (args) =>
-        args.groupId.toNumber() === groupId &&
-        args.signedTicked === wrappedAccessCode.accessCode
-    );
     expectEvent(
       await tx.wait(),
       'RegistrationLimitUpdated',

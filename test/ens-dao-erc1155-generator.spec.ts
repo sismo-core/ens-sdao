@@ -86,7 +86,10 @@ describe('ENS DAO Registrar - ERC1155 Generator', () => {
     expectEvent(
       await tx.wait(),
       'NameRegistered',
-      (args) => args.owner === signer2.address && args.id.toHexString() === node
+      (args) =>
+        args.owner === signer2.address &&
+        args.id.toHexString() === node &&
+        args.registrant === signer2.address
     );
     expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
     expect(await erc1155Token.balanceOf(signer2.address, 0)).to.be.equal(1);

@@ -11,7 +11,11 @@ interface IENSDaoRegistrar {
   /**
    * @dev Emitted when a new name is registered through standard registration or claiming.
    */
-  event NameRegistered(uint256 indexed id, address indexed owner);
+  event NameRegistered(
+    uint256 indexed id,
+    address indexed owner,
+    address indexed registrant
+  );
   /**
    * @dev Emitted when the root node ownership is conceded to the DAO owner.
    */

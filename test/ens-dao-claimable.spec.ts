@@ -91,7 +91,9 @@ describe('ENS DAO Registrar - Claimbale', () => {
         await tx.wait(),
         'NameRegistered',
         (args) =>
-          args.owner === signer1.address && args.id.toHexString() === node
+          args.owner === signer1.address &&
+          args.id.toHexString() === node &&
+          args.registrant === signer1.address
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
     });
@@ -104,13 +106,9 @@ describe('ENS DAO Registrar - Claimbale', () => {
         receipt,
         'NameRegistered',
         (args) =>
-          args.owner === signer2.address && args.id.toHexString() === node
-      );
-      expectEvent(
-        receipt,
-        'BookingDeleted',
-        (args) =>
-          args.id.toHexString() === nameHash.hash(`${label}.${sismoLabel}.eth`)
+          args.owner === signer2.address &&
+          args.id.toHexString() === node &&
+          args.registrant === ownerSigner.address
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
 
