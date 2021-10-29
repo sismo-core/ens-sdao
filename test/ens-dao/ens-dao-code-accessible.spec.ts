@@ -43,6 +43,7 @@ describe('ENS DAO Registrar - Limited Code Accessible', () => {
   let ownerSigner: SignerWithAddress;
   let signer1: SignerWithAddress;
   let signer2: SignerWithAddress;
+  let signer3: SignerWithAddress;
 
   let snapshotId: string;
 
@@ -76,7 +77,7 @@ describe('ENS DAO Registrar - Limited Code Accessible', () => {
       ensAddress: registry.address,
     });
 
-    [ownerSigner, signer1, signer2] = await HRE.ethers.getSigners();
+    [ownerSigner, signer1, signer2, signer3] = await HRE.ethers.getSigners();
 
     // The <sismoLabel>.eth is given to the registrar
     await registrar.register(
@@ -105,9 +106,11 @@ describe('ENS DAO Registrar - Limited Code Accessible', () => {
   });
 
   it('user is able to register with a valid access code', async () => {
-    const tx = await ensDaoRegistrar
-      .connect(signer1)
-      .registerWithAccessCode(label, wrappedAccessCode.accessCode);
+    const tx = await ensDaoRegistrar.registerWithAccessCode(
+      label,
+      signer1.address,
+      wrappedAccessCode.accessCode
+    );
 
     expectEvent(
       await tx.wait(),
@@ -124,9 +127,11 @@ describe('ENS DAO Registrar - Limited Code Accessible', () => {
 
   it('user is not able to register with a access code signed for another address', async () => {
     await expect(
-      ensDaoRegistrar
-        .connect(signer2)
-        .registerWithAccessCode(label, wrappedAccessCode.accessCode)
+      ensDaoRegistrar.registerWithAccessCode(
+        label,
+        signer2.address,
+        wrappedAccessCode.accessCode
+      )
     ).to.be.revertedWith(
       'ENS_DAO_REGISTRAR_LIMITED_CODE_ACCESSIBLE: INVALID_ACCESS_CODE OR INVALID_SENDER'
     );
@@ -143,24 +148,66 @@ describe('ENS DAO Registrar - Limited Code Accessible', () => {
       chainId,
     });
     await expect(
-      ensDaoRegistrar
-        .connect(signer2)
-        .registerWithAccessCode(label, wrappedAccessCode.accessCode)
+      ensDaoRegistrar.registerWithAccessCode(
+        label,
+        signer1.address,
+        wrappedAccessCode.accessCode
+      )
     ).to.be.revertedWith(
       'ENS_DAO_REGISTRAR_LIMITED_CODE_ACCESSIBLE: INVALID_ACCESS_CODE OR INVALID_SENDER'
     );
   });
 
   it('user is not able to register with an already consumed access code', async () => {
-    await ensDaoRegistrar
-      .connect(signer1)
-      .registerWithAccessCode(label, wrappedAccessCode.accessCode);
+    await ensDaoRegistrar.registerWithAccessCode(
+      label,
+      signer1.address,
+      wrappedAccessCode.accessCode
+    );
     await expect(
-      ensDaoRegistrar
-        .connect(signer1)
-        .registerWithAccessCode(label, wrappedAccessCode.accessCode)
+      ensDaoRegistrar.registerWithAccessCode(
+        label,
+        signer1.address,
+        wrappedAccessCode.accessCode
+      )
     ).to.be.revertedWith(
       'ENS_DAO_REGISTRAR_LIMITED_CODE_ACCESSIBLE: ACCESS_CODE_ALREADY_CONSUMED'
     );
+  });
+
+  it(`owner is able to modify the code signer`, async () => {
+    const tx = await ensDaoRegistrar.updateCodeSigner(signer3.address);
+    expectEvent(
+      await tx.wait(),
+      'CodeSignerUpdated',
+      (args) => args.codeSigner === signer3.address
+    );
+    expect(await ensDaoRegistrar._codeSigner()).to.equal(signer3.address);
+    await expect(
+      ensDaoRegistrar.registerWithAccessCode(
+        label,
+        signer2.address,
+        wrappedAccessCode.accessCode
+      )
+    ).to.be.revertedWith(
+      'ENS_DAO_REGISTRAR_LIMITED_CODE_ACCESSIBLE: INVALID_ACCESS_CODE OR INVALID_SENDER'
+    );
+    const otherWrappedAccessCode = await generateEIP712AccessCode({
+      signer: signer3,
+      recipient: signer2.address,
+      groupId: groupId,
+      verifyingContract: ensDaoRegistrar.address,
+      name: domainName,
+      version: domainVersion,
+      chainId,
+    });
+
+    await ensDaoRegistrar.registerWithAccessCode(
+      label,
+      signer2.address,
+      otherWrappedAccessCode.accessCode
+    );
+
+    expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
   });
 });

@@ -21,6 +21,8 @@ type DeployEnsDaoCodeAccessibleArgs = {
   domainName?: string;
   // Version field of the EIP712 Domain
   domainVersion?: string;
+  // Address of the code signer
+  codeSigner?: string;
   // Initial group ID
   initialGroupId: number;
   // Enabling logging
@@ -39,6 +41,7 @@ async function deploiementAction(
     owner: optionalOwner,
     domainName = 'Sismo App',
     domainVersion = '1.0',
+    codeSigner: optionalCodeSigner,
     initialGroupId,
     log,
   }: DeployEnsDaoCodeAccessibleArgs,
@@ -49,6 +52,7 @@ async function deploiementAction(
   const deployer = await getDeployer(hre, log);
 
   const owner = optionalOwner || deployer.address;
+  const codeSigner = optionalCodeSigner || deployer.address;
 
   const node = nameHash.hash(`${name}.eth`);
 
@@ -63,6 +67,7 @@ async function deploiementAction(
         owner,
         domainName,
         domainVersion,
+        codeSigner,
         initialGroupId,
       ],
     }
