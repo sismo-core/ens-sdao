@@ -13,10 +13,6 @@ contract ENSDaoRegistrarPresetERC1155Generator is
   ENSDaoRegistrar,
   ENSDaoRegistrarERC1155Generator
 {
-  uint256[] public _groupIds;
-
-  event GroupIdAdded(uint256 groupId);
-
   /**
    * @dev Constructor.
    * @param ensAddr The address of the ENS registry.
@@ -24,7 +20,6 @@ contract ENSDaoRegistrarPresetERC1155Generator is
    * @param erc1155Token The address of the ERC1155 Token.
    * @param node The node that this registrar administers.
    * @param name The label string of the administered subdomain.
-   * @param initialGroupId The first group ID
    * @param owner The owner of the contract.
    */
   constructor(
@@ -33,17 +28,11 @@ contract ENSDaoRegistrarPresetERC1155Generator is
     IERC1155Minter erc1155Token,
     bytes32 node,
     string memory name,
-    uint256 initialGroupId,
     address owner
   )
     ENSDaoRegistrarERC1155Generator(erc1155Token)
     ENSDaoRegistrar(ensAddr, resolver, node, name, owner)
-  {
-    uint256[] memory groupIds = new uint256[](1);
-    groupIds[0] = initialGroupId;
-
-    _groupIds = groupIds;
-  }
+  {}
 
   function _balanceOf(address account)
     internal
@@ -51,22 +40,7 @@ contract ENSDaoRegistrarPresetERC1155Generator is
     override
     returns (uint256)
   {
-    uint256 sum;
-    for (uint256 i = 0; i < _groupIds.length; i++) {
-      sum += ERC1155_MINTER.balanceOf(account, _groupIds[i]);
-    }
-    return sum;
-  }
-
-  function addGroupId(uint256 groupId) public onlyOwner {
-    for (uint256 i = 0; i < _groupIds.length; i++) {
-      require(
-        _groupIds[i] != groupId,
-        'ENS_DAO_REGISTRAR_PRESET_ERC1155_GENERATOR: ALREADY_EXISTING_GROUP_ID'
-      );
-    }
-    _groupIds.push(groupId);
-    emit GroupIdAdded(groupId);
+    return ERC1155_MINTER.balanceOf(account, 0);
   }
 
   function _getToken(address account, bytes32 labelHash)
@@ -76,7 +50,7 @@ contract ENSDaoRegistrarPresetERC1155Generator is
     returns (uint256, bytes memory)
   {
     bytes memory data;
-    return (_groupIds[_groupIds.length - 1], data);
+    return (0, data);
   }
 
   function _beforeRegistration(address account, bytes32 labelHash)

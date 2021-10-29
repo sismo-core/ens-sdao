@@ -54,7 +54,6 @@ describe('ENS DAO Registrar ERC1155 Generator', () => {
         ens: registry.address,
         resolver: publicResolver.address,
         reverseRegistrar: reverseRegistrar.address,
-        initialGroupId: 0,
       }
     );
     ({ erc1155Token, ensDaoRegistrar } = deployedEnsDao);

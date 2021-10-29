@@ -17,8 +17,6 @@ type DeployEnsDaoERC1155GeneratorArgs = {
   resolver: string;
   // name of the .eth domain, the NFT name will be `${name}.eth DAO`
   name: string;
-  // initial group ID
-  initialGroupId: number;
   // owner address of the contracts
   owner?: string;
   // enabling logging
@@ -35,7 +33,6 @@ async function deploiementAction(
     ens,
     resolver,
     name = 'sismo',
-    initialGroupId,
     owner: optionalOwner,
     log,
   }: DeployEnsDaoERC1155GeneratorArgs,
@@ -57,15 +54,7 @@ async function deploiementAction(
     'ENSDaoRegistrarPresetERC1155Generator',
     {
       from: deployer.address,
-      args: [
-        ens,
-        resolver,
-        deployedToken.address,
-        node,
-        name,
-        initialGroupId,
-        owner,
-      ],
+      args: [ens, resolver, deployedToken.address, node, name, owner],
     }
   );
 
