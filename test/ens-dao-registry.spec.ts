@@ -116,15 +116,19 @@ describe('ENS DAO Registrar', () => {
   describe('root domain ownership', () => {
     it('user can not take back the root domain ownership if not owner', async () => {
       await expect(
-        ensDaoRegistrar.connect(signer1).giveBackDomainOwnership()
+        ensDaoRegistrar
+          .connect(signer1)
+          .transferDomainOwnership(ownerSigner.address)
       ).to.be.revertedWith('Ownable: caller is not the owner');
     });
 
     it('owner can take back the root domain ownership', async () => {
-      const tx = await ensDaoRegistrar.giveBackDomainOwnership();
+      const tx = await ensDaoRegistrar.transferDomainOwnership(
+        ownerSigner.address
+      );
       expectEvent(
         await tx.wait(),
-        'OwnershipConceded',
+        'DomainOwnershipTransferred',
         (args) => args.owner === ownerSigner.address
       );
 

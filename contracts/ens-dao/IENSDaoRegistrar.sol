@@ -17,9 +17,9 @@ interface IENSDaoRegistrar {
     address indexed registrant
   );
   /**
-   * @dev Emitted when the root node ownership is conceded to the DAO owner.
+   * @dev Emitted when the root domain ownership is transferred to a new address.
    */
-  event OwnershipConceded(address indexed owner);
+  event DomainOwnershipTransferred(address indexed owner);
 
   /**
    * @notice Register a name.
@@ -30,9 +30,9 @@ interface IENSDaoRegistrar {
   function register(string memory label) external;
 
   /**
-   * @notice Give back the root domain of the ENS DAO Registrar to DAO owner.
+   * @notice Transfer the root domain ownership of the ENS DAO Registrar to a new owner.
    *
-   * Emits a {OwnershipConceded} event.
+   * Emits a {DomainOwnershipTransfered} event.
    */
-  function giveBackDomainOwnership() external;
+  function transferDomainOwnership(address newDomainOwner) external;
 }

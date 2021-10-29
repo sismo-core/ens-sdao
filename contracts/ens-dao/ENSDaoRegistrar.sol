@@ -54,13 +54,17 @@ contract ENSDaoRegistrar is Ownable, IENSDaoRegistrar {
   }
 
   /**
-   * @notice Give back the root domain of the ENS DAO Registrar to DAO owner.
+   * @notice Transfer the root domain ownership of the ENS DAO Registrar to a new owner.
    * @dev Can be called by the owner of the registrar.
    */
-  function giveBackDomainOwnership() public override onlyOwner {
-    ENS_REGISTRY.setOwner(ROOT_NODE, owner());
+  function transferDomainOwnership(address newDomainOwner)
+    public
+    override
+    onlyOwner
+  {
+    ENS_REGISTRY.setOwner(ROOT_NODE, newDomainOwner);
 
-    emit OwnershipConceded(_msgSender());
+    emit DomainOwnershipTransferred(newDomainOwner);
   }
 
   /**
