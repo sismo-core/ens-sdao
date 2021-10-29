@@ -3,7 +3,6 @@ pragma solidity >=0.8.4;
 import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
 import {ENSDaoRegistrar} from '../ENSDaoRegistrar.sol';
-import {ENSDaoRegistrarLimited} from '../extensions/ENSDaoRegistrarLimited.sol';
 import {ENSDaoRegistrarCodeAccessible} from '../extensions/ENSDaoRegistrarCodeAccessible.sol';
 
 /**
