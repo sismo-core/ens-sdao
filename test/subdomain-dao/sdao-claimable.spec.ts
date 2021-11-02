@@ -16,7 +16,7 @@ import {
 import { expectEvent, evmSnapshot, evmRevert } from '../helpers';
 import { DeployedEns, DeployedSDaoPresetClaimable } from '../../tasks';
 
-describe('SDAO Registrar - Preset Claimbale', () => {
+describe('SDAO Registrar - Claimable', () => {
   const getLabelhash = (label: string) =>
     ethers.utils.keccak256(ethers.utils.toUtf8Bytes(label));
   const year = 365 * 24 * 60 * 60;

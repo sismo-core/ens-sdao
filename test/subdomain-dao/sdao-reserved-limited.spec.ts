@@ -15,7 +15,7 @@ import {
 import { increaseTime, expectEvent, evmSnapshot, evmRevert } from '../helpers';
 import { DeployedEns, DeployedSDaoPresetERC1155 } from '../../tasks';
 
-describe('SDAO Registrar - Preset Reserved Limited', () => {
+describe('SDAO Registrar - Reserved Limited', () => {
   const utils = ethers.utils;
   const year = 365 * 24 * 60 * 60;
   const sismoLabel = 'sismo';
