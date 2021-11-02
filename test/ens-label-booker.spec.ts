@@ -25,14 +25,14 @@ describe('ENS Label Booker', () => {
     const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
     ({ registry } = deployedENS);
 
-    const deployedEnsDao: DeployedLabelBooker = await HRE.run(
+    const deployedLabelBooker: DeployedLabelBooker = await HRE.run(
       'deploy-label-booker',
       {
         ens: registry.address,
         name: sismoLabel,
       }
     );
-    ({ ensLabelBooker } = deployedEnsDao);
+    ({ ensLabelBooker } = deployedLabelBooker);
     [, otherSigner, unknownSigner] = await HRE.ethers.getSigners();
 
     snapshotId = await evmSnapshot(HRE);
