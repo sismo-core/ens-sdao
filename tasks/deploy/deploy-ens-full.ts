@@ -13,11 +13,11 @@ import {
   ReverseRegistrar,
   PublicResolver,
 } from '../../types';
-import { DeployedEnsDao } from './deploy-ens-dao';
+import { DeployedSDao } from './subdomain-dao/deploy-sdao';
 
 type DeployEnsFullArgs = {
-  // additionally deploy ENS DAO contracts
-  ensDao?: boolean;
+  // additionally deploy SDAO contracts
+  sDao?: boolean;
   // enabling logging
   log?: boolean;
 };
@@ -30,10 +30,10 @@ export type DeployedEns = {
   publicResolver: PublicResolver;
 };
 
-export type DeployedFullSuite = DeployedEns | (DeployedEns & DeployedEnsDao);
+export type DeployedFullSuite = DeployedEns | (DeployedEns & DeployedSDao);
 
 async function deploiementAction(
-  { ensDao, log }: DeployEnsFullArgs,
+  { sDao, log }: DeployEnsFullArgs,
   hre: HardhatRuntimeEnvironment
 ): Promise<DeployedFullSuite> {
   if (log) await logHre(hre);
@@ -76,7 +76,7 @@ async function deploiementAction(
       `
   );
 
-  if (!ensDao)
+  if (!sDao)
     return {
       ensDeployer,
       registry,
@@ -85,7 +85,7 @@ async function deploiementAction(
       publicResolver,
     };
 
-  const { ensDaoRegistrar }: DeployedEnsDao = await hre.run('deploy-ens-dao', {
+  const { sDaoRegistrar }: DeployedSDao = await hre.run('deploy-sdao', {
     name: 'sismo',
     ens: registry.address,
     resolver: publicResolver.address,
@@ -98,11 +98,11 @@ async function deploiementAction(
     registrar,
     reverseRegistrar,
     publicResolver,
-    ensDaoRegistrar,
+    sDaoRegistrar,
   };
 }
 
 task('deploy-ens-full')
-  .addFlag('ensDao', 'deploy ens-dao')
+  .addFlag('sDao', 'deploy subdomain-dao')
   .addFlag('log', 'logging deployments')
   .setAction(deploiementAction);
