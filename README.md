@@ -204,3 +204,7 @@ Deploys a Label Booker contract.
 The `name` of the targeted domain is given as parameter, i.e. `<name>.eth`.
 
 See `tasks/deploy-label-booker.ts` for the script and the full list of parameters.
+
+## License
+
+The code of this repository is released under the [MIT License](LICENSE).
