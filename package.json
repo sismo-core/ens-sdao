@@ -1,8 +1,7 @@
 {
   "name": "subdomain-dao",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Subdomain DAO Contract library for Solidity",
+  "version": "0.0.1",
   "scripts": {
     "compile": "SKIP_LOAD=true hardhat compile",
     "test:sdao-erc721-generator": "hardhat test ./test/subdomain-dao/sdao-erc721-generator.spec.ts",
@@ -16,12 +15,26 @@
     "test": "npm run test:sdao-erc1155-generator && npm run test:sdao-erc721-generator && npm run test:sdao-code-accessible && npm run test:sdao-claimable && npm run test:sdao-registry && npm run test:sdao-reserved-limited  && npm run test:ens-label-booker && npm run test:ens-registry",
     "format": "pretty-quick --pattern 'contracts/**/*.sol' --pattern 'libs/**/*.ts'  --pattern 'test/**/*.ts' --pattern 'tasks/**/*.ts' --pattern 'server/**/*.ts'"
   },
-  "keywords": [],
-  "author": "Sismo",
-  "contributors": [
-    "Hadrien Charlanes @dhadrien"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sismo-core/subdomain-dao.git"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart",
+    "contracts",
+    "ens"
   ],
-  "license": "ISC",
+  "author": "Sismo Genesis team",
+  "contributors": [
+    "Hadrien Charlanes @dhadrien",
+    "Loïc Vincent-Genod @VGLoic"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sismo-core/subdomain-dao/issues"
+  },
   "devDependencies": {
     "@ensdomains/ens": "^0.6.2",
     "@ensdomains/ens-contracts": "^0.0.7",
@@ -36,7 +49,6 @@
     "@typescript-eslint/eslint-plugin": "^4.29.1",
     "@typescript-eslint/parser": "^4.29.1",
     "chai": "^4.3.4",
-    "dns-packet": "^5.3.0",
     "dotenv": "^10.0.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
@@ -54,15 +66,11 @@
     "solidity-coverage": "^0.7.16",
     "ts-node": "^10.2.1",
     "typechain": "^5.1.2",
-    "typescript": "^4.3.5",
-    "web3-utils": "^1.5.1"
+    "typescript": "^4.3.5"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "pretty-quick --staged --pattern 'contracts/**/*.sol' --pattern 'libs/**/*.ts'  --pattern 'test/**/*.ts' --pattern 'tasks/**/*.ts' --pattern 'server/**/*.ts'"
+      "pre-commit": "pretty-quick --staged --pattern 'contracts/**/*.sol' --pattern 'test/**/*.ts' --pattern 'tasks/**/*.ts'"
     }
-  },
-  "dependencies": {
-    "cors": "^2.8.5"
   }
 }
