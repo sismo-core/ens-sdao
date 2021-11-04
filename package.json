@@ -12,7 +12,7 @@
     "test:sdao-reserved-limited": "hardhat test ./test/subdomain-dao/sdao-reserved-limited.spec.ts",
     "test:ens-label-booker": "hardhat test ./test/ens-label-booker.spec.ts",
     "test:ens-registry": "hardhat test ./test/ens-registry.spec.ts",
-    "test": "npm run test:sdao-erc1155-generator && npm run test:sdao-erc721-generator && npm run test:sdao-code-accessible && npm run test:sdao-claimable && npm run test:sdao-registry && npm run test:sdao-reserved-limited  && npm run test:ens-label-booker && npm run test:ens-registry",
+    "test": "hardhat test ./test/*.spec.ts ./test/**/*.spec.ts",
     "format": "pretty-quick --pattern 'contracts/**/*.sol' --pattern 'libs/**/*.ts'  --pattern 'test/**/*.ts' --pattern 'tasks/**/*.ts' --pattern 'server/**/*.ts'"
   },
   "repository": {

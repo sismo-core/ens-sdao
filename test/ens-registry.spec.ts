@@ -33,7 +33,9 @@ describe('ENS: Register domain, set owners, set lookup and reverse lookup, creat
   let ens: ENS;
 
   before(async () => {
-    const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
+    const deployedENS: DeployedEns = await HRE.run('deploy-ens-full', {
+      deploymentName: 'ENS_REGISTRY_TEST_SUITE',
+    });
     ({ registrar, registry, reverseRegistrar, publicResolver } = deployedENS);
 
     ens = await new ENS({

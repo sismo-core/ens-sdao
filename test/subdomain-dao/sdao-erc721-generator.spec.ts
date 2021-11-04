@@ -43,7 +43,9 @@ describe('SDAO Registrar - ERC721 Generator', () => {
   let snapshotId: string;
 
   before(async () => {
-    const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
+    const deployedENS: DeployedEns = await HRE.run('deploy-ens-full', {
+      deploymentName: 'ENS_ERC721_EXTENSION_TEST_SUITE',
+    });
     ({ registry, reverseRegistrar, publicResolver, registrar } = deployedENS);
 
     const deployedSDao: DeployedSDaoPresetERC721 = await HRE.run(

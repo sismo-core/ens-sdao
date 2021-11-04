@@ -18,6 +18,8 @@ import { DeployedSDao } from './subdomain-dao/deploy-sdao';
 type DeployEnsFullArgs = {
   // additionally deploy SDAO contracts
   sDao?: boolean;
+  // Name of the deployment
+  deploymentName: string;
   // enabling logging
   log?: boolean;
 };
@@ -33,14 +35,15 @@ export type DeployedEns = {
 export type DeployedFullSuite = DeployedEns | (DeployedEns & DeployedSDao);
 
 async function deploiementAction(
-  { sDao, log }: DeployEnsFullArgs,
+  { sDao, deploymentName, log }: DeployEnsFullArgs,
   hre: HardhatRuntimeEnvironment
 ): Promise<DeployedFullSuite> {
   if (log) await logHre(hre);
 
   const deployer = await getDeployer(hre, log);
 
-  const newEnsDeployer = await hre.deployments.deploy('ENSDeployer', {
+  const newEnsDeployer = await hre.deployments.deploy(deploymentName, {
+    contract: 'ENSDeployer',
     from: deployer.address,
     args: [],
   });

@@ -41,7 +41,9 @@ describe('SDAO Registrar - Claimable', () => {
   let snapshotId: string;
 
   before(async () => {
-    const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
+    const deployedENS: DeployedEns = await HRE.run('deploy-ens-full', {
+      deploymentName: 'ENS_CLAIMABLE_EXTENSION_TEST_SUITE',
+    });
     ({ registry, reverseRegistrar, publicResolver, registrar } = deployedENS);
 
     const deployedSDao: DeployedSDaoPresetClaimable = await HRE.run(

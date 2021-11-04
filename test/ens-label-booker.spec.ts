@@ -22,7 +22,9 @@ describe('ENS Label Booker', () => {
   let snapshotId: string;
 
   before(async () => {
-    const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
+    const deployedENS: DeployedEns = await HRE.run('deploy-ens-full', {
+      deploymentName: 'ENS_LABEL_BOOKER_TEST_SUITE',
+    });
     ({ registry } = deployedENS);
 
     const deployedLabelBooker: DeployedLabelBooker = await HRE.run(
