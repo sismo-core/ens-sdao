@@ -1,12 +1,12 @@
 # Subdomain DAOS
 
-The goal a Subdomain DAO (SDAO) is to expose a first in first served Registrar for a `domain.eth` where anyone can register a `subdomain.domain.eth` for free and owns it.
+The goal a Subdomain DAO (SDAO) is to expose a first-come first-served Registrar for a `domain.eth` where anyone can register a `subdomain.domain.eth` for free and owns it.
 
 This repository presents a set of tools in order to kickstart a SDAO.
 
 The core contract `SDaoRegistrar` contains the registration logic with the minimal restrictions and logic.
 
-A set of extensions is available in order to let the developer chooses what additional features or restrictions should be applied.
+A set of extensions is available in order to let the developer choose what additional features or restrictions should be applied.
 
 As ready to use examples, a list of presets has been made. Each preset uses a different set of extensions that may fit common use cases.
 
@@ -16,11 +16,11 @@ The code of this repository resolves around ENS, it is advised for the developer
 
 ## Core contract
 
-### First in first served registration
+### First-come first-served registration
 
-The contract allows first in first served registration of a subdomain, e.g. `subdomain.domain.eth` through the `register` method. A registration consists of a creation of a subdomain owned by and which resolves to the registrant address.
+The contract allows first-come first-served (fcfs) registration of a subdomain, e.g. `subdomain.domain.eth` through the `register` method. A registration consists of a creation of a subdomain owned by the registrant address.
 
-The first in first served registration may be blocked and unblocked by the owner of the contract.
+The fcfs registration may be blocked and unblocked by the owner of the contract.
 
 ### Internal registration
 
@@ -44,7 +44,7 @@ See `contracts/subdomain-dao/ISDaoRegistrar.sol` and `contracts/subdomain-dao/SD
 
 An extension is an abstract contract which inherits the `SDaoRegistrar` core contract.
 
-It may add other public methods for registration using the internal registration method or implements the `beforeRegistration` and `afterRegistration` hooks.
+It may add other public methods for registration using the internal registration method or/and implements the `beforeRegistration` and `afterRegistration` hooks.
 
 ### Reserved Extension
 
@@ -58,7 +58,7 @@ See `contracts/subdomain-dao/extensions/SDaoRegistrarReserved.sol` for the imple
 
 ### Limited Extension
 
-A counter for the number of registered subdomains and a registration limit number are added. If the counter reached the registration limit, registration is blocked.
+A counter for the number of registered subdomains and a registration limit number are added. If the counter reaches the registration limit, registration is blocked.
 
 The registration limit can be updated by the owner of the contract.
 
@@ -70,7 +70,7 @@ An address of an ERC1155 is added, the ERC1155 contract must allow the minting b
 
 An ERC1155 token is minted for the registrant after each registration. The ERC1155 token ID and data are left free to be implemented by the developer.
 
-The registration is blocked if the balance of the registrant is not zero based on a `balanceOf` method to be implemented by the developer.
+The registration is blocked if the balance of the registrant is not zero, based on a `balanceOf` method to be implemented by the developer.
 
 See `contracts/subdomain-dao/extensions/SDaoRegistrarERC1155Generator.sol` for the implementation.
 
@@ -106,7 +106,7 @@ An address of an ENS Label Booker is added. The latter manages a mapping of book
 
 A new public method of registration `claim` is added. It allows to register a subdomain if the sender of the message is the booking address associated to the subdomain.
 
-The first in first served registration is blocked if the subdomain is already booked.
+The fcfs served registration is blocked if the subdomain is already booked.
 
 See `contracts/subdomain-dao/extensions/SDaoRegistrarClaimable.sol` and `contracts/ens-label-booker/ENSLabelBooker.sol` for the implementation of the extension and the Label Booker contracts.
 
