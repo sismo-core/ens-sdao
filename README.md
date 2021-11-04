@@ -27,7 +27,7 @@ The first in first served registration may be blocked and unblocked by the owner
 The internal registration method `_register` is exposed internally for extensions of the `SDaoRegistrar`. The only blocking condition of the internal registration is registration of an already registered subdomain.
 
 Additionally, two hooks are run in the `_register` method:
-- `beforeRegistration`: this hook is called at the beggining of the method, before any registration. The hook does nothing in the core implementation but allows extensions to execute any logic before a subdomain is registered,
+- `beforeRegistration`: this hook is called at the beginning of the method, before any registration. The hook does nothing in the core implementation but allows extensions to execute any logic before a subdomain is registered,
 - `afterRegistration`: this hook is called at the end of the method, after any registration. The hook does nothing in the core implementation but allows extensions to execute any logic after a subdomain is registered.
 
 ### Constructor
@@ -42,7 +42,7 @@ See `contracts/subdomain-dao/ISDaoRegistrar.sol` and `contracts/subdomain-dao/SD
 
 ## Extensions
 
-An extension is an abstract contract which inherits the SDaoRegistrar core contract.
+An extension is an abstract contract which inherits the `SDaoRegistrar` core contract.
 
 It may add other public methods for registration using the internal registration method or implements the `beforeRegistration` and `afterRegistration` hooks.
 
