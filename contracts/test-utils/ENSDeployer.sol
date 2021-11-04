@@ -1,4 +1,6 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
+
 import {INameWrapper, PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
 import '@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol';
 import {EthRegistrar} from './EthRegistrar.sol';
