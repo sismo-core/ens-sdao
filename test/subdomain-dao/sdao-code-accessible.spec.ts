@@ -55,7 +55,9 @@ describe('SDAO Registrar - Limited Code Accessible', () => {
     groupId = await getWeeklyGroupId(HRE);
     chainId = Number(await HRE.getChainId());
 
-    const deployedENS: DeployedEns = await HRE.run('deploy-ens-full');
+    const deployedENS: DeployedEns = await HRE.run('deploy-ens-full', {
+      deploymentName: 'ENS_LIMITED_EXTENSION_TEST_SUITE',
+    });
     ({ registry, reverseRegistrar, publicResolver, registrar } = deployedENS);
 
     const deployedSDao: DeployedSDaoPresetCodeAccessible = await HRE.run(
