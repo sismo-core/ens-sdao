@@ -166,7 +166,7 @@ See `contracts/subdomain-dao/extensions/SDaoRegistrarERC1155Generator.sol` for t
 
 ### SDaoRegistrarCodeAccessible Extension
 ```ts
-unction registerWithAccessCode(
+function registerWithAccessCode(
     string memory label,
     address recipient,
     bytes memory accessCode
