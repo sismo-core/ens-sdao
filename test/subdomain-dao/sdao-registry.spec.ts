@@ -22,7 +22,6 @@ describe('SDAO Registrar', () => {
 
   const label = 'first';
   const domain = `${label}.${sismoLabel}.eth`;
-  const node = nameHash.hash(domain);
 
   const getLabelhash = (label: string) =>
     utils.keccak256(utils.toUtf8Bytes(label));
