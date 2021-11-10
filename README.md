@@ -30,15 +30,15 @@ function register(string memory label)
     override
     onlyUnrestricted
   {
-    bytes32 labelHash = keccak256(bytes(label));
-    _register(_msgSender(), labelHash);
+    _register(_msgSender(), label);
   }
 ```
 
 The internal registration method `_register` is exposed internally for extensions of the `SDaoRegistrar`. Two hooks can be used: `_beforeRegistration` and `_afterRegistration`
 
 ```typescript
-function _register(address account, bytes32 labelHash) internal {
+function _register(address account, string memory label) internal {
+    bytes32 labelHash = keccak256(bytes(label));
     _beforeRegistration(account, labelHash);
     // [...]: subdomain created, subdomain resolves towards accounts, subdomain owner is account
     _afterRegistration(account, labelHash);
@@ -210,7 +210,7 @@ function claim(string memory label, address account) public override {
       'SDAO_REGISTRAR_CLAIMABLE: SENDER_NOT_ALLOWED'
     );
 
-    _register(account, labelHash);
+    _register(account, label);
 
     ENS_LABEL_BOOKER.deleteBooking(labelHash);
   }
