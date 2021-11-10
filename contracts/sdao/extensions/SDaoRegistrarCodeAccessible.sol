@@ -93,8 +93,7 @@ abstract contract SDaoRegistrarCodeAccessible is
       'SDAO_REGISTRAR_LIMITED_CODE_ACCESSIBLE: INVALID_ACCESS_CODE OR INVALID_SENDER'
     );
 
-    bytes32 labelHash = keccak256(bytes(label));
-    _register(recipient, labelHash);
+    _register(recipient, label);
 
     _consumed[digest] = true;
 

@@ -24,7 +24,6 @@ describe('SDAO Registrar - Claimable', () => {
 
   const label = 'first';
   const domain = `${label}.${sismoLabel}.eth`;
-  const node = nameHash.hash(domain);
 
   let registrar: EthRegistrar;
   let reverseRegistrar: ReverseRegistrar;
@@ -94,7 +93,7 @@ describe('SDAO Registrar - Claimable', () => {
         'NameRegistered',
         (args) =>
           args.owner === signer1.address &&
-          args.id.toHexString() === node &&
+          args.label === label &&
           args.registrant === signer1.address
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
@@ -109,7 +108,7 @@ describe('SDAO Registrar - Claimable', () => {
         'NameRegistered',
         (args) =>
           args.owner === signer2.address &&
-          args.id.toHexString() === node &&
+          args.label === label &&
           args.registrant === ownerSigner.address
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);

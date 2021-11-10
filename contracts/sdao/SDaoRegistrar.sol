@@ -54,9 +54,7 @@ contract SDaoRegistrar is Ownable, ISDaoRegistrar {
     override
     onlyUnrestricted
   {
-    bytes32 labelHash = keccak256(bytes(label));
-
-    _register(_msgSender(), labelHash);
+    _register(_msgSender(), label);
   }
 
   /**
@@ -95,9 +93,11 @@ contract SDaoRegistrar is Ownable, ISDaoRegistrar {
    * @dev Register a name and mint a DAO token.
    *      Can only be called if and only if the subdomain is free to be registered.
    * @param account The address that will receive the subdomain.
-   * @param labelHash The hash of the label to register, given as input because of parent computation.
+   * @param label The label to register.
    */
-  function _register(address account, bytes32 labelHash) internal {
+  function _register(address account, string memory label) internal {
+    bytes32 labelHash = keccak256(bytes(label));
+
     _beforeRegistration(account, labelHash);
 
     bytes32 childNode = keccak256(abi.encodePacked(ROOT_NODE, labelHash));
@@ -126,7 +126,7 @@ contract SDaoRegistrar is Ownable, ISDaoRegistrar {
 
     _afterRegistration(account, labelHash);
 
-    emit NameRegistered(uint256(childNode), account, _msgSender());
+    emit NameRegistered(label, account, _msgSender());
   }
 
   /**

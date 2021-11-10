@@ -85,7 +85,7 @@ describe('SDAO Registrar', () => {
       'NameRegistered',
       (args) =>
         args.owner === signer2.address &&
-        args.id.toHexString() === node &&
+        args.label === label &&
         args.registrant === signer2.address
     );
     expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);

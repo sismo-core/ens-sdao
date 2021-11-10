@@ -15,7 +15,7 @@ interface ISDaoRegistrar {
    * @dev Emitted when a new name is registered through standard registration or claiming.
    */
   event NameRegistered(
-    uint256 indexed id,
+    string label,
     address indexed owner,
     address indexed registrant
   );

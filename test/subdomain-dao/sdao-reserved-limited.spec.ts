@@ -91,7 +91,7 @@ describe('SDAO Registrar - Reserved Limited', () => {
         'NameRegistered',
         (args) =>
           args.owner === signer1.address &&
-          args.id.toHexString() === node &&
+          args.label === label &&
           args.registrant === signer1.address
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
@@ -103,7 +103,7 @@ describe('SDAO Registrar - Reserved Limited', () => {
         'NameRegistered',
         (args) =>
           args.owner === signer1.address &&
-          args.id.toHexString() === node &&
+          args.label === label &&
           args.registrant === signer1.address
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer1.address);
@@ -132,7 +132,7 @@ describe('SDAO Registrar - Reserved Limited', () => {
         'NameRegistered',
         (args) =>
           args.owner === signer2.address &&
-          args.id.toHexString() === node &&
+          args.label === label &&
           args.registrant === signer2.address
       );
       expect(await ens.name(domain).getAddress()).to.be.equal(signer2.address);
