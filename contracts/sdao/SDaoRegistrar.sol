@@ -126,7 +126,7 @@ contract SDaoRegistrar is Ownable, ISDaoRegistrar {
 
     _afterRegistration(account, labelHash);
 
-    emit NameRegistered(label, account, _msgSender());
+    emit NameRegistered(uint256(childNode), label, account, _msgSender());
   }
 
   /**

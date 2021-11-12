@@ -23,6 +23,7 @@ describe('SDAO Registrar - ERC1155 Generator', () => {
 
   const label = 'first';
   const domain = `${label}.${sismoLabel}.eth`;
+  const node = nameHash.hash(domain);
 
   const getLabelhash = (label: string) =>
     utils.keccak256(utils.toUtf8Bytes(label));
@@ -89,6 +90,7 @@ describe('SDAO Registrar - ERC1155 Generator', () => {
       'NameRegistered',
       (args) =>
         args.owner === signer2.address &&
+        args.id.toHexString() === node &&
         args.label === label &&
         args.registrant === signer2.address
     );
