@@ -16,6 +16,7 @@ interface ISDaoRegistrar {
    */
   event NameRegistered(
     uint256 indexed id,
+    string label,
     address indexed owner,
     address indexed registrant
   );

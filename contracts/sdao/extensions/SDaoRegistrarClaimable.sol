@@ -63,7 +63,7 @@ abstract contract SDaoRegistrarClaimable is
       'SDAO_REGISTRAR_CLAIMABLE: SENDER_NOT_ALLOWED'
     );
 
-    _register(account, labelHash);
+    _register(account, label);
 
     ENS_LABEL_BOOKER.deleteBooking(labelHash);
   }
