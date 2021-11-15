@@ -1,7 +1,7 @@
 {
   "name": "@sismo-core/ens-sdao",
   "description": "ENS Subdomain DAO (SDAO) Contracts library",
-  "version": "0.0.6",
+  "version": "0.0.1-semantic-release",
   "scripts": {
     "compile": "SKIP_LOAD=true hardhat compile",
     "test:sdao-erc721-generator": "hardhat test ./test/subdomain-dao/sdao-erc721-generator.spec.ts",
@@ -72,7 +72,8 @@
     "husky": "^4.3.8",
     "prettier": "^2.3.2",
     "prettier-plugin-solidity": "^1.0.0-alpha.53",
-    "pretty-quick": "^3.1.1"
+    "pretty-quick": "^3.1.1",
+    "semantic-release": "^18.0.0"
   },
   "husky": {
     "hooks": {
