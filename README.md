@@ -22,7 +22,9 @@ yarn add @sismo-core/ens-sdao
 
 Once the package installed, the contracts are available using regular solidity imports.
 
-Your Subdomain DAO contract can be constructed by using the available extensions, as an example here is the Sismo Subdomain DAO contract used for our Generation X release
+Your Subdomain DAO contract can be constructed by using the available extensions.
+
+As an example, here is the Sismo Subdomain DAO contract used for our Generation X release
 ```solidity
 pragma solidity >=0.8.4;
 
