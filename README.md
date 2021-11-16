@@ -6,6 +6,98 @@ SDAO members are all owners of a subdomain (e.g `ziki.sismo.eth`). You can read 
 
 This repository publishes a set of smart contracts that can be used to kickstart a SDAO. Please feel free to create issues or to connect with its maintainer: [@sismo_eth]() on twitter or contact at sismo.io
 
+# NPM Package
+
+## Installation
+
+If using npm
+```console
+npm install @sismo-core/ens-sdao
+```
+If using yarn
+```console
+yarn add @sismo-core/ens-sdao
+```
+## Usage
+
+Once the package installed, the contracts are available using regular solidity imports.
+
+Your Subdomain DAO contract can be constructed by using the available extensions.
+
+As an example, here is the Sismo Subdomain DAO contract used for one of our releases
+```solidity
+pragma solidity >=0.8.4;
+
+import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
+import {ENS} from '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
+import {SDaoRegistrar} from '@sismo-core/ens-sdao/contracts/sdao/SDaoRegistrar.sol';
+import {SDaoRegistrarLimited} from '@sismo-core/ens-sdao/contracts/sdao/extensions/SDaoRegistrarLimited.sol';
+import {SDaoRegistrarReserved} from '@sismo-core/ens-sdao/contracts/sdao/extensions/SDaoRegistrarReserved.sol';
+import {SDaoRegistrarERC721Generator, IERC721Minter} from '@sismo-core/ens-sdao/contracts/sdao/extensions/SDaoRegistrarERC721Generator.sol';
+import {SDaoRegistrarCodeAccessible} from '@sismo-core/ens-sdao/contracts/sdao/extensions/SDaoRegistrarCodeAccessible.sol';
+
+contract SismoSDaoRegistrar is
+  SDaoRegistrar,
+  SDaoRegistrarLimited,
+  SDaoRegistrarReserved,
+  SDaoRegistrarERC721Generator,
+  SDaoRegistrarCodeAccessible
+{
+  uint256 public _groupId;
+
+  event GroupIdUpdated(uint256 groupId);
+
+  constructor(
+    ENS ensAddr,
+    PublicResolver resolver,
+    IERC721Minter erc721Token,
+    bytes32 node,
+    address owner,
+    uint256 reservationDuration,
+    uint256 registrationLimit,
+    uint256 groupId,
+    address codeSigner
+  )
+    SDaoRegistrarCodeAccessible('Sismo', '1.0', codeSigner)
+    SDaoRegistrarERC721Generator(erc721Token)
+    SDaoRegistrarLimited(registrationLimit)
+    SDaoRegistrarReserved(reservationDuration)
+    SDaoRegistrar(ensAddr, resolver, node, owner)
+  {
+    _groupId = groupId;
+  }
+
+  function _beforeRegistration(address account, bytes32 labelHash)
+    internal
+    virtual
+    override(
+      SDaoRegistrar,
+      SDaoRegistrarReserved,
+      SDaoRegistrarLimited,
+      SDaoRegistrarERC721Generator
+    )
+  {
+    super._beforeRegistration(account, labelHash);
+  }
+
+  function _afterRegistration(address account, bytes32 labelHash)
+    internal
+    virtual
+    override(SDaoRegistrar, SDaoRegistrarLimited, SDaoRegistrarERC721Generator)
+  {
+    super._afterRegistration(account, labelHash);
+  }
+
+  function _getCurrentGroupId() internal view override returns (uint256) {
+    return _groupId;
+  }
+
+  function updateGroupId(uint256 groupId) external onlyOwner {
+    _groupId = groupId;
+    emit GroupIdUpdated(groupId);
+  }
+}
+```
 # SDAO Contracts
 
 The core contract `SDaoRegistrar` distributes subdomains to registrants. This contract must be set as the owner of the DAO domain name (e.g `domain.eth`). It contains the registration logic.
@@ -18,12 +110,12 @@ A list of presets is also available. They are pre-configured contracts, ready to
 
 The code of this repository resolves around ENS, it is advised to be familiar with [Ethereum Name Service](https://ens.domains/) notions.
 
-# Core contract: SDaoRegistrar (FCFS)
+## Core contract: SDaoRegistrar (FCFS)
 
 The contract allows first-come first-served (FCFS) registration of a subdomain, e.g. `label.domain.eth` through the `register`  method. 
 The ownership of the subdomain is given to the registrant. The newly created subdomain resolves to the registrant.
 
-```ts
+```solidity
 function register(string memory label)
     public
     virtual
@@ -36,7 +128,7 @@ function register(string memory label)
 
 The internal registration method `_register` is exposed internally for extensions of the `SDaoRegistrar`. Two hooks can be used: `_beforeRegistration` and `_afterRegistration`
 
-```typescript
+```solidity
 function _register(address account, string memory label) internal {
     bytes32 labelHash = keccak256(bytes(label));
     _beforeRegistration(account, labelHash);
@@ -47,7 +139,7 @@ function _register(address account, string memory label) internal {
 
 ### Constructor
 
-```ts
+```solidity
 constructor(
     ENS ensAddr, // ENS Registry
     PublicResolver resolver, // Resolver to be used
@@ -72,7 +164,7 @@ extensions are easy to read: `/contracts/sdao/extensions/*.sol`
 
 ### SDaoRegistrarReserved Extension
 
-```ts
+```solidity
 function _beforeRegistration(address account, bytes32 labelHash)
     internal
     virtual
@@ -99,7 +191,7 @@ See `contracts/sdao/extensions/SDaoRegistrarReserved.sol` for the implementation
 
 ### SDaoRegistrarLimited Extension
 
-```ts
+```solidity
 function _beforeRegistration(address account, bytes32 labelHash)
     internal
     virtual
@@ -113,7 +205,7 @@ function _beforeRegistration(address account, bytes32 labelHash)
     );
   }
 ```
-```ts
+```solidity
 function _afterRegistration(address account, bytes32 labelHash)
     internal
     virtual
@@ -130,7 +222,7 @@ A counter for the number of registered subdomains and a registration limit numbe
 See `contracts/sdao/extensions/SDaoRegistrarLimited.sol` for the implementation.
 
 ### SDaoRegistrarERC721Generator Extension
-```ts
+```solidity
 function _afterRegistration(address account, bytes32 labelHash)
     internal
     virtual
@@ -145,7 +237,7 @@ function _afterRegistration(address account, bytes32 labelHash)
   An ERC721 is minted and the registration is blocked if the balance of the registrant is not zero.
   See `contracts/sdao/extensions/SDaoRegistrarERC721Generator.sol` for the implementation.
 ### SDaoRegistrarERC1155Generator Extension
-```ts
+```solidity
 function _afterRegistration(address account, bytes32 labelHash)
     internal
     virtual
@@ -165,7 +257,7 @@ See `contracts/sdao/extensions/SDaoRegistrarERC1155Generator.sol` for the implem
 
 
 ### SDaoRegistrarCodeAccessible Extension
-```ts
+```solidity
 function registerWithAccessCode(
     string memory label,
     address recipient,
@@ -197,7 +289,7 @@ See `contracts/sdao/extensions/SDaoRegistrarCodeAccessible.sol` for the implemen
 
 ### SDaoRegistrarClaimable Extension
 
-```ts
+```solidity
 function claim(string memory label, address account) public override {
     bytes32 labelHash = keccak256(bytes(label));
     address bookingAddress = ENS_LABEL_BOOKER.getBooking(labelHash);
@@ -246,8 +338,6 @@ See `contracts/sdao/presets/*.sol` for the implementations.
 ## Hardhat scripts
 
 **Note:** Most of the scripts are used for development purposes. Deployment scripts for the various presets are available but it is strongly advised to understand them before using them.
-
-#### 
 
 #### `deploy-ens-full`
 
