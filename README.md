@@ -10,11 +10,12 @@ This repository publishes a set of smart contracts that can be used to kickstart
 
 ## Installation
 
+If using npm
 ```bash
-# if using npm
 npm install @sismo-core/ens-sdao
-
-# or if using yarn
+```
+If using yarn
+```bash
 yarn add @sismo-core/ens-sdao
 ```
 ## Usage
@@ -112,7 +113,7 @@ The code of this repository resolves around ENS, it is advised to be familiar wi
 The contract allows first-come first-served (FCFS) registration of a subdomain, e.g. `label.domain.eth` through the `register`  method. 
 The ownership of the subdomain is given to the registrant. The newly created subdomain resolves to the registrant.
 
-```ts
+```solidity
 function register(string memory label)
     public
     virtual
@@ -125,7 +126,7 @@ function register(string memory label)
 
 The internal registration method `_register` is exposed internally for extensions of the `SDaoRegistrar`. Two hooks can be used: `_beforeRegistration` and `_afterRegistration`
 
-```typescript
+```solidity
 function _register(address account, string memory label) internal {
     bytes32 labelHash = keccak256(bytes(label));
     _beforeRegistration(account, labelHash);
@@ -136,7 +137,7 @@ function _register(address account, string memory label) internal {
 
 ### Constructor
 
-```ts
+```solidity
 constructor(
     ENS ensAddr, // ENS Registry
     PublicResolver resolver, // Resolver to be used
@@ -161,7 +162,7 @@ extensions are easy to read: `/contracts/sdao/extensions/*.sol`
 
 ### SDaoRegistrarReserved Extension
 
-```ts
+```solidity
 function _beforeRegistration(address account, bytes32 labelHash)
     internal
     virtual
@@ -188,7 +189,7 @@ See `contracts/sdao/extensions/SDaoRegistrarReserved.sol` for the implementation
 
 ### SDaoRegistrarLimited Extension
 
-```ts
+```solidity
 function _beforeRegistration(address account, bytes32 labelHash)
     internal
     virtual
@@ -202,7 +203,7 @@ function _beforeRegistration(address account, bytes32 labelHash)
     );
   }
 ```
-```ts
+```solidity
 function _afterRegistration(address account, bytes32 labelHash)
     internal
     virtual
@@ -219,7 +220,7 @@ A counter for the number of registered subdomains and a registration limit numbe
 See `contracts/sdao/extensions/SDaoRegistrarLimited.sol` for the implementation.
 
 ### SDaoRegistrarERC721Generator Extension
-```ts
+```solidity
 function _afterRegistration(address account, bytes32 labelHash)
     internal
     virtual
@@ -234,7 +235,7 @@ function _afterRegistration(address account, bytes32 labelHash)
   An ERC721 is minted and the registration is blocked if the balance of the registrant is not zero.
   See `contracts/sdao/extensions/SDaoRegistrarERC721Generator.sol` for the implementation.
 ### SDaoRegistrarERC1155Generator Extension
-```ts
+```solidity
 function _afterRegistration(address account, bytes32 labelHash)
     internal
     virtual
@@ -254,7 +255,7 @@ See `contracts/sdao/extensions/SDaoRegistrarERC1155Generator.sol` for the implem
 
 
 ### SDaoRegistrarCodeAccessible Extension
-```ts
+```solidity
 function registerWithAccessCode(
     string memory label,
     address recipient,
@@ -286,7 +287,7 @@ See `contracts/sdao/extensions/SDaoRegistrarCodeAccessible.sol` for the implemen
 
 ### SDaoRegistrarClaimable Extension
 
-```ts
+```solidity
 function claim(string memory label, address account) public override {
     bytes32 labelHash = keccak256(bytes(label));
     address bookingAddress = ENS_LABEL_BOOKER.getBooking(labelHash);
