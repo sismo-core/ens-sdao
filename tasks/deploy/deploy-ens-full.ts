@@ -13,7 +13,7 @@ import {
   ReverseRegistrar,
   PublicResolver,
 } from '../../types';
-import { DeployedSDao } from './subdomain-dao/deploy-sdao';
+import { DeployedSDao } from './sdao/deploy-sdao';
 
 type DeployEnsFullArgs = {
   // additionally deploy SDAO contracts

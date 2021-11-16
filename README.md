@@ -60,7 +60,7 @@ The node corresponds to the [namehash](https://docs.ens.domains/contract-api-ref
 
 ### Interface and Implementation
 
-See `contracts/subdomain-dao/ISDaoRegistrar.sol` and `contracts/subdomain-dao/SDaoRegistrar.sol` for the exact interface and implementation.
+See `contracts/sdao/ISDaoRegistrar.sol` and `contracts/sdao/SDaoRegistrar.sol` for the exact interface and implementation.
 
 ## Extensions
 
@@ -68,7 +68,7 @@ An extension is an abstract contract which inherits the `SDaoRegistrar` core con
 
 It may add other public methods for registration using the internal registration method or/and implements the `beforeRegistration` and `afterRegistration` hooks.
 
-extensions are easy to read: `/contracts/subdomain-dao/extensions/*.sol`
+extensions are easy to read: `/contracts/sdao/extensions/*.sol`
 
 ### SDaoRegistrarReserved Extension
 
@@ -95,7 +95,7 @@ function _beforeRegistration(address account, bytes32 labelHash)
 
 A reservation period is introduced during which registration of a subdomain `subdomain.domain.eth` is blocked if the related `subdomain.eth` is owned by someone else than the registrant. The reservation period can be updated by the owner of the contract.
 
-See `contracts/subdomain-dao/extensions/SDaoRegistrarReserved.sol` for the implementation.
+See `contracts/sdao/extensions/SDaoRegistrarReserved.sol` for the implementation.
 
 ### SDaoRegistrarLimited Extension
 
@@ -127,7 +127,7 @@ function _afterRegistration(address account, bytes32 labelHash)
 
 A counter for the number of registered subdomains and a registration limit number are added. If the counter reaches the registration limit, registration is blocked. The registration limit can be updated by the owner of the contract.
 
-See `contracts/subdomain-dao/extensions/SDaoRegistrarLimited.sol` for the implementation.
+See `contracts/sdao/extensions/SDaoRegistrarLimited.sol` for the implementation.
 
 ### SDaoRegistrarERC721Generator Extension
 ```ts
@@ -143,7 +143,7 @@ function _afterRegistration(address account, bytes32 labelHash)
   }
   ```
   An ERC721 is minted and the registration is blocked if the balance of the registrant is not zero.
-  See `contracts/subdomain-dao/extensions/SDaoRegistrarERC721Generator.sol` for the implementation.
+  See `contracts/sdao/extensions/SDaoRegistrarERC721Generator.sol` for the implementation.
 ### SDaoRegistrarERC1155Generator Extension
 ```ts
 function _afterRegistration(address account, bytes32 labelHash)
@@ -161,7 +161,7 @@ function _afterRegistration(address account, bytes32 labelHash)
 
 An ERC1155 token is minted for the registrant after each registration. The ERC1155 token ID and data are left free to be implemented by the developer.
 The registration is blocked if the balance of the registrant is not zero, based on a `balanceOf` method to be implemented by the developer.
-See `contracts/subdomain-dao/extensions/SDaoRegistrarERC1155Generator.sol` for the implementation.
+See `contracts/sdao/extensions/SDaoRegistrarERC1155Generator.sol` for the implementation.
 
 
 ### SDaoRegistrarCodeAccessible Extension
@@ -193,7 +193,7 @@ The message must be signed by a specific `code signer` address in order to be va
 
 An access code can only be consumed once.
 
-See `contracts/subdomain-dao/extensions/SDaoRegistrarCodeAccessible.sol` for the implementation.
+See `contracts/sdao/extensions/SDaoRegistrarCodeAccessible.sol` for the implementation.
 
 ### SDaoRegistrarClaimable Extension
 
@@ -222,7 +222,7 @@ A new public method of registration `claim` is added. It allows to register a su
 
 The FCFS served registration is blocked if the subdomain is already booked.
 
-See `contracts/subdomain-dao/extensions/SDaoRegistrarClaimable.sol` and `contracts/ens-label-booker/ENSLabelBooker.sol` for the implementation of the extension and the Label Booker contracts.
+See `contracts/sdao/extensions/SDaoRegistrarClaimable.sol` and `contracts/ens-label-booker/ENSLabelBooker.sol` for the implementation of the extension and the Label Booker contracts.
 
 ## Presets
 
@@ -241,7 +241,7 @@ A preset is an SDAO Registrar contract extended with a set of extensions. It may
   - hardhat task: `deploy-sdao-preset-claimable`
   - implements `SDaoRegistrarClaimable` extension
 
-See `contracts/subdomain-dao/presets/*.sol` for the implementations.
+See `contracts/sdao/presets/*.sol` for the implementations.
 
 ## Hardhat scripts
 
