@@ -6,6 +6,95 @@ SDAO members are all owners of a subdomain (e.g `ziki.sismo.eth`). You can read 
 
 This repository publishes a set of smart contracts that can be used to kickstart a SDAO. Please feel free to create issues or to connect with its maintainer: [@sismo_eth]() on twitter or contact at sismo.io
 
+# NPM Package
+
+## Installation
+
+```bash
+# if using npm
+npm install @sismo-core/ens-sdao
+
+# or if using yarn
+yarn add @sismo-core/ens-sdao
+```
+## Usage
+
+Once the package installed, the contracts are available using regular solidity imports.
+
+Your Subdomain DAO contract can be constructed by using the available extensions, as an example here is the Sismo Subdomain DAO contract used for our Generation X release
+```solidity
+pragma solidity >=0.8.4;
+
+import {PublicResolver} from '@ensdomains/ens-contracts/contracts/resolvers/PublicResolver.sol';
+import {ENS} from '@ensdomains/ens-contracts/contracts/registry/ENS.sol';
+import {SDaoRegistrar} from '@sismo-core/ens-sdao/contracts/sdao/SDaoRegistrar.sol';
+import {SDaoRegistrarLimited} from '@sismo-core/ens-sdao/contracts/sdao/extensions/SDaoRegistrarLimited.sol';
+import {SDaoRegistrarReserved} from '@sismo-core/ens-sdao/contracts/sdao/extensions/SDaoRegistrarReserved.sol';
+import {SDaoRegistrarERC721Generator, IERC721Minter} from '@sismo-core/ens-sdao/contracts/sdao/extensions/SDaoRegistrarERC721Generator.sol';
+import {SDaoRegistrarCodeAccessible} from '@sismo-core/ens-sdao/contracts/sdao/extensions/SDaoRegistrarCodeAccessible.sol';
+
+contract SismoSDaoRegistrar is
+  SDaoRegistrar,
+  SDaoRegistrarLimited,
+  SDaoRegistrarReserved,
+  SDaoRegistrarERC721Generator,
+  SDaoRegistrarCodeAccessible
+{
+  uint256 public _groupId;
+
+  event GroupIdUpdated(uint256 groupId);
+
+  constructor(
+    ENS ensAddr,
+    PublicResolver resolver,
+    IERC721Minter erc721Token,
+    bytes32 node,
+    address owner,
+    uint256 reservationDuration,
+    uint256 registrationLimit,
+    uint256 groupId,
+    address codeSigner
+  )
+    SDaoRegistrarCodeAccessible('Sismo', '1.0', codeSigner)
+    SDaoRegistrarERC721Generator(erc721Token)
+    SDaoRegistrarLimited(registrationLimit)
+    SDaoRegistrarReserved(reservationDuration)
+    SDaoRegistrar(ensAddr, resolver, node, owner)
+  {
+    _groupId = groupId;
+  }
+
+  function _beforeRegistration(address account, bytes32 labelHash)
+    internal
+    virtual
+    override(
+      SDaoRegistrar,
+      SDaoRegistrarReserved,
+      SDaoRegistrarLimited,
+      SDaoRegistrarERC721Generator
+    )
+  {
+    super._beforeRegistration(account, labelHash);
+  }
+
+  function _afterRegistration(address account, bytes32 labelHash)
+    internal
+    virtual
+    override(SDaoRegistrar, SDaoRegistrarLimited, SDaoRegistrarERC721Generator)
+  {
+    super._afterRegistration(account, labelHash);
+  }
+
+  function _getCurrentGroupId() internal view override returns (uint256) {
+    return _groupId;
+  }
+
+  function updateGroupId(uint256 groupId) external onlyOwner {
+    _groupId = groupId;
+    emit GroupIdUpdated(groupId);
+  }
+}
+```
 # SDAO Contracts
 
 The core contract `SDaoRegistrar` distributes subdomains to registrants. This contract must be set as the owner of the DAO domain name (e.g `domain.eth`). It contains the registration logic.
@@ -18,7 +107,7 @@ A list of presets is also available. They are pre-configured contracts, ready to
 
 The code of this repository resolves around ENS, it is advised to be familiar with [Ethereum Name Service](https://ens.domains/) notions.
 
-# Core contract: SDaoRegistrar (FCFS)
+## Core contract: SDaoRegistrar (FCFS)
 
 The contract allows first-come first-served (FCFS) registration of a subdomain, e.g. `label.domain.eth` through the `register`  method. 
 The ownership of the subdomain is given to the registrant. The newly created subdomain resolves to the registrant.
@@ -246,8 +335,6 @@ See `contracts/sdao/presets/*.sol` for the implementations.
 ## Hardhat scripts
 
 **Note:** Most of the scripts are used for development purposes. Deployment scripts for the various presets are available but it is strongly advised to understand them before using them.
-
-#### 
 
 #### `deploy-ens-full`
 
