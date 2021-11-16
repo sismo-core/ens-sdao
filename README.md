@@ -11,11 +11,11 @@ This repository publishes a set of smart contracts that can be used to kickstart
 ## Installation
 
 If using npm
-```bash
+```console
 npm install @sismo-core/ens-sdao
 ```
 If using yarn
-```bash
+```console
 yarn add @sismo-core/ens-sdao
 ```
 ## Usage
